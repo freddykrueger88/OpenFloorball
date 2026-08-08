@@ -78,6 +78,24 @@ export default function AdminSection() {
     }
   };
 
+  // Backlog: "kein manueller Backup jetzt ausführen-Endpunkt" – Admins
+  // müssen nicht mehr auf den nächsten Zeitplan-Lauf warten (z.B. vor
+  // riskanten Wartungsarbeiten).
+  const [runningBackup, setRunningBackup] = useState(false);
+  const [backupRunResult, setBackupRunResult] = useState(null);
+  const handleRunBackupNow = async () => {
+    setRunningBackup(true);
+    setBackupConfigError(null);
+    setBackupRunResult(null);
+    try {
+      setBackupRunResult(await apiFetch('/api/admin/backup-run', { method: 'POST' }));
+    } catch (err) {
+      setBackupConfigError(err.message);
+    } finally {
+      setRunningBackup(false);
+    }
+  };
+
   const handleDeleteUser = async (id) => {
     setAdminError(null);
     try {
@@ -244,6 +262,26 @@ export default function AdminSection() {
                 onChange={(e) => patchBackupConfig({ retention: parseInt(e.target.value, 10) || 1 })}
               />
             </div>
+
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              className={styles.smallBtn}
+              onClick={handleRunBackupNow}
+              disabled={runningBackup}
+            >
+              {runningBackup ? t('settings.runningBackupNow') : t('settings.runBackupNow')}
+            </Button>
+            {backupRunResult && (
+              <p className={styles.msgOk}>
+                <Check size={16} aria-hidden="true" />{' '}
+                {t('settings.backupRunSuccess', {
+                  count: backupRunResult.count,
+                  timestamp: formatDate(backupRunResult.timestamp, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                })}
+              </p>
+            )}
           </>
         )}
       </div>

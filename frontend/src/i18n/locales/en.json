@@ -159,6 +159,10 @@
     "scheduleDaily": "Daily",
     "scheduleWeekly": "Weekly",
     "retention": "Retention (number of runs)",
+    "runBackupNow": "Run now",
+    "runningBackupNow": "Running backup…",
+    "backupRunSuccess": "Backup complete: {{count}} user(s) backed up ({{timestamp}}).",
+    "backupRunError": "Backup run failed. Please try again.",
     "loadingPage": "Loading…",
     "teams": {
       "intro": "A team shares roster, playbooks, training sessions, and formation templates between multiple coaches.",

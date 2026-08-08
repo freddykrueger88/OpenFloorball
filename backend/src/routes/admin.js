@@ -7,7 +7,7 @@ import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
   listUsers, deleteUser, updateUserRole, getBackupConfig, updateBackupConfig,
-  getAiConfig, updateAiConfig,
+  triggerBackupNow, getAiConfig, updateAiConfig,
 } from '../controllers/adminController.js';
 import { listReportedLibraryEntries } from '../controllers/libraryController.js';
 
@@ -32,6 +32,7 @@ router.put('/backup-config', [
   body('retention').isInt({ min: 1, max: 90 }).withMessage('Aufbewahrung 1-90'),
   validate,
 ], updateBackupConfig);
+router.post('/backup-run', triggerBackupNow);
 
 router.get('/ai-config', getAiConfig);
 router.put('/ai-config', [

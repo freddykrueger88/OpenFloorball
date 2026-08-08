@@ -159,6 +159,10 @@
     "scheduleDaily": "Täglich",
     "scheduleWeekly": "Wöchentlich",
     "retention": "Aufbewahrung (Anzahl Läufe)",
+    "runBackupNow": "Jetzt ausführen",
+    "runningBackupNow": "Backup läuft…",
+    "backupRunSuccess": "Backup abgeschlossen: {{count}} Nutzer gesichert ({{timestamp}}).",
+    "backupRunError": "Backup-Lauf fehlgeschlagen. Bitte erneut versuchen.",
     "loadingPage": "Wird geladen…",
     "teams": {
       "intro": "Ein Team teilt Kader, Playbooks, Trainingspläne und Formationsvorlagen zwischen mehreren Trainern.",

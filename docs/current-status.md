@@ -53,7 +53,8 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   Export/Import (ZIP), Account-Löschung inkl. Anonymisierung
   veröffentlichter Bibliothekseinträge.
 - **Automatische Backups** (Cron, konfigurierbares Zeitplan/
-  Aufbewahrung).
+  Aufbewahrung) sowie ein manueller "Jetzt ausführen"-Button im
+  Admin-Bereich für einen sofortigen Lauf unabhängig vom Zeitplan.
 - **Onboarding-Tour** für neue Nutzer (überspringbar, wiederholbar) und
   **vertiefte Editor-Tour** (Backlog-ISSUE 024) direkt im Board-Editor
   – zwei unabhängige Touren mit getrennten "gesehen"-Status
@@ -116,8 +117,6 @@ konkrete Backlog-Einträge vor (siehe unten).
 - **Formale Barrierefreiheits-Zertifizierung** (WCAG 2.1 AA/BITV 2.0/
   EN 301 549 durch Dritte) steht aus – die Funktionen selbst sind
   umgesetzt, aber nicht extern zertifiziert.
-- **Kein manueller "Backup jetzt ausführen"-Endpunkt** – Backups
-  laufen ausschließlich nach Zeitplan.
 
 ## Bekannte Probleme
 

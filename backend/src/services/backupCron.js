@@ -7,6 +7,11 @@
  * /app/backups/<ISO-Timestamp>/<userId>.zip abgelegt; danach werden
  * Zeitstempel-Verzeichnisse über die konfigurierte Aufbewahrung hinaus
  * gelöscht (älteste zuerst).
+ *
+ * `runBackupNow()` läuft unabhängig davon, ob `backup_enabled` gesetzt ist
+ * (nur `rescheduleBackupCron()` prüft das) – so kann sie auch für den
+ * manuellen "Jetzt ausführen"-Button im Admin-Bereich direkt
+ * wiederverwendet werden, ohne dass automatische Backups aktiv sein müssen.
  */
 import fs from 'fs/promises';
 import path from 'path';
@@ -68,6 +73,7 @@ export async function runBackupNow() {
 
   await enforceRetention(config?.backup_retention ?? 7);
   logger.info(`Automatic backup run complete: ${count} user(s) backed up`);
+  return { count, timestamp: new Date().toISOString() };
 }
 
 function cronExpressionFor(schedule) {

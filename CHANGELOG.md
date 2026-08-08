@@ -14,6 +14,15 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Manueller Backup-Trigger: "Jetzt ausführen"-Button im Admin-Bereich
+  bei den automatischen Backups, löst denselben Job wie der Cron-Lauf
+  sofort für alle Nutzer aus (`POST /api/admin/backup-run`) –
+  unabhängig davon, ob automatische Backups aktiviert sind. Sinnvoll
+  z. B. vor riskanten Wartungsarbeiten, ohne auf den nächsten
+  planmäßigen Lauf warten zu müssen. Läuft bewusst synchron im
+  Request (wie der Cron-Lauf selbst auch) statt über eine eigene
+  Job-Queue – für die self-hosted Zielgruppe (einzelner Verein, keine
+  tausenden Nutzer) wäre das unnötige Komplexität.
 - Video → Taktik-Board: eine über den Video-Zeichnen-Werkzeugen
   angefertigte Überlagerung (Pfeile/Freihand) lässt sich per Klick
   ("Als Taktik-Board übernehmen") in ein neues, eigenständiges,

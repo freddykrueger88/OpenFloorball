@@ -278,3 +278,33 @@ describe('Admin Backup-Config', () => {
     expect(res.status).toBe(422);
   });
 });
+
+describe('POST /api/admin/backup-run', () => {
+  it('lehnt Nicht-Admins mit 403 ab', async () => {
+    const res = await request(app).post('/api/admin/backup-run').set('Cookie', regular.cookie);
+    expect(res.status).toBe(403);
+  });
+
+  it('lehnt nicht authentifizierte Anfragen mit 401 ab', async () => {
+    const res = await request(app).post('/api/admin/backup-run');
+    expect(res.status).toBe(401);
+  });
+
+  it('führt für Admins sofort einen Backup-Lauf aus und liefert count+timestamp', async () => {
+    const res = await request(app).post('/api/admin/backup-run').set('Cookie', admin.cookie);
+    expect(res.status).toBe(200);
+    expect(typeof res.body.data.count).toBe('number');
+    expect(res.body.data.count).toBeGreaterThanOrEqual(3); // owner, admin, regular existieren mindestens
+    expect(res.body.data.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+  });
+
+  it('funktioniert auch, wenn automatische Backups deaktiviert sind (unabhängig vom Zeitplan)', async () => {
+    await request(app)
+      .put('/api/admin/backup-config')
+      .set('Cookie', admin.cookie)
+      .send({ enabled: false, schedule: 'daily', retention: 7 });
+
+    const res = await request(app).post('/api/admin/backup-run').set('Cookie', admin.cookie);
+    expect(res.status).toBe(200);
+  });
+});

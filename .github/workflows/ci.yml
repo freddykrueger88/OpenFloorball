@@ -42,6 +42,7 @@ jobs:
       REDIS_PASSWORD: ''
       EXPORTS_DIR: /tmp/openfloorball-exports-ci
       VIDEOS_DIR: /tmp/openfloorball-videos-ci
+      BACKUPS_DIR: /tmp/openfloorball-backups-ci
     steps:
       - uses: actions/checkout@v7
 

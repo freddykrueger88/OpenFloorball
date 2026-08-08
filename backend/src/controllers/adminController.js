@@ -5,7 +5,7 @@
 import pool from '../db/pool.js';
 import logger from '../utils/logger.js';
 import { success, error } from '../utils/apiResponse.js';
-import { rescheduleBackupCron } from '../services/backupCron.js';
+import { rescheduleBackupCron, runBackupNow } from '../services/backupCron.js';
 import { deleteCommentsForUser } from './commentsController.js';
 
 async function adminCount() {
@@ -115,6 +115,22 @@ export async function updateBackupConfig(req, res) {
     }));
   } catch (err) {
     logger.error('[updateBackupConfig]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// POST /api/admin/backup-run – manueller Sofort-Trigger (Backlog: "kein
+// manueller Backup jetzt ausführen-Endpunkt"), nutzt dieselbe Funktion wie
+// der geplante Cron-Lauf. Läuft synchron im Request (wie der Cron-Lauf
+// selbst auch) – für die self-hosted Zielgruppe (einzelner Verein, keine
+// tausenden Nutzer) unnötig, dafür eine eigene Job-Queue einzuführen.
+export async function triggerBackupNow(req, res) {
+  try {
+    const result = await runBackupNow();
+    logger.info(`Admin ${req.user.id} manually triggered backup run (${result.count} user(s))`);
+    res.json(success(result));
+  } catch (err) {
+    logger.error('[triggerBackupNow]', err);
     res.status(500).json(error('Interner Serverfehler'));
   }
 }

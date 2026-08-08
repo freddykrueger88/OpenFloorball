@@ -23,6 +23,12 @@ wie der manuelle Export erzeugt und unter
 `backups_data`). Ältere Zeitstempel-Verzeichnisse über die konfigurierte
 Aufbewahrung hinaus werden automatisch gelöscht (älteste zuerst).
 
+Über den Button "Jetzt ausführen" lässt sich derselbe Lauf jederzeit
+sofort auslösen (z. B. vor riskanten Wartungsarbeiten), unabhängig
+davon, ob automatische Backups aktiviert sind oder wie der Zeitplan
+steht – nützlich, ohne auf den nächsten planmäßigen Lauf warten zu
+müssen.
+
 ## Datenbank-Backup (vollständig, außerhalb der App)
 
 Die automatischen Backups oben sichern die **Nutzerdaten als JSON**,

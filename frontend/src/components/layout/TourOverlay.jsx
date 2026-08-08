@@ -1,8 +1,19 @@
 /**
- * TourOverlay – Onboarding-Tour für neue Nutzer (ISSUE 023, "Einfach
- * starten", CLAUDE.md §15). Global gemountet (siehe App.jsx), damit sie
- * auf jeder Route erscheinen kann – die Ziel-Elemente sind Nav-Links in
- * Header.jsx (data-tour-Attribute).
+ * TourOverlay – wiederverwendbare Spotlight-Tour-Komponente, genutzt von
+ * zwei unabhängigen Touren:
+ *  - Nav-Tour (ISSUE 023, "Einfach starten", CLAUDE.md §15): global in
+ *    App.jsx gemountet, Ziel-Elemente sind Nav-Links in Header.jsx.
+ *  - Editor-Tour (ISSUE 024, Ausbau der Nav-Tour): in BoardEditorPage.jsx
+ *    gemountet, Ziel-Elemente sind Editor-Werkzeuge (Spielfeld,
+ *    Zeichnen-Tab, Frame-Leiste, Speicherstatus, Export-Tab).
+ *
+ * Beide teilen sich denselben tourStore.js (ein `activeTourId` – es kann
+ * nie beide Touren gleichzeitig geben) und dieselbe Darstellungslogik;
+ * `tourId`/`steps`/`settingsKey` parametrisieren pro Aufrufer, welche
+ * Schritte gezeigt werden und unter welchem Settings-Schlüssel der
+ * "gesehen"-Status persistiert wird – bewusst zwei getrennte Schlüssel
+ * (`tourCompleted`/`editorTourCompleted`), damit Überspringen/Abschließen
+ * der einen Tour die andere nicht beeinflusst.
  *
  * Persistenz bewusst über die bestehende, ungefilterte Settings-API
  * (`preferences_json`, siehe useSettings.js) statt einer neuen users-
@@ -26,37 +37,32 @@ import useAnnounceStore from '../../store/announceStore.js';
 import Button from '../common/Button.jsx';
 import styles from './TourOverlay.module.css';
 
-const STEPS = [
-  { target: null,             titleKey: 'tour.welcomeTitle',   bodyKey: 'tour.welcomeBody' },
-  { target: 'nav-boards',     titleKey: 'tour.boardsTitle',    bodyKey: 'tour.boardsBody' },
-  { target: 'nav-trainings',  titleKey: 'tour.trainingsTitle', bodyKey: 'tour.trainingsBody' },
-  { target: 'nav-library',    titleKey: 'tour.libraryTitle',   bodyKey: 'tour.libraryBody' },
-  { target: 'nav-settings',   titleKey: 'tour.settingsTitle',  bodyKey: 'tour.settingsBody' },
-  { target: null,             titleKey: 'tour.doneTitle',      bodyKey: 'tour.doneBody' },
-];
-
-export default function TourOverlay() {
+export default function TourOverlay({ tourId, steps, settingsKey, autoStart = true }) {
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
-  const active = useTourStore((s) => s.active);
+  const active = useTourStore((s) => s.activeTourId === tourId);
   const stepIndex = useTourStore((s) => s.stepIndex);
   const { settings, loading, updateSettings } = useSettings();
   const hasCheckedAutoStart = useRef(false);
   const containerRef = useRef(null);
   const [rect, setRect] = useState(null);
 
-  // Einmaliger Auto-Start: sobald die Settings geladen sind und die Tour
-  // laut Server noch nicht abgeschlossen wurde. ref-gesichert, damit ein
-  // erneutes Nachladen der Settings (z.B. nach anderen Änderungen) die
-  // Tour nicht ein zweites Mal auslöst.
+  // Einmaliger Auto-Start: sobald die Settings geladen sind und diese
+  // Tour laut Server noch nicht abgeschlossen wurde. ref-gesichert,
+  // damit ein erneutes Nachladen der Settings (z.B. nach anderen
+  // Änderungen) die Tour nicht ein zweites Mal auslöst. Läuft NICHT an,
+  // solange bereits eine andere Tour aktiv ist (activeTourId gesetzt) –
+  // verhindert, dass z.B. die Editor-Tour die noch laufende Nav-Tour
+  // unterbricht, falls beide Komponenten gleichzeitig gemountet sind.
   useEffect(() => {
-    if (hasCheckedAutoStart.current) return;
+    if (!autoStart || hasCheckedAutoStart.current) return;
     if (!user || loading || !settings) return;
+    if (useTourStore.getState().activeTourId) return;
     hasCheckedAutoStart.current = true;
-    if (!settings.tourCompleted) useTourStore.getState().start();
-  }, [user, loading, settings]);
+    if (!settings[settingsKey]) useTourStore.getState().start(tourId);
+  }, [autoStart, user, loading, settings, settingsKey, tourId]);
 
-  const step = STEPS[stepIndex];
+  const step = steps[stepIndex];
 
   // Spotlight-Rechteck über dem Zielelement, bei Resize/Scroll neu
   // berechnet (nur während die Tour aktiv ist).
@@ -87,9 +93,9 @@ export default function TourOverlay() {
   }, [active, step, t]);
 
   const handleClose = async () => {
-    const isLast = stepIndex === STEPS.length - 1;
+    const isLast = stepIndex === steps.length - 1;
     useTourStore.getState()[isLast ? 'finish' : 'skip']();
-    try { await updateSettings({ tourCompleted: true }); } catch { /* nicht kritisch, Tour bleibt lokal geschlossen */ }
+    try { await updateSettings({ [settingsKey]: true }); } catch { /* nicht kritisch, Tour bleibt lokal geschlossen */ }
   };
 
   useFocusTrap(containerRef, { active, onEscape: handleClose });
@@ -97,7 +103,7 @@ export default function TourOverlay() {
   if (!active || !step) return null;
 
   const isFirst = stepIndex === 0;
-  const isLast = stepIndex === STEPS.length - 1;
+  const isLast = stepIndex === steps.length - 1;
 
   return (
     <div ref={containerRef} className={styles.wrapper}>
@@ -116,7 +122,7 @@ export default function TourOverlay() {
       )}
 
       <div className={styles.card} role="dialog" aria-modal="true" aria-labelledby="tour-title">
-        <p className={styles.stepCounter}>{t('tour.stepCounter', { current: stepIndex + 1, total: STEPS.length })}</p>
+        <p className={styles.stepCounter}>{t('tour.stepCounter', { current: stepIndex + 1, total: steps.length })}</p>
         <h2 id="tour-title" className={styles.title}>{t(step.titleKey)}</h2>
         <p className={styles.body}>{t(step.bodyKey)}</p>
 

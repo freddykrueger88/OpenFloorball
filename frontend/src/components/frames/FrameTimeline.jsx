@@ -107,6 +107,7 @@ export default function FrameTimeline({
         variant="ghost"
         size="md"
         className={styles.addBtn}
+        data-tour="editor-frames"
         onClick={() => onAdd?.(currentPlayers, currentElements)}
         disabled={loading || frames.length >= MAX_FRAMES}
         aria-label={t('frames.addFrameAriaLabel')}

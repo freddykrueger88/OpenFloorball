@@ -52,7 +52,16 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   veröffentlichter Bibliothekseinträge.
 - **Automatische Backups** (Cron, konfigurierbares Zeitplan/
   Aufbewahrung).
-- **Onboarding-Tour** für neue Nutzer (überspringbar, wiederholbar).
+- **Onboarding-Tour** für neue Nutzer (überspringbar, wiederholbar) und
+  **vertiefte Editor-Tour** (Backlog-ISSUE 024) direkt im Board-Editor
+  – zwei unabhängige Touren mit getrennten "gesehen"-Status
+  (`tourCompleted`/`editorTourCompleted`), Überspringen/Abschließen
+  der einen beeinflusst die andere nicht. Die Editor-Tour ist über ein
+  Hilfe-Symbol im Editor jederzeit erneut aufrufbar (startet einmal
+  automatisch pro Account, nicht pro einzelnem neuen Board – bewusste
+  Abweichung von der wörtlichen Backlog-Formulierung "beim ersten
+  Öffnen eines neu erstellten Boards", um nicht bei jedem neuen Board
+  erneut zu erscheinen).
 - **Passwort-Reset-Flow** – E-Mail-Link mit einmal verwendbarem, eine
   Stunde gültigem Token (Hash statt Klartext in der DB, im Gegensatz
   zu Share-/Invite-Tokens bewusst die einzige Ausnahme – Besitz
@@ -97,8 +106,6 @@ konkrete Backlog-Einträge vor (siehe unten).
 
 ## Noch offen
 
-- **Vertiefte Editor-Tour** (Backlog-[ISSUE 024](./planning/BACKLOG.md))
-  – noch nicht begonnen.
 - **Native App-Store-Präsenz** (Google Play/Apple App Store) – bisher
   nur als installierbare PWA, kein nativer Wrapper.
 - **Vite 8 / ESLint 10** im Frontend – Upgrade blockiert durch
@@ -126,9 +133,10 @@ konkrete Backlog-Einträge vor (siehe unten).
 
 ## Nächste Schritte
 
-1. Vertiefte Editor-Tour umsetzen (Backlog-ISSUE 024).
-2. Vite 8 / ESLint 10 aktualisieren, sobald die
+1. Vite 8 / ESLint 10 aktualisieren, sobald die
    Peer-Dependency-Konflikte in den jeweiligen Ökosystemen gelöst sind.
+2. Native App-Store-Präsenz prüfen (PWA-Wrapper wie Capacitor/Trusted
+   Web Activity).
 
 ## Technischer Stand
 

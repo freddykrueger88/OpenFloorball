@@ -32,15 +32,19 @@ import {
   AlertTriangle,
   WifiOff,
   Library,
+  HelpCircle,
 } from 'lucide-react';
 
 import { IFF_FIELDS, DEFAULT_TEAM_COLORS, IFF_BALL_COLORS, ensureBall, BALL_ID } from '../constants/fieldConfig.js';
 import { POSITION_HINTS } from '../constants/positionHints.js';
+import { EDITOR_TOUR_STEPS } from '../constants/tourSteps.js';
 import { rescalePlayers, rescaleElements } from '../utils/fieldRescale.js';
 import { teamColorToFillStroke, normalizeStoredColor } from '../utils/color.js';
 import useAnnounceStore from '../store/announceStore.js';
 import useThemeStore from '../store/themeStore.js';
 import useAuthStore from '../store/authStore.js';
+import useTourStore from '../store/tourStore.js';
+import TourOverlay from '../components/layout/TourOverlay.jsx';
 
 import FieldContainer from '../components/field/FieldContainer.jsx';
 import FieldSettingsPanel from '../components/field/FieldSettingsPanel.jsx';
@@ -488,7 +492,7 @@ export default function BoardEditorPage() {
             <Users size={16} aria-hidden="true" /> {t('boardEditor.presenceCount', { count: otherPresentUsers.length })}
           </span>
         )}
-        <span className={`${styles.saveStatus} ${styles[saveStatus] ?? ''}`} aria-live="polite">
+        <span className={`${styles.saveStatus} ${styles[saveStatus] ?? ''}`} aria-live="polite" data-tour="editor-save">
           {saveStatus === 'saving'  && <><Loader2 size={14} className={styles.spin} aria-hidden="true" /> {t('boardEditor.saving')}</>}
           {saveStatus === 'saved'   && <><Check size={14} aria-hidden="true" /> {t('boardEditor.saved')}</>}
           {saveStatus === 'offline' && <><WifiOff size={14} aria-hidden="true" /> {t('boardEditor.saveOffline')}</>}
@@ -541,8 +545,20 @@ export default function BoardEditorPage() {
           >
             <Keyboard size={18} aria-hidden="true" />
           </Button>
+          <Button
+            variant="secondary"
+            size="md"
+            iconOnly
+            onClick={() => useTourStore.getState().start('editor')}
+            aria-label={t('editorTour.restartLabel')}
+            title={t('editorTour.restartLabel')}
+          >
+            <HelpCircle size={18} aria-hidden="true" />
+          </Button>
         </div>
       </header>
+
+      <TourOverlay tourId="editor" steps={EDITOR_TOUR_STEPS} settingsKey="editorTourCompleted" />
 
       {showShortcuts && <ShortcutsOverlay onClose={() => setShowShortcuts(false)} />}
       {showShareModal && <ShareBoardModal boardId={boardId} onClose={() => setShowShareModal(false)} />}
@@ -595,7 +611,7 @@ export default function BoardEditorPage() {
               onJumpHistory={drawing.jumpHistory}
             />
           )}
-          <div className={styles.fieldArea}>
+          <div className={styles.fieldArea} data-tour="editor-canvas">
             <FieldContainer
               fieldType={field.fieldType}
               showGrid={field.showGrid}
@@ -668,6 +684,7 @@ export default function BoardEditorPage() {
           tabs={[
             canEdit && {
               id: 'draw',
+              tourId: 'editor-tab-draw',
               label: t('boardEditor.tabs.draw'),
               icon: <Pencil size={16} aria-hidden="true" />,
               content: (
@@ -722,6 +739,7 @@ export default function BoardEditorPage() {
             },
             {
               id: 'export',
+              tourId: 'editor-tab-export',
               label: t('boardEditor.tabs.export'),
               icon: <Download size={16} aria-hidden="true" />,
               // UI/UX-Audit: Ende der "Medien/Export"-Tab-Gruppe

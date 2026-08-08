@@ -64,10 +64,10 @@ mobile Nutzung): **[docs/wiki/Screenshots.md](docs/wiki/Screenshots.md)**
 Der Kern (Taktikboard, Animation, Export) ist stabil im Einsatz.
 Rund um den Kern sind bereits Trainingsplaner, Team-/Vereinsverwaltung,
 Community-Bibliothek, vier KI-Assistenten, Video-Integration,
-Echtzeit-Präsenz (Live-Cursor) und ein Passwort-Reset-Flow
-implementiert. Eine vertiefte Editor-Einführungstour ist geplant aber
-nicht begonnen, und die Offline-Konflikterkennung deckt bisher nicht
-alle Ressourcen ab. Details, Einschränkungen und bekannte Probleme:
+Echtzeit-Präsenz (Live-Cursor), ein Passwort-Reset-Flow sowie eine
+zweistufige Einführungstour (Navigation + Board-Editor) implementiert.
+Die Offline-Konflikterkennung deckt bisher nicht alle Ressourcen ab.
+Details, Einschränkungen und bekannte Probleme:
 **[docs/current-status.md](docs/current-status.md)**.
 
 ## ✨ Features
@@ -86,24 +86,24 @@ alle Ressourcen ab. Details, Einschränkungen und bekannte Probleme:
 | Export als GIF/MP4/PDF | ✅ | [Export & Teilen](docs/wiki/Export.md) |
 | PWA / Offline-Modus | 🟡 | Konflikterkennung nur für Boards/Frames/Trainings/Kader, siehe [Offline-Modus](docs/wiki/Offline-Modus.md) |
 | Onboarding-Tour | ✅ | Beim ersten Login, überspringbar |
+| Vertiefte Editor-Tour | ✅ | Im Board-Editor, unabhängig von der Onboarding-Tour, über Hilfe-Symbol erneut aufrufbar |
 | DSGVO (Export, Löschung, Backup) | ✅ | [Datenschutz](docs/wiki/Datenschutz.md), [Backup](docs/wiki/Backup.md) |
 | Barrierefreiheit | ✅ | Farbenblind-Filter, Screenreader, Tastatur, Schriftgrößen |
 | Passwort-Reset | ✅ | Per E-Mail-Link, erfordert konfigurierten SMTP-Versand |
-| Vertiefte Editor-Tour | 🚧 | Geplant, siehe Roadmap |
 
 ## 🗺️ Roadmap
 
 **Fertig** (Auszug, vollständig siehe [CHANGELOG](CHANGELOG.md)):
 Taktikboard-Kern, Trainingsplaner, Teams/Vereine, Community-Bibliothek,
 KI-Assistenten, Video-Integration, Echtzeit-Präsenz, Onboarding-Tour,
-erweiterte Offline-Konfliktlösung, Passwort-Reset-Flow.
+vertiefte Editor-Tour, erweiterte Offline-Konfliktlösung,
+Passwort-Reset-Flow.
 
 **In Arbeit:** aktuell kein Feature in sichtbar unfertigem Zustand –
 siehe [docs/current-status.md](docs/current-status.md) für den
 laufend aktualisierten Stand.
 
 **Geplant** (Auszug aus [docs/planning/BACKLOG.md](docs/planning/BACKLOG.md)):
-- Vertiefte Editor-Tour (ISSUE 024)
 - Native App-Store-Präsenz (PWA-Wrapper)
 - Vite 8 / ESLint 10 Upgrade (aktuell durch Peer-Dependency-Konflikte blockiert)
 

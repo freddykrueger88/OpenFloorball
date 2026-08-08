@@ -1003,5 +1003,22 @@
     "back": "Zurück",
     "skip": "Überspringen",
     "finish": "Fertig"
+  },
+  "editorTour": {
+    "restartLabel": "Editor-Tour erneut starten",
+    "welcomeTitle": "Willkommen im Taktikboard-Editor!",
+    "welcomeBody": "Eine kurze Tour zeigt dir die wichtigsten Werkzeuge – jederzeit überspringbar, später über das Hilfe-Symbol erneut aufrufbar.",
+    "canvasTitle": "Spieler platzieren",
+    "canvasBody": "Ziehe Spieler und den Ball per Drag & Drop an ihre Position auf dem Spielfeld.",
+    "drawTitle": "Zeichnen",
+    "drawBody": "Zeichne Laufwege, Pässe und Schüsse über den Zeichnen-Tab.",
+    "framesTitle": "Szenen & Animation",
+    "framesBody": "Lege mehrere Szenen (Frames) an und spiele sie als Animation ab.",
+    "saveTitle": "Automatisches Speichern",
+    "saveBody": "Änderungen werden automatisch gespeichert – hier siehst du den aktuellen Speicherstatus.",
+    "exportTitle": "Exportieren & Teilen",
+    "exportBody": "Exportiere als GIF, MP4 oder PDF, oder erzeuge einen Link zum Teilen.",
+    "doneTitle": "Los geht's!",
+    "doneBody": "Du kannst diese Tour jederzeit über das Hilfe-Symbol oben rechts erneut starten."
   }
 }

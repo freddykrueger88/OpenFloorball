@@ -241,7 +241,7 @@ export default function PreferencesSection() {
       <section className={styles.section}>
         <h2>{t('settings.tourSectionTitle')}</h2>
         <p className={styles.fieldLabel}>{t('settings.restartTourDesc')}</p>
-        <Button variant="secondary" size="md" onClick={() => useTourStore.getState().start()}>
+        <Button variant="secondary" size="md" onClick={() => useTourStore.getState().start('nav')}>
           {t('settings.restartTour')}
         </Button>
       </section>

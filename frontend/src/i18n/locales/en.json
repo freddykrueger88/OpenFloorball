@@ -1003,5 +1003,22 @@
     "back": "Back",
     "skip": "Skip",
     "finish": "Finish"
+  },
+  "editorTour": {
+    "restartLabel": "Restart editor tour",
+    "welcomeTitle": "Welcome to the tactics board editor!",
+    "welcomeBody": "A short tour shows you the most important tools – skippable at any time, restartable later via the help icon.",
+    "canvasTitle": "Place players",
+    "canvasBody": "Drag players and the ball to their position on the field.",
+    "drawTitle": "Drawing",
+    "drawBody": "Draw movement paths, passes and shots via the Draw tab.",
+    "framesTitle": "Scenes & animation",
+    "framesBody": "Create multiple scenes (frames) and play them back as an animation.",
+    "saveTitle": "Automatic saving",
+    "saveBody": "Changes are saved automatically – this shows the current save status.",
+    "exportTitle": "Export & share",
+    "exportBody": "Export as GIF, MP4 or PDF, or create a shareable link.",
+    "doneTitle": "You're all set!",
+    "doneBody": "You can restart this tour at any time via the help icon in the top right."
   }
 }

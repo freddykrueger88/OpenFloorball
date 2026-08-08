@@ -37,6 +37,7 @@ export default function BoardSidePanelTabs({ tabs }) {
               type="button"
               role="tab"
               id={`board-tab-${tab.id}`}
+              data-tour={tab.tourId}
               aria-selected={expanded && tab.id === active?.id}
               aria-controls={`board-tabpanel-${tab.id}`}
               className={`${styles.tabBtn} ${expanded && tab.id === active?.id ? styles.active : ''}`}

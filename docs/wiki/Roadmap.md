@@ -16,13 +16,15 @@ Repository und werden dort kontinuierlich aktualisiert:
   [Echtzeit-Zusammenarbeit](./Echtzeit-Zusammenarbeit.md).
 - **Onboarding-Tour** (Backlog-ISSUE 023) – kurze, überspringbare
   Einführungstour beim ersten Login.
+- **Vertiefte Editor-Tour** (Backlog-ISSUE 024) – zweite, unabhängige
+  Tour direkt im Board-Editor, erklärt die konkreten Werkzeuge
+  (Spieler platzieren, Zeichnen, Szenen/Animation, automatisches
+  Speichern, Export/Teilen). Jederzeit über das Hilfe-Symbol im
+  Editor erneut aufrufbar.
 
 ## Offene Backlog-Highlights (Auszug)
 
 **Feature-Ideen:**
-- Vertiefte Editor-Tour (Backlog-ISSUE 024) – Aufbauend auf ISSUE 023,
-  erklärt direkt im Board-Editor die konkreten Werkzeuge (Spieler
-  platzieren, Laufwege zeichnen, Szenen, Animation).
 - Native App-Store-Präsenz (Google Play + Apple App Store) – App ist
   schon eine installierbare PWA (vite-plugin-pwa), naheliegender Weg
   wäre ein Wrapper wie Capacitor/Trusted Web Activity statt einer

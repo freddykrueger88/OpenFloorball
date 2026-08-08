@@ -14,6 +14,7 @@ import TourOverlay from './components/layout/TourOverlay.jsx';
 import useOfflineStore from './store/offlineStore.js';
 import { syncOfflineQueue } from './utils/offlineSync.js';
 import { getQueueCounts } from './utils/offlineQueue.js';
+import { NAV_TOUR_STEPS } from './constants/tourSteps.js';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/auth.css';
@@ -115,7 +116,7 @@ export default function App() {
         <LiveRegion />
         <OfflineBanner />
         <Header />
-        {user && <TourOverlay />}
+        {user && <TourOverlay tourId="nav" steps={NAV_TOUR_STEPS} settingsKey="tourCompleted" />}
         <Suspense fallback={<Loader />}>
           <Routes>
             <Route path="/" element={<Navigate to="/boards" replace />} />

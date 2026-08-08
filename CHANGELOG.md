@@ -14,6 +14,20 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Vertiefte Editor-Tour (Backlog-ISSUE 024, Ausbau der Onboarding-Tour
+  aus ISSUE 023): zweite, unabhängige Spotlight-Tour direkt im
+  Board-Editor – erklärt Spielerplatzierung, Zeichnen-Werkzeug,
+  Szenen/Animation, automatisches Speichern und Export/Teilen. Nutzt
+  dieselbe `tourStore.js`/`TourOverlay.jsx`-Grundlage wie die
+  Nav-Tour (jetzt parametrisiert über `tourId`/`steps`/`settingsKey`
+  statt fest verdrahtet) statt eines zweiten Tour-Frameworks. Eigener
+  "gesehen"-Status (`editorTourCompleted`, getrennt von
+  `tourCompleted`) – Überspringen/Abschließen der einen Tour
+  beeinflusst die andere nicht. Startet einmal automatisch pro
+  Account beim ersten Öffnen des Editors, jederzeit über ein
+  Hilfe-Symbol im Editor erneut aufrufbar. Per Playwright komplett
+  durchgespielt (alle 7 Schritte, automatischer Start, kein erneuter
+  Auto-Start nach Reload, manueller Neustart über das Hilfe-Symbol).
 - Passwort-Reset-Flow ("Passwort vergessen?" auf der Login-Seite):
   E-Mail-Link mit einmal verwendbarem, eine Stunde gültigem Token.
   Bewusst der einzige Token-Typ im Projekt, dessen Wert gehasht

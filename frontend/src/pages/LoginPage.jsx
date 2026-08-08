@@ -82,6 +82,10 @@ export default function LoginPage() {
         </form>
 
         <p className="auth-switch">
+          <Link to="/forgot-password">{t('auth.forgotPasswordLink')}</Link>
+        </p>
+
+        <p className="auth-switch">
           {t('auth.noAccount')}{' '}
           <Link to="/register">{t('auth.registerLink')}</Link>
         </p>

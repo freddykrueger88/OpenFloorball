@@ -14,6 +14,22 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Passwort-Reset-Flow ("Passwort vergessen?" auf der Login-Seite):
+  E-Mail-Link mit einmal verwendbarem, eine Stunde gültigem Token.
+  Bewusst der einzige Token-Typ im Projekt, dessen Wert gehasht
+  (SHA-256) statt im Klartext gespeichert wird (anders als Share-/
+  Invite-Tokens) – Besitz erlaubt eine vollständige Account-Übernahme,
+  ein DB-Leak darf das nicht automatisch mit-kompromittieren. Die
+  Anfrage-Antwort ist für existierende und nicht-existierende
+  E-Mail-Adressen identisch (keine Enumeration), ein neuer Request
+  macht den vorherigen Token desselben Nutzers ungültig (immer nur
+  ein aktiver Link). Erfordert konfigurierten SMTP-Versand (siehe
+  Wiki, E-Mail-Versand) – ohne SMTP bleibt die Funktion ohne
+  Fehlermeldung wirkungslos, analog zum bestehenden Board-Sharing-
+  Mailversand.
+- Automatisierte Backend-Tests für die Community-Bibliothek
+  (`library.test.js`, 23 Tests) – bisher bestand hier eine Testlücke
+  trotz produktivem Einsatz des Features.
 - Onboarding-Tour für neue Nutzer (Backlog-ISSUE 023, CLAUDE.md §15
   "Einfach starten"): kurze, jederzeit überspringbare Spotlight-Tour
   (Willkommen → Boards → Trainings → Übungsbibliothek → Einstellungen

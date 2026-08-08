@@ -22,6 +22,8 @@ Ressourcen-ID überhaupt existiert).
 | PUT | `/api/auth/name` | Namen ändern (auth.) |
 | PUT | `/api/auth/email` | E-Mail ändern (auth.) |
 | PUT | `/api/auth/password` | Passwort ändern (auth.) |
+| POST | `/api/auth/forgot-password` | Reset-Link per E-Mail anfordern (öffentlich, immer generische Antwort – keine Enumeration) |
+| POST | `/api/auth/reset-password` | Neues Passwort mit Token setzen (öffentlich, Token einmal verwendbar, 1h gültig) |
 
 ## Boards
 

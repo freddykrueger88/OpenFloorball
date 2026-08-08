@@ -1,9 +1,13 @@
 # 📧 E-Mail-Versand einrichten (z. B. mit Gmail)
 
-OpenFloorball verschickt aktuell eine kurze Benachrichtigungsmail, wenn
-ein Nutzer über den "Board teilen"-Button als Kollaborator zu einem
-Board hinzugefügt wird. Das ist komplett optional – ohne Konfiguration
-funktioniert die App unverändert, es wird nur keine Mail verschickt.
+OpenFloorball verschickt aktuell E-Mails in zwei Fällen: wenn ein
+Nutzer über den "Board teilen"-Button als Kollaborator zu einem Board
+hinzugefügt wird, und beim Passwort-Reset-Link. Für Board-Sharing ist
+das komplett optional – ohne Konfiguration funktioniert die App
+unverändert, es wird nur keine Mail verschickt. Der **Passwort-Reset
+funktioniert dagegen ohne SMTP-Konfiguration gar nicht** – ohne diese
+Einrichtung bleibt "Passwort vergessen?" wirkungslos (kein Fehler, aber
+auch keine Mail, siehe Schritt 4).
 
 > ⚠️ **Wichtig:** OpenFloorball verschickt Einladungen nur an **bereits
 > registrierte** OpenFloorball-Nutzer. Es gibt keinen Einladungslink für

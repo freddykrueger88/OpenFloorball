@@ -227,7 +227,22 @@
     "password": "Passwort",
     "name": "Name (optional)",
     "namePlaceholder": "z.B. Max Mustermann",
-    "passwordHint": "Mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl"
+    "passwordHint": "Mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl",
+    "forgotPasswordLink": "Passwort vergessen?",
+    "forgotPasswordTitle": "Passwort zurücksetzen",
+    "forgotPasswordDesc": "Gib deine E-Mail-Adresse ein. Falls dazu ein Konto existiert, schicken wir dir einen Link zum Zurücksetzen.",
+    "forgotPasswordSubmit": "Link anfordern",
+    "forgotPasswordSending": "Wird gesendet…",
+    "forgotPasswordError": "Anfrage fehlgeschlagen. Bitte versuche es erneut.",
+    "backToLogin": "Zurück zum Login",
+    "resetPasswordTitle": "Neues Passwort setzen",
+    "resetPasswordNewLabel": "Neues Passwort",
+    "resetPasswordConfirmLabel": "Neues Passwort bestätigen",
+    "resetPasswordSubmit": "Passwort speichern",
+    "resetPasswordSaving": "Wird gespeichert…",
+    "resetPasswordSuccess": "Dein Passwort wurde geändert. Du kannst dich jetzt anmelden.",
+    "resetPasswordError": "Der Link ist ungültig oder abgelaufen. Bitte fordere einen neuen an.",
+    "resetPasswordMismatch": "Die beiden Passwörter stimmen nicht überein."
   },
   "errors": {
     "generic": "Ein Fehler ist aufgetreten.",

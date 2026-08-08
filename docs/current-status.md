@@ -53,6 +53,13 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 - **Automatische Backups** (Cron, konfigurierbares Zeitplan/
   Aufbewahrung).
 - **Onboarding-Tour** für neue Nutzer (überspringbar, wiederholbar).
+- **Passwort-Reset-Flow** – E-Mail-Link mit einmal verwendbarem, eine
+  Stunde gültigem Token (Hash statt Klartext in der DB, im Gegensatz
+  zu Share-/Invite-Tokens bewusst die einzige Ausnahme – Besitz
+  erlaubt volle Account-Übernahme). Generische Antwort unabhängig
+  davon, ob die E-Mail existiert (keine Enumeration). Erfordert
+  konfigurierten SMTP-Versand (siehe [E-Mail-Versand](./wiki/E-Mail-Versand.md));
+  ohne SMTP bleibt die Funktion ohne Fehlermeldung wirkungslos.
 - **PWA** – installierbar, Service-Worker-Cache für die App-Shell.
 - Zweisprachig (Deutsch/Englisch).
 - **Barrierefreiheit** – Farbenblind-Filter, Screenreader-Live-Region,
@@ -63,11 +70,15 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 ## Teilweise implementiert
 
 - **Offline-Modus**: PWA-Cache und lokale Schreib-Warteschlange
-  funktionieren; Konflikterkennung beim Wiederverbinden gibt es aber
-  bisher nur für Boards, Frames, Trainingseinheiten und Kader-
-  Einträge. Andere Ressourcen (Playbooks, Formationen) werden beim
-  Wiederverbinden ohne Warnung überschrieben ("letzte Änderung
-  gewinnt").
+  funktionieren; Konflikterkennung beim Wiederverbinden gibt es
+  bisher für Boards, Frames, Trainingseinheiten und Kader-Einträge.
+  Playbooks und Formationsvorlagen haben aktuell **kein**
+  Bearbeiten-Feature (nur Anlegen/Löschen) – ein Überschreibungs-
+  Konflikt kann dort schon rein funktional nicht auftreten, eine
+  Konflikterkennung wäre also gegenstandslos. Sollte künftig ein
+  Bearbeiten-Endpunkt für diese beiden Ressourcen entstehen, muss die
+  Konflikterkennung dafür nachgezogen werden (gleiches Muster wie bei
+  Kader-Einträgen).
 - **Video-Integration**: die Funktion selbst ist vollständiger, als
   ein Kommentar im Code (`videoController.js`) behauptet – siehe
   "Bekannte Probleme".
@@ -86,8 +97,6 @@ konkrete Backlog-Einträge vor (siehe unten).
 
 ## Noch offen
 
-- **Kein Passwort-Reset/"Passwort vergessen"-Flow** – es existiert
-  kein entsprechender Endpunkt.
 - **Vertiefte Editor-Tour** (Backlog-[ISSUE 024](./planning/BACKLOG.md))
   – noch nicht begonnen.
 - **Native App-Store-Präsenz** (Google Play/Apple App Store) – bisher
@@ -103,9 +112,6 @@ konkrete Backlog-Einträge vor (siehe unten).
 
 ## Bekannte Probleme
 
-- Keine automatisierten Tests für die Community-Bibliothek
-  (`backend/src/controllers/libraryController.js` hat keine
-  entsprechende Datei unter `__tests__/`).
 - Stale Code-Kommentar in `backend/src/controllers/videoController.js`:
   der Dateikopf behauptet, es gebe "keine Zeichnungen über dem Video,
   kein Schnitt/Trimmen, keine Szenen-Timeline" – tatsächlich
@@ -121,11 +127,7 @@ konkrete Backlog-Einträge vor (siehe unten).
 ## Nächste Schritte
 
 1. Vertiefte Editor-Tour umsetzen (Backlog-ISSUE 024).
-2. Passwort-Reset-Flow ergänzen.
-3. Automatisierte Tests für die Community-Bibliothek nachziehen.
-4. Offline-Konflikterkennung auf weitere Ressourcen ausweiten
-   (Playbooks, Formationen).
-5. Vite 8 / ESLint 10 aktualisieren, sobald die
+2. Vite 8 / ESLint 10 aktualisieren, sobald die
    Peer-Dependency-Konflikte in den jeweiligen Ökosystemen gelöst sind.
 
 ## Technischer Stand
@@ -136,7 +138,7 @@ konkrete Backlog-Einträge vor (siehe unten).
 | Backend | Node ≥24, Express 5, PostgreSQL 18, Redis 8 |
 | Frontend | React 19, Vite 7, react-router 8, zustand 5, Konva 10/react-konva 19, i18next (DE/EN) |
 | PWA | `vite-plugin-pwa`, echt konfiguriert (Workbox-Caching, Manifest) |
-| Tests | 32 Backend-Testdateien, 18 Frontend-Testdateien |
+| Tests | 33 Backend-Testdateien, 18 Frontend-Testdateien |
 | CI/CD | GitHub Actions – Lint/Test/Build (Backend + Frontend), Docker-Build-Check, Security-Scan, Dependency-Review |
 | Deployment | Docker Compose, optionales TLS-Overlay (Caddy) |
 | Lizenz | MIT |

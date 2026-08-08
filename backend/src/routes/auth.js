@@ -4,23 +4,31 @@
  * POST /api/auth/login
  * POST /api/auth/logout
  * GET  /api/auth/me
+ * POST /api/auth/forgot-password
+ * POST /api/auth/reset-password
  */
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { randomBytes, createHash } from 'crypto';
 import { body, validationResult } from 'express-validator';
 import pool from '../db/pool.js';
 import redisClient from '../db/redis.js';
 import { authenticate } from '../middleware/auth.js';
 import { success, created, error } from '../utils/apiResponse.js';
 import { COOKIE_OPTS } from '../utils/cookies.js';
-import { notifyAdminsOfNewUser } from '../utils/mailer.js';
+import { notifyAdminsOfNewUser, sendMail } from '../utils/mailer.js';
 import logger from '../utils/logger.js';
 
 const router = Router();
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 Stunde
+
+function hashResetToken(rawToken) {
+  return createHash('sha256').update(rawToken).digest('hex');
+}
 
 // ── Validierungsregeln ─────────────────────────
 const registerValidation = [
@@ -279,6 +287,94 @@ router.put('/password', authenticate, [
     return res.json(success({ message: 'Passwort geändert' }));
   } catch (err) {
     logger.error('Update password error:', err);
+    return res.status(500).json(error('Interner Serverfehler'));
+  }
+});
+
+// ── POST /api/auth/forgot-password ──────────────
+// Erfordert einen konfigurierten SMTP-Versand (siehe utils/mailer.js) –
+// ohne SMTP_HOST bleibt sendMail() ein No-op und es kommt keine Mail an
+// (dokumentiert im Wiki, kein Admin-Fallback in dieser Ausbaustufe).
+router.post('/forgot-password', [
+  body('email').isEmail().normalizeEmail().withMessage('Ungültige E-Mail-Adresse'),
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json(error('Validierungsfehler', errors.array()));
+  }
+  const { email } = req.body;
+
+  // Immer dieselbe generische Antwort, unabhängig davon ob die Adresse
+  // tatsächlich existiert – verhindert User-Enumeration über diesen
+  // Endpunkt (analog zum Login-Timing-Schutz oben).
+  const genericMessage = 'Falls ein Konto mit dieser E-Mail-Adresse existiert, wurde eine Nachricht mit einem Link zum Zurücksetzen verschickt.';
+
+  try {
+    const userResult = await pool.query('SELECT id, display_name FROM users WHERE email = $1', [email]);
+    const user = userResult.rows[0];
+
+    if (user) {
+      const rawToken = randomBytes(32).toString('hex');
+      const tokenHash = hashResetToken(rawToken);
+      const expiresAt = new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS);
+
+      // Ein neuer Request macht alle vorherigen offenen Tokens dieses
+      // Nutzers ungültig – immer nur ein aktiver Reset-Link gleichzeitig.
+      await pool.query('DELETE FROM password_reset_tokens WHERE user_id = $1', [user.id]);
+      await pool.query(
+        `INSERT INTO password_reset_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)`,
+        [user.id, tokenHash, expiresAt]
+      );
+
+      const appUrl = (process.env.CORS_ORIGIN || '').replace(/\/$/, '');
+      const resetLink = `${appUrl}/reset-password/${rawToken}`;
+      await sendMail({
+        to: email,
+        subject: 'OpenFloorball – Passwort zurücksetzen',
+        text: `Hallo${user.display_name ? ` ${user.display_name}` : ''},\n\ndu hast angefordert, dein Passwort zurückzusetzen. Der folgende Link ist eine Stunde lang gültig:\n\n${resetLink}\n\nWenn du das nicht warst, kannst du diese Nachricht ignorieren – an deinem Konto ändert sich dadurch nichts.`,
+      });
+      logger.info(`Password reset requested: ${user.id}`);
+    }
+
+    return res.json(success({ message: genericMessage }));
+  } catch (err) {
+    logger.error('Forgot-password error:', err);
+    return res.status(500).json(error('Interner Serverfehler'));
+  }
+});
+
+// ── POST /api/auth/reset-password ───────────────
+router.post('/reset-password', [
+  body('token').notEmpty().withMessage('Token erforderlich'),
+  newPasswordValidation,
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json(error('Validierungsfehler', errors.array()));
+  }
+  const { token, newPassword } = req.body;
+  const tokenHash = hashResetToken(token);
+
+  try {
+    const tokenResult = await pool.query(
+      'SELECT id, user_id, expires_at FROM password_reset_tokens WHERE token_hash = $1',
+      [tokenHash]
+    );
+    const resetToken = tokenResult.rows[0];
+    if (!resetToken || new Date(resetToken.expires_at) < new Date()) {
+      return res.status(400).json(error('Ungültiger oder abgelaufener Link'));
+    }
+
+    const newHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [newHash, resetToken.user_id]);
+    // Einmal verwendbar: Token sofort löschen, damit ein zweiter Versuch
+    // mit demselben Link (auch bei Erfolg) nicht mehr funktioniert.
+    await pool.query('DELETE FROM password_reset_tokens WHERE id = $1', [resetToken.id]);
+
+    logger.info(`Password reset completed: ${resetToken.user_id}`);
+    return res.json(success({ message: 'Passwort erfolgreich zurückgesetzt' }));
+  } catch (err) {
+    logger.error('Reset-password error:', err);
     return res.status(500).json(error('Interner Serverfehler'));
   }
 });

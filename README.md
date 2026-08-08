@@ -63,12 +63,12 @@ mobile Nutzung): **[docs/wiki/Screenshots.md](docs/wiki/Screenshots.md)**
 
 Der Kern (Taktikboard, Animation, Export) ist stabil im Einsatz.
 Rund um den Kern sind bereits Trainingsplaner, Team-/Vereinsverwaltung,
-Community-Bibliothek, vier KI-Assistenten, Video-Integration und
-Echtzeit-Präsenz (Live-Cursor) implementiert. Es fehlt u. a. noch ein
-Passwort-Reset-Flow, eine vertiefte Editor-Einführungstour ist geplant
-aber nicht begonnen, und die Offline-Konflikterkennung deckt bisher
-nicht alle Ressourcen ab. Details, Einschränkungen und bekannte
-Probleme: **[docs/current-status.md](docs/current-status.md)**.
+Community-Bibliothek, vier KI-Assistenten, Video-Integration,
+Echtzeit-Präsenz (Live-Cursor) und ein Passwort-Reset-Flow
+implementiert. Eine vertiefte Editor-Einführungstour ist geplant aber
+nicht begonnen, und die Offline-Konflikterkennung deckt bisher nicht
+alle Ressourcen ab. Details, Einschränkungen und bekannte Probleme:
+**[docs/current-status.md](docs/current-status.md)**.
 
 ## ✨ Features
 
@@ -88,7 +88,7 @@ Probleme: **[docs/current-status.md](docs/current-status.md)**.
 | Onboarding-Tour | ✅ | Beim ersten Login, überspringbar |
 | DSGVO (Export, Löschung, Backup) | ✅ | [Datenschutz](docs/wiki/Datenschutz.md), [Backup](docs/wiki/Backup.md) |
 | Barrierefreiheit | ✅ | Farbenblind-Filter, Screenreader, Tastatur, Schriftgrößen |
-| Passwort-Reset | ❌ | Noch nicht implementiert |
+| Passwort-Reset | ✅ | Per E-Mail-Link, erfordert konfigurierten SMTP-Versand |
 | Vertiefte Editor-Tour | 🚧 | Geplant, siehe Roadmap |
 
 ## 🗺️ Roadmap
@@ -96,7 +96,7 @@ Probleme: **[docs/current-status.md](docs/current-status.md)**.
 **Fertig** (Auszug, vollständig siehe [CHANGELOG](CHANGELOG.md)):
 Taktikboard-Kern, Trainingsplaner, Teams/Vereine, Community-Bibliothek,
 KI-Assistenten, Video-Integration, Echtzeit-Präsenz, Onboarding-Tour,
-erweiterte Offline-Konfliktlösung.
+erweiterte Offline-Konfliktlösung, Passwort-Reset-Flow.
 
 **In Arbeit:** aktuell kein Feature in sichtbar unfertigem Zustand –
 siehe [docs/current-status.md](docs/current-status.md) für den
@@ -104,8 +104,6 @@ laufend aktualisierten Stand.
 
 **Geplant** (Auszug aus [docs/planning/BACKLOG.md](docs/planning/BACKLOG.md)):
 - Vertiefte Editor-Tour (ISSUE 024)
-- Passwort-Reset-Flow
-- Offline-Konflikterkennung auf weitere Ressourcen ausweiten
 - Native App-Store-Präsenz (PWA-Wrapper)
 - Vite 8 / ESLint 10 Upgrade (aktuell durch Peer-Dependency-Konflikte blockiert)
 

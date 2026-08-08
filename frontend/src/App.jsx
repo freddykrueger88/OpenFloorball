@@ -24,6 +24,8 @@ import '@fontsource/oswald/700.css';
 
 const LoginPage      = lazy(() => import('./pages/LoginPage.jsx'));
 const RegisterPage   = lazy(() => import('./pages/RegisterPage.jsx'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage.jsx'));
+const ResetPasswordPage  = lazy(() => import('./pages/ResetPasswordPage.jsx'));
 const BoardsPage     = lazy(() => import('./pages/BoardsPage.jsx'));
 const BoardEditorPage = lazy(() => import('./pages/BoardEditorPage.jsx'));
 const TrainingsPage       = lazy(() => import('./pages/TrainingsPage.jsx'));
@@ -119,6 +121,8 @@ export default function App() {
             <Route path="/" element={<Navigate to="/boards" replace />} />
             <Route path="/login"    element={<PublicRoute><LoginPage /></PublicRoute>} />
             <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+            <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+            <Route path="/reset-password/:token" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
             <Route path="/boards" element={<PrivateRoute><BoardsPage /></PrivateRoute>} />
             <Route path="/board/:id" element={<PrivateRoute><BoardEditorPage /></PrivateRoute>} />
             <Route path="/trainings" element={<PrivateRoute><TrainingsPage /></PrivateRoute>} />

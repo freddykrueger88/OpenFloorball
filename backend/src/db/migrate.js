@@ -597,6 +597,26 @@ export async function runMigrations() {
         FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
     `);
 
+    // ── password_reset_tokens (Backlog: Passwort-Reset-Flow) ───────────────
+    // Bewusst der EINZIGE Token-Typ im Projekt, dessen Wert gehasht statt im
+    // Klartext gespeichert wird (anders als Share-/Invite-Tokens, siehe
+    // shareController.js/boardCollaboratorsController.js) – Besitz dieses
+    // Tokens erlaubt eine vollständige Account-Übernahme, ein DB-Leak darf
+    // das nicht automatisch mit-kompromittieren. Ein Reset-Vorgang = eine
+    // Zeile; ein neuer Request löscht bewusst alle vorherigen offenen Tokens
+    // desselben Nutzers (siehe authController), daher kein UNIQUE nötig.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token_hash TEXT NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token_hash ON password_reset_tokens(token_hash);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);`);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

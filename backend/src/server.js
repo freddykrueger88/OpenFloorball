@@ -115,6 +115,7 @@ if (process.env.NODE_ENV !== 'test') {
     // bei Login/Registrierung ausgenommen, sonst zählt derselbe Request
     // doppelt.
     skip: (req) => req.path === '/auth/login' || req.path === '/auth/register'
+      || req.path === '/auth/forgot-password' || req.path === '/auth/reset-password'
       || req.path === '/ai/training-plan' || req.path === '/ai/tactic-suggestion'
       || req.path === '/ai/analysis' || req.path === '/ai/knowledge-query',
   }));
@@ -146,6 +147,27 @@ if (process.env.NODE_ENV !== 'test') {
   // /me, /name, /email, /password, /logout bleiben unter dem allgemeinen
   // /api/-Limit (100/15min) – die erfordern bereits eine gültige Session,
   // Brute-Force ist dort kein Thema wie bei Login/Registrierung.
+
+  // forgot-password verschickt bei Erfolg eine E-Mail – engeres Budget
+  // wie Login, verhindert sowohl Enumeration-Versuche als auch Mail-
+  // Spam gegen fremde Adressen. reset-password braucht ein gültiges,
+  // hochentropisches Token (siehe routes/auth.js) und ist damit gegen
+  // Brute-Force ohnehin praktisch immun – bekommt trotzdem dasselbe
+  // Budget (Defense in Depth, kostet nichts extra).
+  app.use('/api/auth/forgot-password', rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Zu viele Anfragen, bitte warten.' },
+  }));
+  app.use('/api/auth/reset-password', rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Zu viele Anfragen, bitte warten.' },
+  }));
 
   // KI-Trainingsassistent: jeder Aufruf löst eine externe Modell-Anfrage
   // aus (Kosten bei Cloud-Anbietern, Last bei selbst gehosteten Modellen)

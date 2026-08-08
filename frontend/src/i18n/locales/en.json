@@ -227,7 +227,22 @@
     "password": "Password",
     "name": "Name (optional)",
     "namePlaceholder": "e.g. John Doe",
-    "passwordHint": "Min. 8 characters, upper/lowercase letters and a number"
+    "passwordHint": "Min. 8 characters, upper/lowercase letters and a number",
+    "forgotPasswordLink": "Forgot password?",
+    "forgotPasswordTitle": "Reset password",
+    "forgotPasswordDesc": "Enter your email address. If an account exists for it, we'll send you a link to reset your password.",
+    "forgotPasswordSubmit": "Request link",
+    "forgotPasswordSending": "Sending…",
+    "forgotPasswordError": "Request failed. Please try again.",
+    "backToLogin": "Back to login",
+    "resetPasswordTitle": "Set new password",
+    "resetPasswordNewLabel": "New password",
+    "resetPasswordConfirmLabel": "Confirm new password",
+    "resetPasswordSubmit": "Save password",
+    "resetPasswordSaving": "Saving…",
+    "resetPasswordSuccess": "Your password has been changed. You can now log in.",
+    "resetPasswordError": "This link is invalid or expired. Please request a new one.",
+    "resetPasswordMismatch": "The two passwords don't match."
   },
   "errors": {
     "generic": "An error occurred.",

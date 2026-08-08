@@ -735,7 +735,7 @@ export default function BoardEditorPage() {
               id: 'video',
               label: t('boardEditor.tabs.video'),
               icon: <Video size={16} aria-hidden="true" />,
-              content: <VideoPanel boardId={boardId} canEdit={canEdit} />,
+              content: <VideoPanel boardId={boardId} canEdit={canEdit} fieldType={field.fieldType} homeColor={homeColor} awayColor={awayColor} ballColor={ballColor} />,
             },
             {
               id: 'export',

@@ -4,6 +4,12 @@
   gap: var(--space-2);
 }
 
+.errorMsg {
+  font-size: var(--text-sm);
+  color: var(--color-error);
+  margin: 0;
+}
+
 .playerWrap {
   position: relative;
   width: 100%;

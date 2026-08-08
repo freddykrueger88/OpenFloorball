@@ -983,7 +983,15 @@
     "addMarker": "Add marker",
     "addMarkerConfirm": "Save",
     "markerPlaceholder": "Label (e.g. \"Corner\")",
-    "deleteMarkerAriaLabel": "Delete marker \"{{label}}\""
+    "deleteMarkerAriaLabel": "Delete marker \"{{label}}\"",
+    "untitled": "Untitled",
+    "createBoard": "Convert to tactic board",
+    "creatingBoard": "Creating board…",
+    "createBoardAriaLabel": "Convert this video's drawing into a new, standalone tactic board",
+    "boardFromVideoName": "From video: {{title}}",
+    "createdFromVideoNote": "Created from the drawing on video \"{{title}}\".",
+    "createBoardSuccess": "New tactic board created from the video drawing.",
+    "createBoardError": "Couldn't create the board. Please try again."
   },
   "tour": {
     "welcomeTitle": "Welcome to OpenFloorball!",

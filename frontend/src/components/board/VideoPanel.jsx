@@ -19,7 +19,7 @@ function formatSize(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export default function VideoPanel({ boardId, canEdit }) {
+export default function VideoPanel({ boardId, canEdit, fieldType, homeColor, awayColor, ballColor }) {
   const { t } = useTranslation();
   const { videos, loading, uploading, error, fetchVideos, uploadVideo, updateVideo, deleteVideo, streamUrl } = useVideos(boardId);
   const [title, setTitle] = useState('');
@@ -106,6 +106,10 @@ export default function VideoPanel({ boardId, canEdit }) {
                 canEdit={canEdit}
                 streamUrl={streamUrl(v._id)}
                 onUpdate={(patch) => updateVideo(v._id, patch)}
+                fieldType={fieldType}
+                homeColor={homeColor}
+                awayColor={awayColor}
+                ballColor={ballColor}
               />
             </li>
           ))}

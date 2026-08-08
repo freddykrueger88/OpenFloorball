@@ -16,9 +16,15 @@
  */
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { Stage } from 'react-konva';
-import { Pencil, Eye, EyeOff, Trash2, MapPin } from 'lucide-react';
+import { Pencil, Eye, EyeOff, Trash2, MapPin, LayoutTemplate, AlertTriangle } from 'lucide-react';
 import { useDrawing } from '../../hooks/useDrawing.js';
+import { useBoardsApi } from '../../hooks/useBoardsApi.js';
+import { apiFetch } from '../../utils/apiFetch.js';
+import { IFF_FIELDS } from '../../constants/fieldConfig.js';
+import { videoElementsToBoardElements } from '../../utils/videoElementsToBoardElements.js';
+import useAnnounceStore from '../../store/announceStore.js';
 import DrawingLayer from '../drawing/DrawingLayer.jsx';
 import DrawingToolbar from '../drawing/DrawingToolbar.jsx';
 import Button from '../common/Button.jsx';
@@ -31,8 +37,10 @@ function formatTime(seconds) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export default function VideoAnnotationOverlay({ video, canEdit, streamUrl, onUpdate }) {
+export default function VideoAnnotationOverlay({ video, canEdit, streamUrl, onUpdate, fieldType, homeColor, awayColor, ballColor }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { createBoard } = useBoardsApi();
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -41,6 +49,8 @@ export default function VideoAnnotationOverlay({ video, canEdit, streamUrl, onUp
   const [saving, setSaving] = useState(false);
   const [markerLabel, setMarkerLabel] = useState('');
   const [addingMarker, setAddingMarker] = useState(false);
+  const [creatingBoard, setCreatingBoard] = useState(false);
+  const [createBoardError, setCreateBoardError] = useState(null);
 
   const drawing = useDrawing();
 
@@ -71,6 +81,40 @@ export default function VideoAnnotationOverlay({ video, canEdit, streamUrl, onUp
       setDrawMode(false);
     } finally {
       setSaving(false);
+    }
+  };
+
+  // ── Video-Zeichnung → eigenständiges Taktik-Board (ROADMAP-Backlog) ──
+  // Übernimmt bewusst nur die bereits gespeicherte Overlay-Zeichnung
+  // (video.elements), kein Video-Standbild (siehe Plan-Kontext) –
+  // Umrechnung Pixel→Meter rein clientseitig anhand der aktuellen
+  // Container-Größe (`size`), mit der die Zeichnung auch angezeigt wird.
+  const handleCreateBoardFromDrawing = async () => {
+    setCreatingBoard(true);
+    setCreateBoardError(null);
+    try {
+      const field = IFF_FIELDS[fieldType] ?? IFF_FIELDS.large;
+      const rescaled = videoElementsToBoardElements(video.elements, size, field);
+      const title = video.title || t('video.untitled');
+      const board = await createBoard({
+        name: t('video.boardFromVideoName', { title }),
+        fieldType,
+        homeColor,
+        awayColor,
+        ballColor,
+        notes: t('video.createdFromVideoNote', { title }),
+      });
+      const frames = await apiFetch(`/api/boards/${board._id}/frames`);
+      const firstFrame = frames[0];
+      await apiFetch(`/api/boards/${board._id}/frames/${firstFrame._id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ elements: rescaled }),
+      });
+      useAnnounceStore.getState().announce(t('video.createBoardSuccess'));
+      navigate(`/board/${board._id}`);
+    } catch {
+      setCreateBoardError(t('video.createBoardError'));
+      setCreatingBoard(false);
     }
   };
 
@@ -196,7 +240,21 @@ export default function VideoAnnotationOverlay({ video, canEdit, streamUrl, onUp
                   {showOverlay ? <><Eye size={16} aria-hidden="true" /> {t('video.hideOverlay')}</> : <><EyeOff size={16} aria-hidden="true" /> {t('video.showOverlay')}</>}
                 </Button>
               )}
+              {hasOverlayElements && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleCreateBoardFromDrawing}
+                  disabled={creatingBoard}
+                  aria-label={t('video.createBoardAriaLabel')}
+                >
+                  <LayoutTemplate size={16} aria-hidden="true" /> {creatingBoard ? t('video.creatingBoard') : t('video.createBoard')}
+                </Button>
+              )}
             </div>
+          )}
+          {createBoardError && (
+            <p className={styles.errorMsg} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {createBoardError}</p>
           )}
         </div>
       )}

@@ -81,7 +81,7 @@ Details, Einschränkungen und bekannte Probleme:
 | Board-Sharing (Kollaboratoren, Einladungen, Links) | ✅ | [Export & Teilen](docs/wiki/Export.md) |
 | Community-Übungsbibliothek | ✅ | [Community-Bibliothek](docs/wiki/Community-Bibliothek.md) |
 | KI-Assistenten (Training/Taktik/Analyse/Wissen, optional) | ✅ | [KI-Assistenten](docs/wiki/KI-Assistenten.md) |
-| Video-Integration (Upload, Zeichnen-Overlay, Trimmen, Marken) | ✅ | [Video-Integration](docs/wiki/Video-Integration.md) |
+| Video-Integration (Upload, Zeichnen-Overlay, Trimmen, Marken, Video→Board) | ✅ | [Video-Integration](docs/wiki/Video-Integration.md) |
 | Echtzeit-Präsenz (Live-Cursor) | ✅ | [Echtzeit-Zusammenarbeit](docs/wiki/Echtzeit-Zusammenarbeit.md) |
 | Export als GIF/MP4/PDF | ✅ | [Export & Teilen](docs/wiki/Export.md) |
 | PWA / Offline-Modus | 🟡 | Konflikterkennung nur für Boards/Frames/Trainings/Kader, siehe [Offline-Modus](docs/wiki/Offline-Modus.md) |
@@ -95,9 +95,9 @@ Details, Einschränkungen und bekannte Probleme:
 
 **Fertig** (Auszug, vollständig siehe [CHANGELOG](CHANGELOG.md)):
 Taktikboard-Kern, Trainingsplaner, Teams/Vereine, Community-Bibliothek,
-KI-Assistenten, Video-Integration, Echtzeit-Präsenz, Onboarding-Tour,
-vertiefte Editor-Tour, erweiterte Offline-Konfliktlösung,
-Passwort-Reset-Flow.
+KI-Assistenten, Video-Integration (inkl. Video → Taktik-Board),
+Echtzeit-Präsenz, Onboarding-Tour, vertiefte Editor-Tour, erweiterte
+Offline-Konfliktlösung, Passwort-Reset-Flow.
 
 **In Arbeit:** aktuell kein Feature in sichtbar unfertigem Zustand –
 siehe [docs/current-status.md](docs/current-status.md) für den

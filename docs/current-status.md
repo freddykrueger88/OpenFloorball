@@ -39,7 +39,9 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   austauschbarer Anbieter (OpenAI-kompatible Schnittstelle, kein
   Vendor-Lock-in), liefern nur Textentwürfe, kein Auto-Save.
 - **Video-Integration** – Upload, Streaming mit Range-Requests,
-  Zeichnen-Überlagerung, Trimmen, Szenen-Marken.
+  Zeichnen-Überlagerung, Trimmen, Szenen-Marken, Übernahme der
+  Video-Zeichnung als neues, eigenständiges Taktik-Board ("Video →
+  Taktik-Board" – siehe [Video-Integration](./wiki/Video-Integration.md)).
 - **Echtzeit-Präsenz** – Präsenz-Badges und Live-Cursor beim
   gemeinsamen Bearbeiten (WebSocket, keine Persistenz).
 - **Export** – GIF/MP4 (asynchron, FFmpeg), PDF-Taktikblätter

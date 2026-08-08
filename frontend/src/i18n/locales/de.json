@@ -983,7 +983,15 @@
     "addMarker": "Marke hinzufügen",
     "addMarkerConfirm": "Speichern",
     "markerPlaceholder": "Beschriftung (z.B. \"Ecke\")",
-    "deleteMarkerAriaLabel": "Marke „{{label}}“ löschen"
+    "deleteMarkerAriaLabel": "Marke „{{label}}“ löschen",
+    "untitled": "Unbenannt",
+    "createBoard": "Als Taktik-Board übernehmen",
+    "creatingBoard": "Erstellt Board…",
+    "createBoardAriaLabel": "Die Zeichnung auf diesem Video als neues, eigenständiges Taktik-Board übernehmen",
+    "boardFromVideoName": "Aus Video: {{title}}",
+    "createdFromVideoNote": "Erstellt aus der Zeichnung im Video „{{title}}“.",
+    "createBoardSuccess": "Neues Taktik-Board aus der Video-Zeichnung erstellt.",
+    "createBoardError": "Board konnte nicht erstellt werden. Bitte erneut versuchen."
   },
   "tour": {
     "welcomeTitle": "Willkommen bei OpenFloorball!",

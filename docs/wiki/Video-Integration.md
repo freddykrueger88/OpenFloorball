@@ -25,6 +25,16 @@ Lesen genügt zum Ansehen, Bearbeiten/Löschen braucht Schreibrecht (wie
 - **Szenen-Marken**: Zeitstempel mit Beschriftung, um wichtige Momente
   im Clip schnell wiederzufinden.
 
+## Video → Taktik-Board
+
+Eine über den Zeichen-Werkzeugen angefertigte Video-Überlagerung lässt
+sich per Klick auf "Als Taktik-Board übernehmen" in ein neues,
+eigenständiges Board überführen – die Situation muss nicht von Hand
+neu nachgebaut werden. Das neue Board übernimmt Feldtyp und Farben
+des Ursprungs-Boards; ein Hinweistext im Notizfeld verweist auf das
+Quellvideo. Übernommen wird ausschließlich die bereits gespeicherte
+Zeichnung (Pfeile/Freihand), kein Video-Standbild.
+
 ## Speicherung
 
 Videos liegen als Dateien auf der Festplatte (`VIDEOS_DIR`, Docker-

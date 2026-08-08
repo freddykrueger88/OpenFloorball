@@ -9,7 +9,8 @@ Repository und werden dort kontinuierlich aktualisiert:
 ## Bereits umgesetzt (ehemalige Backlog-Punkte)
 
 - **Video-Integration** – Videoclips hochladen/abspielen pro Board,
-  inkl. Zeichnen-Überlagerung, Trimmen und Szenen-Marken. Siehe
+  inkl. Zeichnen-Überlagerung, Trimmen, Szenen-Marken und Übernahme
+  der Video-Zeichnung als neues Taktik-Board. Siehe
   [Video-Integration](./Video-Integration.md).
 - **Echtzeit-Zusammenarbeit** – Präsenzanzeige und Live-Cursor beim
   gemeinsamen Bearbeiten eines Boards. Siehe

@@ -14,6 +14,19 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Video → Taktik-Board: eine über den Video-Zeichnen-Werkzeugen
+  angefertigte Überlagerung (Pfeile/Freihand) lässt sich per Klick
+  ("Als Taktik-Board übernehmen") in ein neues, eigenständiges,
+  weiter bearbeitbares Board überführen – bisher musste eine im Video
+  markierte Taktik von Hand auf einem neuen Board nachgebaut werden.
+  Übernommen werden bewusst nur die bereits gespeicherte Zeichnung
+  (kein Video-Standbild – dafür gibt es im Projekt keinen
+  Erfassungsmechanismus und es wäre auch nicht der eigentliche
+  Mehrwert). Die Umrechnung von Video-Pixel- in Feld-Meter-Koordinaten
+  läuft rein clientseitig (`videoElementsToBoardElements.js`), das
+  neue Board übernimmt Feldtyp und Farben des Ursprungs-Boards. Keine
+  Backend-Änderung nötig – reine Frontend-Orchestrierung der
+  bestehenden Board-/Frame-Endpunkte (analog `cloneLibraryEntry`).
 - Vertiefte Editor-Tour (Backlog-ISSUE 024, Ausbau der Onboarding-Tour
   aus ISSUE 023): zweite, unabhängige Spotlight-Tour direkt im
   Board-Editor – erklärt Spielerplatzierung, Zeichnen-Werkzeug,

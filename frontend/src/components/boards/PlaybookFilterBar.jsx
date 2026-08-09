@@ -9,18 +9,32 @@ import styles from './PlaybookFilterBar.module.css';
 
 export default function PlaybookFilterBar({
   playbooks, boards, activeFilter, onFilterChange,
-  onCreatePlaybook, onDeletePlaybook, canAddPlaybook,
+  onCreatePlaybook, onRenamePlaybook, onDeletePlaybook, canAddPlaybook,
   teams = [],
 }) {
   const { t } = useTranslation();
   const [creating, setCreating] = useState(false);
   const [name,     setName    ] = useState('');
   const [teamId,   setTeamId  ] = useState('');
+  const [editingId, setEditingId] = useState(null);
+  const [editName,  setEditName ] = useState('');
   const inputRef = useRef(null);
 
   useEffect(() => { if (creating) inputRef.current?.focus(); }, [creating]);
 
   const unassignedCount = boards.filter((b) => !b.playbookId).length;
+
+  const startEditing = (pb) => {
+    setEditingId(pb._id);
+    setEditName(pb.name);
+  };
+
+  const commitRename = (pb) => {
+    setEditingId(null);
+    const trimmed = editName.trim();
+    if (!trimmed || trimmed === pb.name) return;
+    onRenamePlaybook?.(pb, trimmed);
+  };
 
   const commitCreate = async () => {
     const trimmed = name.trim();
@@ -58,18 +72,36 @@ export default function PlaybookFilterBar({
           key={pb._id}
           className={`${styles.chip} ${activeFilter === pb._id ? styles.chipActive : ''}`}
         >
-          <button
-            className={styles.chipLabel}
-            onClick={() => onFilterChange(pb._id)}
-            aria-pressed={activeFilter === pb._id}
-          >
-            {pb.name} · {boards.filter((b) => b.playbookId === pb._id).length}
-            {pb.teamId && (
-              <span className={styles.teamBadge} title={teams.find((tm) => tm._id === pb.teamId)?.name ?? t('playbooks.teamBadgeFallback')}>
-                <Users size={14} aria-hidden="true" />
-              </span>
-            )}
-          </button>
+          {editingId === pb._id ? (
+            <input
+              autoFocus
+              className={styles.renameInput}
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onBlur={() => commitRename(pb)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter')  commitRename(pb);
+                if (e.key === 'Escape') setEditingId(null);
+              }}
+              maxLength={40}
+              aria-label={t('playbooks.renameAriaLabel')}
+            />
+          ) : (
+            <button
+              className={styles.chipLabel}
+              onClick={() => onFilterChange(pb._id)}
+              onDoubleClick={() => startEditing(pb)}
+              aria-pressed={activeFilter === pb._id}
+              title={t('playbooks.renameTitle')}
+            >
+              {pb.name} · {boards.filter((b) => b.playbookId === pb._id).length}
+              {pb.teamId && (
+                <span className={styles.teamBadge} title={teams.find((tm) => tm._id === pb.teamId)?.name ?? t('playbooks.teamBadgeFallback')}>
+                  <Users size={14} aria-hidden="true" />
+                </span>
+              )}
+            </button>
+          )}
           <button
             className={styles.chipDelete}
             onClick={() => onDeletePlaybook(pb._id)}

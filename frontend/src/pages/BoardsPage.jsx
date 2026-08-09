@@ -29,7 +29,7 @@ export default function BoardsPage() {
   const { loading, error, fetchBoards, createBoard, updateBoard, deleteBoard } = useBoardsApi();
   const { settings } = useSettings();
   const {
-    playbooks, fetchPlaybooks, createPlaybook, deletePlaybook, canAddPlaybook,
+    playbooks, fetchPlaybooks, createPlaybook, updatePlaybook, deletePlaybook, canAddPlaybook,
   } = usePlaybooks();
   // ROADMAP Phase 2: eigene Teams laden, um Playbooks optional
   // team-geteilt statt rein persönlich anzulegen (analog Roster/Trainings).
@@ -93,6 +93,12 @@ export default function BoardsPage() {
       });
       setBoards((prev) => prev.map((b) => b._id === boardId ? updated : b));
     } catch { /* error via hook */ }
+  };
+
+  const handleRenamePlaybook = (playbook, newName) => {
+    updatePlaybook(playbook._id, { name: newName }, {
+      baselineUpdatedAt: playbook.updatedAt, label: playbook.name,
+    }).catch(() => {});
   };
 
   const handleDeletePlaybook = async (id) => {
@@ -230,6 +236,7 @@ export default function BoardsPage() {
           activeFilter={playbookFilter}
           onFilterChange={setPlaybookFilter}
           onCreatePlaybook={createPlaybook}
+          onRenamePlaybook={handleRenamePlaybook}
           onDeletePlaybook={handleDeletePlaybook}
           canAddPlaybook={canAddPlaybook}
           teams={teamsICanShareWith}

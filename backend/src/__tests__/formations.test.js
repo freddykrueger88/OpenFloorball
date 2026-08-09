@@ -152,3 +152,49 @@ describe('Formations ownership + DELETE', () => {
     expect(res.status).toBe(422);
   });
 });
+
+describe('PUT /api/formations/:id', () => {
+  let formationId;
+
+  beforeAll(async () => {
+    const res = await request(app)
+      .post('/api/formations')
+      .set('Cookie', other.cookie)
+      .send({ name: 'Alter Name', fieldType: 'small' });
+    formationId = res.body.data._id;
+  });
+
+  it('benennt die eigene Vorlage um', async () => {
+    const res = await request(app)
+      .put(`/api/formations/${formationId}`)
+      .set('Cookie', other.cookie)
+      .send({ name: 'Neuer Name' });
+    expect(res.status).toBe(200);
+    expect(res.body.data.name).toBe('Neuer Name');
+    expect(res.body.data.updatedAt).toBeDefined();
+  });
+
+  it('lehnt einen leeren Namen mit 422 ab', async () => {
+    const res = await request(app)
+      .put(`/api/formations/${formationId}`)
+      .set('Cookie', other.cookie)
+      .send({ name: '' });
+    expect(res.status).toBe(422);
+  });
+
+  it('verweigert einem fremden User das Umbenennen mit 404', async () => {
+    const res = await request(app)
+      .put(`/api/formations/${formationId}`)
+      .set('Cookie', owner.cookie)
+      .send({ name: 'Sollte fehlschlagen' });
+    expect(res.status).toBe(404);
+  });
+
+  it('liefert 404 beim Umbenennen einer nicht existierenden Vorlage', async () => {
+    const res = await request(app)
+      .put('/api/formations/00000000-0000-0000-0000-000000000000')
+      .set('Cookie', other.cookie)
+      .send({ name: 'Egal' });
+    expect(res.status).toBe(404);
+  });
+});

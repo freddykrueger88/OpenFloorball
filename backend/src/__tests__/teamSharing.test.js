@@ -111,6 +111,17 @@ describe('Playbooks – Team-Sharing', () => {
     expect(res.body.data.some((p) => p._id === playbookId)).toBe(false);
   });
 
+  it('member darf es NICHT umbenennen (404)', async () => {
+    const res = await request(app).put(`/api/playbooks/${playbookId}`).set('Cookie', member.cookie).send({ name: 'Sollte fehlschlagen' });
+    expect(res.status).toBe(404);
+  });
+
+  it('owner darf ein von coach angelegtes Team-Playbook umbenennen', async () => {
+    const res = await request(app).put(`/api/playbooks/${playbookId}`).set('Cookie', owner.cookie).send({ name: 'Umbenannt' });
+    expect(res.status).toBe(200);
+    expect(res.body.data.name).toBe('Umbenannt');
+  });
+
   it('member darf es NICHT löschen (404)', async () => {
     const res = await request(app).delete(`/api/playbooks/${playbookId}`).set('Cookie', member.cookie);
     expect(res.status).toBe(404);
@@ -305,6 +316,17 @@ describe('Formationsvorlagen (formation_templates) – Team-Sharing', () => {
   it('ein Fremder sieht sie nicht', async () => {
     const res = await request(app).get('/api/formations').set('Cookie', stranger.cookie);
     expect(res.body.data.some((f) => f._id === formationId)).toBe(false);
+  });
+
+  it('member darf sie NICHT umbenennen (404)', async () => {
+    const res = await request(app).put(`/api/formations/${formationId}`).set('Cookie', member.cookie).send({ name: 'Sollte fehlschlagen' });
+    expect(res.status).toBe(404);
+  });
+
+  it('owner darf sie umbenennen', async () => {
+    const res = await request(app).put(`/api/formations/${formationId}`).set('Cookie', owner.cookie).send({ name: 'Umbenannt' });
+    expect(res.status).toBe(200);
+    expect(res.body.data.name).toBe('Umbenannt');
   });
 
   it('member darf sie NICHT löschen (404)', async () => {

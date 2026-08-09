@@ -119,3 +119,49 @@ describe('DELETE /api/playbooks/:id', () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe('PUT /api/playbooks/:id', () => {
+  let playbookId;
+
+  beforeAll(async () => {
+    const res = await request(app)
+      .post('/api/playbooks')
+      .set('Cookie', other.cookie)
+      .send({ name: 'Alter Name' });
+    playbookId = res.body.data._id;
+  });
+
+  it('benennt das eigene Playbook um', async () => {
+    const res = await request(app)
+      .put(`/api/playbooks/${playbookId}`)
+      .set('Cookie', other.cookie)
+      .send({ name: 'Neuer Name' });
+    expect(res.status).toBe(200);
+    expect(res.body.data.name).toBe('Neuer Name');
+    expect(res.body.data.updatedAt).toBeDefined();
+  });
+
+  it('lehnt einen leeren Namen mit 422 ab', async () => {
+    const res = await request(app)
+      .put(`/api/playbooks/${playbookId}`)
+      .set('Cookie', other.cookie)
+      .send({ name: '' });
+    expect(res.status).toBe(422);
+  });
+
+  it('verweigert einem fremden User das Umbenennen mit 404', async () => {
+    const res = await request(app)
+      .put(`/api/playbooks/${playbookId}`)
+      .set('Cookie', owner.cookie)
+      .send({ name: 'Sollte fehlschlagen' });
+    expect(res.status).toBe(404);
+  });
+
+  it('liefert 404 beim Umbenennen eines nicht existierenden Playbooks', async () => {
+    const res = await request(app)
+      .put('/api/playbooks/00000000-0000-0000-0000-000000000000')
+      .set('Cookie', other.cookie)
+      .send({ name: 'Egal' });
+    expect(res.status).toBe(404);
+  });
+});

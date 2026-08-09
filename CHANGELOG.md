@@ -14,6 +14,13 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Formationsvorlagen und Playbooks lassen sich jetzt umbenennen (bisher
+  nur Anlegen/Löschen) – Doppelklick auf den Namen im
+  Formationen-Tab des Board-Editors bzw. auf den Playbook-Chip auf
+  `/boards`. Bewusst nur Umbenennen: Feldtyp/Spieler-Aufstellung einer
+  Formation ändert man weiterhin durch Anlegen einer neuen Vorlage.
+  Beide Ressourcen haben dafür ein `updated_at` erhalten und nutzen
+  jetzt dieselbe Offline-Konflikterkennung wie Kader/Lines/Boards.
 - Lines grundlegend auf den Kader umgestellt: eine Line ist jetzt eine
   taktische Zusammenstellung echter Kader-Spieler (`/lines`, neue
   eigenständige Seite), kein Board-internes Detail mehr. Ein Spieler

@@ -702,6 +702,25 @@ export async function runMigrations() {
         CHECK (resource_type IN ('board', 'training_session', 'game'));
     `);
 
+    // ── formation_templates/playbooks: updated_at (Voraussetzung für die
+    // Offline-Konfliktlösung, analog roster_players oben – bisher hatten
+    // beide Ressourcen kein Bearbeiten-Feature, nur Anlegen/Löschen).
+    await client.query(`ALTER TABLE formation_templates ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_formation_templates_updated_at ON formation_templates;
+      CREATE TRIGGER trg_formation_templates_updated_at
+        BEFORE UPDATE ON formation_templates
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `);
+
+    await client.query(`ALTER TABLE playbooks ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();`);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_playbooks_updated_at ON playbooks;
+      CREATE TRIGGER trg_playbooks_updated_at
+        BEFORE UPDATE ON playbooks
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

@@ -467,6 +467,12 @@ export default function BoardEditorPage() {
     formations.saveFormation({ name, fieldType: field.fieldType, players: playersOnly, teamId });
   }, [formations, field.fieldType, drawing]);
 
+  const handleRenameFormation = useCallback((formation, newName) => {
+    formations.updateFormation(formation._id, { name: newName }, {
+      baselineUpdatedAt: formation.updatedAt, label: formation.name,
+    }).catch(() => {});
+  }, [formations]);
+
   const handleLoadFormation = useCallback((template) => {
     // Formationen enthalten keinen Ball (siehe handleSaveFormation) – beim
     // Laden ergänzen, statt den Ball aus der aktuellen Szene zu verlieren.
@@ -742,6 +748,7 @@ export default function BoardEditorPage() {
                   formations={formations.formations}
                   onSave={handleSaveFormation}
                   onLoad={handleLoadFormation}
+                  onRename={handleRenameFormation}
                   onDelete={formations.deleteFormation}
                   canAddFormation={formations.canAddFormation}
                   teams={teamsICanShareWith}

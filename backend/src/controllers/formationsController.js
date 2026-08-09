@@ -23,6 +23,7 @@ function toApiFormation(row) {
     players:   row.players_json ?? [],
     teamId:    row.team_id,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -31,6 +32,16 @@ async function assertResourceWrite(row, userId) {
   if (row.user_id === userId) return true;
   if (!row.team_id) return false;
   return assertTeamAccess(row.team_id, userId, 'coach');
+}
+
+// Darf der Nutzer diese Vorlage überhaupt sehen? Wie die Sichtbarkeit von
+// getFormations (jedes Team-Mitglied, nicht nur coach/owner) – für den
+// Offline-Konfliktcheck (GET /:id als conflictCheckUrl) reicht Lesen.
+async function assertResourceRead(row, userId) {
+  if (!row) return false;
+  if (row.user_id === userId) return true;
+  if (!row.team_id) return false;
+  return assertTeamAccess(row.team_id, userId, 'member');
 }
 
 // GET /api/formations
@@ -76,6 +87,45 @@ export async function createFormation(req, res) {
     res.status(201).json(created(toApiFormation(result.rows[0])));
   } catch (err) {
     logger.error('[createFormation]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// GET /api/formations/:id – dient dem Frontend als conflictCheckUrl für die
+// Offline-Konfliktlösung (offlineSync.js vergleicht updatedAt).
+export async function getFormation(req, res) {
+  try {
+    const existing = await pool.query('SELECT * FROM formation_templates WHERE id = $1', [req.params.id]);
+    if (existing.rows.length === 0 || !(await assertResourceRead(existing.rows[0], req.user.id))) {
+      return res.status(404).json(error('Vorlage nicht gefunden'));
+    }
+    res.json(success(toApiFormation(existing.rows[0])));
+  } catch (err) {
+    logger.error('[getFormation]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// PUT /api/formations/:id – bewusst nur Umbenennen (siehe Modul-Kommentar);
+// Feldtyp/Spieler ändert man durch Anlegen einer neuen Vorlage.
+export async function updateFormation(req, res) {
+  try {
+    const existing = await pool.query('SELECT * FROM formation_templates WHERE id = $1', [req.params.id]);
+    if (existing.rows.length === 0 || !(await assertResourceWrite(existing.rows[0], req.user.id))) {
+      return res.status(404).json(error('Vorlage nicht gefunden'));
+    }
+
+    if (req.body.name === undefined) {
+      return res.status(400).json(error('Keine gültigen Felder zum Aktualisieren'));
+    }
+
+    const result = await pool.query(
+      'UPDATE formation_templates SET name = $1 WHERE id = $2 RETURNING *',
+      [req.body.name, req.params.id]
+    );
+    res.json(success(toApiFormation(result.rows[0])));
+  } catch (err) {
+    logger.error('[updateFormation]', err);
     res.status(500).json(error('Interner Serverfehler'));
   }
 }

@@ -89,15 +89,11 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 ## Teilweise implementiert
 
 - **Offline-Modus**: PWA-Cache und lokale Schreib-Warteschlange
-  funktionieren; Konflikterkennung beim Wiederverbinden gibt es
-  bisher für Boards, Frames, Trainingseinheiten und Kader-Einträge.
-  Playbooks und Formationsvorlagen haben aktuell **kein**
-  Bearbeiten-Feature (nur Anlegen/Löschen) – ein Überschreibungs-
-  Konflikt kann dort schon rein funktional nicht auftreten, eine
-  Konflikterkennung wäre also gegenstandslos. Sollte künftig ein
-  Bearbeiten-Endpunkt für diese beiden Ressourcen entstehen, muss die
-  Konflikterkennung dafür nachgezogen werden (gleiches Muster wie bei
-  Kader-Einträgen).
+  funktionieren; Konflikterkennung beim Wiederverbinden gibt es für
+  Boards, Frames, Trainingseinheiten, Kader-Einträge sowie (seit
+  Kurzem) Playbooks und Formationsvorlagen – deren Bearbeiten-Feature
+  ist bewusst auf Umbenennen begrenzt (Feldtyp/Spieler-Aufstellung
+  ändert man durch Anlegen einer neuen Vorlage).
 - **Echtzeit-Zusammenarbeit**: zeigt Präsenz und Live-Cursor an, führt
   aber bewusst keine serverseitige Konfliktauflösung oder
   Zusammenführung von Änderungen durch – rein informativ, kein

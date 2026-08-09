@@ -24,6 +24,7 @@ function toApiPlaybook(row) {
     name:      row.name,
     teamId:    row.team_id,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -32,6 +33,16 @@ async function assertResourceWrite(row, userId) {
   if (row.user_id === userId) return true;
   if (!row.team_id) return false;
   return assertTeamAccess(row.team_id, userId, 'coach');
+}
+
+// Darf der Nutzer dieses Playbook überhaupt sehen? Wie die Sichtbarkeit von
+// getPlaybooks (jedes Team-Mitglied, nicht nur coach/owner) – für den
+// Offline-Konfliktcheck (GET /:id als conflictCheckUrl) reicht Lesen.
+async function assertResourceRead(row, userId) {
+  if (!row) return false;
+  if (row.user_id === userId) return true;
+  if (!row.team_id) return false;
+  return assertTeamAccess(row.team_id, userId, 'member');
 }
 
 // GET /api/playbooks
@@ -75,6 +86,44 @@ export async function createPlaybook(req, res) {
     res.status(201).json(created(toApiPlaybook(result.rows[0])));
   } catch (err) {
     logger.error('[createPlaybook]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// GET /api/playbooks/:id – dient dem Frontend als conflictCheckUrl für die
+// Offline-Konfliktlösung (offlineSync.js vergleicht updatedAt).
+export async function getPlaybook(req, res) {
+  try {
+    const existing = await pool.query('SELECT * FROM playbooks WHERE id = $1', [req.params.id]);
+    if (existing.rows.length === 0 || !(await assertResourceRead(existing.rows[0], req.user.id))) {
+      return res.status(404).json(error('Playbook nicht gefunden'));
+    }
+    res.json(success(toApiPlaybook(existing.rows[0])));
+  } catch (err) {
+    logger.error('[getPlaybook]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// PUT /api/playbooks/:id – bewusst nur Umbenennen (siehe Modul-Kommentar).
+export async function updatePlaybook(req, res) {
+  try {
+    const existing = await pool.query('SELECT * FROM playbooks WHERE id = $1', [req.params.id]);
+    if (existing.rows.length === 0 || !(await assertResourceWrite(existing.rows[0], req.user.id))) {
+      return res.status(404).json(error('Playbook nicht gefunden'));
+    }
+
+    if (req.body.name === undefined) {
+      return res.status(400).json(error('Keine gültigen Felder zum Aktualisieren'));
+    }
+
+    const result = await pool.query(
+      'UPDATE playbooks SET name = $1 WHERE id = $2 RETURNING *',
+      [req.body.name, req.params.id]
+    );
+    res.json(success(toApiPlaybook(result.rows[0])));
+  } catch (err) {
+    logger.error('[updatePlaybook]', err);
     res.status(500).json(error('Interner Serverfehler'));
   }
 }

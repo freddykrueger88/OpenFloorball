@@ -39,6 +39,21 @@ export function useFormations() {
     }
   }, []);
 
+  // Offline-Konflikterkennung (siehe offlineSync.js), analog useRoster.js:
+  // der Aufrufer kennt die aktuell geladene formation.updatedAt/formation.name.
+  const updateFormation = useCallback(async (id, patch, { baselineUpdatedAt = null, label = null } = {}) => {
+    try {
+      const updated = await apiFetch(`${BASE}/${id}`, { method: 'PUT', body: JSON.stringify(patch) }, {
+        baselineUpdatedAt, conflictCheckUrl: `${BASE}/${id}`, label,
+      });
+      setFormations((prev) => prev.map((f) => f._id === id ? updated : f));
+      return updated;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
   const deleteFormation = useCallback(async (id) => {
     try {
       await apiFetch(`${BASE}/${id}`, { method: 'DELETE' });
@@ -50,7 +65,7 @@ export function useFormations() {
 
   return {
     formations, loading, error,
-    fetchFormations, saveFormation, deleteFormation,
+    fetchFormations, saveFormation, updateFormation, deleteFormation,
     canAddFormation: formations.length < 20,
   };
 }

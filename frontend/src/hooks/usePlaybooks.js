@@ -39,6 +39,21 @@ export function usePlaybooks() {
     }
   }, []);
 
+  // Offline-Konflikterkennung (siehe offlineSync.js), analog useRoster.js:
+  // der Aufrufer kennt das aktuell geladene playbook.updatedAt/playbook.name.
+  const updatePlaybook = useCallback(async (id, patch, { baselineUpdatedAt = null, label = null } = {}) => {
+    try {
+      const updated = await apiFetch(`${BASE}/${id}`, { method: 'PUT', body: JSON.stringify(patch) }, {
+        baselineUpdatedAt, conflictCheckUrl: `${BASE}/${id}`, label,
+      });
+      setPlaybooks((prev) => prev.map((p) => p._id === id ? updated : p));
+      return updated;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
   const deletePlaybook = useCallback(async (id) => {
     try {
       await apiFetch(`${BASE}/${id}`, { method: 'DELETE' });
@@ -50,7 +65,7 @@ export function usePlaybooks() {
 
   return {
     playbooks, loading, error,
-    fetchPlaybooks, createPlaybook, deletePlaybook,
+    fetchPlaybooks, createPlaybook, updatePlaybook, deletePlaybook,
     canAddPlaybook: playbooks.length < 15,
   };
 }

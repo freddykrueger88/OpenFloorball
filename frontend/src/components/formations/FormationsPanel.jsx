@@ -7,7 +7,7 @@
  */
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Save, Users } from 'lucide-react';
+import { Trash2, Save, Users, FolderOpen } from 'lucide-react';
 import { FIELD_TYPE_LABELS } from '../../constants/fieldConfig.js';
 import Button from '../common/Button.jsx';
 import styles from './FormationsPanel.module.css';
@@ -16,6 +16,7 @@ export default function FormationsPanel({
   formations = [],
   onSave,
   onLoad,
+  onRename,
   onDelete,
   canAddFormation = true,
   teams = [],
@@ -24,6 +25,20 @@ export default function FormationsPanel({
   const [collapsed, setCollapsed] = useState(false);
   const [newName,   setNewName  ] = useState('');
   const [teamId,    setTeamId   ] = useState('');
+  const [editingId, setEditingId] = useState(null);
+  const [editName,  setEditName ] = useState('');
+
+  const startEditing = (formation) => {
+    setEditingId(formation._id);
+    setEditName(formation.name);
+  };
+
+  const commitRename = (formation) => {
+    setEditingId(null);
+    const trimmed = editName.trim();
+    if (!trimmed || trimmed === formation.name) return;
+    onRename?.(formation, trimmed);
+  };
 
   const handleSave = () => {
     const name = newName.trim();
@@ -58,20 +73,46 @@ export default function FormationsPanel({
           <ul className={styles.list} role="list">
             {formations.map((formation) => (
               <li key={formation._id} className={styles.item}>
+                {editingId === formation._id ? (
+                  <input
+                    autoFocus
+                    className={styles.nameInput}
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onBlur={() => commitRename(formation)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter')  commitRename(formation);
+                      if (e.key === 'Escape') setEditingId(null);
+                    }}
+                    maxLength={40}
+                    aria-label={t('formations.renameAriaLabel')}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.name}
+                    onDoubleClick={() => startEditing(formation)}
+                    title={t('formations.renameTitle')}
+                  >
+                    {formation.name}
+                  </button>
+                )}
+                {formation.teamId && (
+                  <span className={styles.teamBadge} title={teams.find((tm) => tm._id === formation.teamId)?.name ?? t('formations.teamBadgeFallback')}>
+                    <Users size={14} aria-hidden="true" />
+                  </span>
+                )}
+                <span className={styles.fieldBadge}>{FIELD_TYPE_LABELS[formation.fieldType] ?? formation.fieldType}</span>
                 <Button
                   variant="secondary"
                   size="sm"
+                  iconOnly
                   className={styles.loadBtn}
                   onClick={() => onLoad?.(formation)}
+                  aria-label={t('formations.loadTitle')}
                   title={t('formations.loadTitle')}
                 >
-                  <span className={styles.name}>{formation.name}</span>
-                  {formation.teamId && (
-                    <span className={styles.teamBadge} title={teams.find((tm) => tm._id === formation.teamId)?.name ?? t('formations.teamBadgeFallback')}>
-                      <Users size={14} aria-hidden="true" />
-                    </span>
-                  )}
-                  <span className={styles.fieldBadge}>{FIELD_TYPE_LABELS[formation.fieldType] ?? formation.fieldType}</span>
+                  <FolderOpen size={16} aria-hidden="true" />
                 </Button>
                 <Button
                   variant="danger"

@@ -210,6 +210,12 @@ export default function BoardEditorPage() {
 
   const [selectedPlayerId, setSelectedPlayerId] = useState(null);
 
+  // Backlog: neue Frames sind meist eine neue Spielsituation, in der
+  // alte Pfeile/Zeichnungen selten noch passen – Standard daher AUS,
+  // Spielerpositionen werden trotzdem immer übernommen (siehe
+  // FrameTimeline.jsx für den Schalter selbst).
+  const [copyElementsOnAdd, setCopyElementsOnAdd] = useState(false);
+
   const [showNames, setShowNames] = useState(false);
   const [namePosition, setNamePosition] = useState('unten');
 
@@ -712,12 +718,14 @@ export default function BoardEditorPage() {
           frames={frames}
           activeIndex={activeIndex}
           onSelect={handleFrameSelect}
-          onAdd={canEdit ? () => addFrame(drawing.players, drawing.elements) : undefined}
+          onAdd={canEdit ? () => addFrame(drawing.players, copyElementsOnAdd ? drawing.elements : []) : undefined}
           onDelete={canEdit ? deleteFrame : undefined}
           onReorder={canEdit ? reorderFrames : undefined}
           loading={framesLoading}
           currentPlayers={drawing.players}
           currentElements={drawing.elements}
+          copyElementsOnAdd={copyElementsOnAdd}
+          onToggleCopyElements={canEdit ? () => setCopyElementsOnAdd((v) => !v) : undefined}
         />
 
         <BoardSidePanelTabs

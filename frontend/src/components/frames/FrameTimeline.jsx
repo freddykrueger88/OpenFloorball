@@ -5,7 +5,7 @@
  */
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GripVertical, X, Plus } from 'lucide-react';
+import { GripVertical, X, Plus, PenLine } from 'lucide-react';
 import Button from '../common/Button.jsx';
 import styles from './FrameTimeline.module.css';
 
@@ -21,6 +21,8 @@ export default function FrameTimeline({
   loading       = false,
   currentPlayers,
   currentElements,
+  copyElementsOnAdd    = false,
+  onToggleCopyElements,
 }) {
   const { t } = useTranslation();
   const dragItem  = useRef(null);
@@ -101,6 +103,25 @@ export default function FrameTimeline({
           </li>
         ))}
       </ol>
+
+      {/* Neue Frames sind meist eine neue Spielsituation – alte Pfeile/
+          Zeichnungen passen dann selten noch. Standard daher AUS
+          (Spielerpositionen werden trotzdem immer übernommen, siehe
+          BoardEditorPage.handleAddFrame), aber als Schalter verfügbar
+          für den Fall, dass eine Zeichnung über mehrere Frames hinweg
+          gelten soll (z.B. eine Zonenmarkierung). */}
+      <Button
+        variant={copyElementsOnAdd ? 'primary' : 'secondary'}
+        size="sm"
+        iconOnly
+        className={styles.copyToggleBtn}
+        onClick={() => onToggleCopyElements?.()}
+        aria-pressed={copyElementsOnAdd}
+        aria-label={copyElementsOnAdd ? t('frames.copyElementsOnAriaLabel') : t('frames.copyElementsOffAriaLabel')}
+        title={copyElementsOnAdd ? t('frames.copyElementsOnTitle') : t('frames.copyElementsOffTitle')}
+      >
+        <PenLine size={14} aria-hidden="true" />
+      </Button>
 
       {/* + Frame Button */}
       <Button

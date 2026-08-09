@@ -94,6 +94,9 @@
 }
 .frameItem:hover .deleteBtn { opacity: 1; }
 
+/* ── Zeichnungen-übernehmen-Schalter ── */
+.copyToggleBtn { flex-shrink: 0; }
+
 /* ── + Frame Button ── */
 .addBtn {
   flex-shrink: 0;

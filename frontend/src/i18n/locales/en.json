@@ -538,7 +538,11 @@
     "addFrameAriaLabel": "Add new frame",
     "maxFramesTitle": "Maximum {{max}} frames",
     "addFrameTitle": "Add frame",
-    "addLabel": "Frame"
+    "addLabel": "Frame",
+    "copyElementsOnAriaLabel": "Drawings are carried over to new frames (tap to turn off)",
+    "copyElementsOffAriaLabel": "Drawings are NOT carried over to new frames (tap to turn on)",
+    "copyElementsOnTitle": "Drawings are copied along – tap to turn this off for new frames",
+    "copyElementsOffTitle": "New frames start without drawings (player positions are still carried over) – tap to copy drawings along"
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",

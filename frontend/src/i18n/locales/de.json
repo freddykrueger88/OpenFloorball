@@ -538,7 +538,11 @@
     "addFrameAriaLabel": "Neuen Frame hinzufügen",
     "maxFramesTitle": "Maximal {{max}} Frames",
     "addFrameTitle": "Frame hinzufügen",
-    "addLabel": "Frame"
+    "addLabel": "Frame",
+    "copyElementsOnAriaLabel": "Zeichnungen werden in neue Frames übernommen (antippen zum Ausschalten)",
+    "copyElementsOffAriaLabel": "Zeichnungen werden NICHT in neue Frames übernommen (antippen zum Einschalten)",
+    "copyElementsOnTitle": "Zeichnungen werden mitkopiert – antippen, um das für neue Frames auszuschalten",
+    "copyElementsOffTitle": "Neue Frames starten ohne Zeichnungen (Spielerpositionen werden trotzdem übernommen) – antippen, um Zeichnungen mitzukopieren"
   },
   "shortcuts": {
     "title": "Tastaturkürzel",

@@ -13,6 +13,15 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Changed
+- Neue Frames übernehmen Zeichnungen (Pfeile/Freihand) nicht mehr
+  automatisch, nur noch die Spielerpositionen – ein neuer Frame ist
+  meist eine neue Spielsituation, in der alte Pfeile selten noch
+  passen. Über einen kleinen Schalter direkt neben dem
+  "Frame"-Button in der Timeline lässt sich das bei Bedarf umkehren
+  (z. B. für eine Zonenmarkierung, die über mehrere Frames gelten
+  soll).
+
 ### Added
 - RSVP/Anwesenheit für Spiele und Trainingseinheiten: bei einer
   team-geteilten Ressource sehen alle Team-Mitglieder die volle

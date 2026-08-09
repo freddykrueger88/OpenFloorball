@@ -37,9 +37,18 @@ einen Eintrag springt direkt zu diesem Zustand.
 
 Gezeichnete Elemente gehören zum **aktuell aktiven Frame** – beim
 Wechsel zu einem anderen Frame verschwindet die Zeichnung dort (jeder
-Frame hat seine eigenen Elemente). Für eine Zeichnung, die in mehreren
-Frames sichtbar sein soll, muss sie in jedem Frame einzeln angelegt
-werden. Details zu Frames: [Frame-by-Frame Animation](./Animation.md).
+Frame hat seine eigenen Elemente).
+
+Beim **Anlegen eines neuen Frames** (Button "Frame" in der Timeline)
+werden die aktuellen Spielerpositionen immer übernommen, Zeichnungen
+standardmäßig **nicht** – ein neuer Frame ist meist eine neue
+Spielsituation, in der alte Pfeile selten noch passen. Direkt neben
+dem "Frame"-Button lässt sich das über einen kleinen Schalter
+umkehren (Stift-Symbol), falls eine Zeichnung doch über mehrere Frames
+hinweg gelten soll (z. B. eine Zonenmarkierung). Für eine Zeichnung,
+die nur in einem einzelnen weiteren Frame sichtbar sein soll, kann sie
+dort natürlich auch einfach neu angelegt werden. Details zu Frames:
+[Frame-by-Frame Animation](./Animation.md).
 
 ## Feldgröße ändern
 

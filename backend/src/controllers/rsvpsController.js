@@ -23,6 +23,7 @@ function toApiRsvpEntry(row) {
   return {
     userId:      row.user_id,
     email:       row.email,
+    teamRole:    row.team_role ?? null,
     status:      row.status ?? null,
     reason:      row.reason ?? '',
     respondedAt: row.updated_at ?? null,
@@ -51,7 +52,7 @@ export function makeRsvpHandlers(resourceType, { assertRead }) {
       }
 
       const result = await pool.query(
-        `SELECT u.id AS user_id, u.email, r.status, r.reason, r.updated_at
+        `SELECT u.id AS user_id, u.email, tm.role AS team_role, r.status, r.reason, r.updated_at
          FROM team_members tm
          JOIN users u ON u.id = tm.user_id
          LEFT JOIN rsvps r ON r.resource_type = $1 AND r.resource_id = $2 AND r.user_id = tm.user_id
@@ -86,8 +87,15 @@ export function makeRsvpHandlers(resourceType, { assertRead }) {
          RETURNING *`,
         [resourceType, resourceId, req.user.id, status, reason]
       );
-      const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [req.user.id]);
-      res.json(success(toApiRsvpEntry({ ...result.rows[0], email: userResult.rows[0]?.email })));
+      const userResult = await pool.query(
+        `SELECT u.email, tm.role AS team_role
+         FROM users u
+         JOIN ${table} t ON t.id = $2
+         JOIN team_members tm ON tm.team_id = t.team_id AND tm.user_id = u.id
+         WHERE u.id = $1`,
+        [req.user.id, resourceId]
+      );
+      res.json(success(toApiRsvpEntry({ ...result.rows[0], ...userResult.rows[0] })));
     } catch (err) {
       logger.error('[setMyRsvp]', err);
       res.status(500).json(error('Interner Serverfehler'));

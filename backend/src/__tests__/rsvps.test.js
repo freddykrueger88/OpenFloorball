@@ -96,15 +96,20 @@ for (const resource of RESOURCES) {
       expect(res.body.data).toEqual([]);
     });
 
-    it('liefert die volle Team-Roster-Liste, initial mit status: null', async () => {
+    it('liefert die volle Team-Roster-Liste, initial mit status: null, inkl. Team-Rolle', async () => {
       const res = await request(app).get(`${resource.basePath}/${resourceId}/rsvps`).set('Cookie', owner.cookie);
       expect(res.status).toBe(200);
       expect(res.body.data).toHaveLength(2);
       expect(res.body.data.every((r) => r.status === null)).toBe(true);
       expect(res.body.data.map((r) => r.email).sort()).toEqual([member.email, owner.email].sort());
+
+      const ownerEntry = res.body.data.find((r) => r.email === owner.email);
+      const memberEntry = res.body.data.find((r) => r.email === member.email);
+      expect(ownerEntry.teamRole).toBe('owner');
+      expect(memberEntry.teamRole).toBe('member');
     });
 
-    it('ein member-Rang-Nutzer darf per PUT /me für sich selbst antworten', async () => {
+    it('ein member-Rang-Nutzer darf per PUT /me für sich selbst antworten (Antwort enthält die eigene Team-Rolle)', async () => {
       const res = await request(app)
         .put(`${resource.basePath}/${resourceId}/rsvps/me`)
         .set('Cookie', member.cookie)
@@ -112,6 +117,7 @@ for (const resource of RESOURCES) {
       expect(res.status).toBe(200);
       expect(res.body.data.status).toBe('yes');
       expect(res.body.data.email).toBe(member.email);
+      expect(res.body.data.teamRole).toBe('member');
     });
 
     it('erneutes PUT /me überschreibt den Status (Upsert, kein Duplikat)', async () => {

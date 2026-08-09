@@ -53,7 +53,12 @@ export default function RsvpSection({ resourceKind, resourceId, teamId }) {
             return (
               <li key={entry.userId} className={styles.item}>
                 <div className={styles.itemRow}>
-                  <span className={styles.email}>{isMe ? t('rsvp.you') : entry.email}</span>
+                  <span className={styles.identity}>
+                    <span className={styles.email}>{isMe ? t('rsvp.you') : entry.email}</span>
+                    {entry.teamRole && (
+                      <span className={styles.roleBadge}>{t(`settings.teams.role.${entry.teamRole}`)}</span>
+                    )}
+                  </span>
                   {!isMe && (
                     <span className={`${styles.statusChip} ${styles[`status-${entry.status ?? 'none'}`]}`}>
                       {statusLabel(entry.status)}

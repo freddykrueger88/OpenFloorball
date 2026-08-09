@@ -27,7 +27,19 @@
 
 .itemRow { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
 
+.identity { display: flex; align-items: baseline; gap: var(--space-1); min-width: 0; overflow: hidden; }
+
 .email { font-size: var(--text-sm); color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.roleBadge {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  background: var(--color-surface-offset);
+  border-radius: var(--radius-sm);
+  padding: 1px var(--space-1);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 
 .statusChip {
   font-size: var(--text-xs);

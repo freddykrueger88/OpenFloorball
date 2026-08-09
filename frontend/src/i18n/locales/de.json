@@ -936,9 +936,10 @@
     "presetPenalty5": "Strafzeit 5 Min.",
     "presetMatchPenalty": "Matchstrafe",
     "presetGameEnd": "Spielende",
-    "scorerAriaLabel": "Torschütze auswählen",
-    "scorerUnknown": "Ohne Torschütze",
-    "scorerNoRoster": "Kein Kader für dieses Spiel hinterlegt – siehe Kader-Seite, um Spieler anzulegen."
+    "attributionAriaLabel": "Zuordnung für \"{{event}}\" auswählen",
+    "attributionOpponent": "Gegner",
+    "attributionNone": "Ohne Angabe",
+    "attributionNoRoster": "Kein Kader für dieses Spiel hinterlegt – siehe Kader-Seite, um Spieler anzulegen."
   },
   "roster": {
     "title": "Kader",

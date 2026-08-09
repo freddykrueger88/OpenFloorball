@@ -24,12 +24,14 @@ Unter `/games`:
    ein Tap trägt die Notiz direkt mit Zeitstempel ein, ohne tippen zu
    müssen. Die Buttons sind alphabetisch sortiert (sprachabhängig,
    die Reihenfolge unterscheidet sich also zwischen Deutsch/Englisch).
-4. Der "Tor"-Button öffnet zusätzlich eine Torschützen-Auswahl aus dem
-   [Kader](./Kader.md) des Spiels (team-geteilte Spiele: Kader dieses
-   Teams, sonst der persönliche Kader) – seit dem IFF-Regelwerk 2026
-   dürfen auch Torhüter ein Tor erzielen, die Auswahl filtert Rollen
-   deshalb bewusst nicht. Alternativ "Ohne Torschütze" wählen, wenn
-   z. B. der Gegner trifft.
+4. "Tor", "Strafzeit 2/5 Min." und "Matchstrafe" öffnen zusätzlich eine
+   Zuordnungs-Auswahl aus dem [Kader](./Kader.md) des Spiels
+   (team-geteilte Spiele: Kader dieses Teams, sonst der persönliche
+   Kader) – jedes dieser Ereignisse betrifft immer eine Person, egal ob
+   im eigenen Team oder beim Gegner. Neben dem Kader steht deshalb immer
+   auch "Gegner" zur Auswahl, plus "Ohne Angabe" für den Fall, dass die
+   Person unklar ist. Seit dem IFF-Regelwerk 2026 dürfen auch Torhüter
+   ein Tor erzielen, die Auswahl filtert Rollen deshalb bewusst nicht.
 5. Notizen erscheinen neueste zuerst, jeweils mit Uhrzeit (und bei
    team-geteilten Spielen mit dem Namen der Autorin/des Autors).
 

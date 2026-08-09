@@ -935,7 +935,10 @@
     "presetPenalty2": "2-minute penalty",
     "presetPenalty5": "5-minute penalty",
     "presetMatchPenalty": "Match penalty",
-    "presetGameEnd": "End of game"
+    "presetGameEnd": "End of game",
+    "scorerAriaLabel": "Select scorer",
+    "scorerUnknown": "No scorer",
+    "scorerNoRoster": "No roster set up for this game yet – see the Roster page to add players."
   },
   "roster": {
     "title": "Roster",

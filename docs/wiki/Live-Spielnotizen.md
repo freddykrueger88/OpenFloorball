@@ -23,7 +23,13 @@ Unter `/games`:
    Matchstrafe) gibt es Vorlagen-Buttons oberhalb des Eingabefelds –
    ein Tap trägt die Notiz direkt mit Zeitstempel ein, ohne tippen zu
    müssen.
-4. Notizen erscheinen neueste zuerst, jeweils mit Uhrzeit (und bei
+4. Der "Tor"-Button öffnet zusätzlich eine Torschützen-Auswahl aus dem
+   [Kader](./Kader.md) des Spiels (team-geteilte Spiele: Kader dieses
+   Teams, sonst der persönliche Kader) – seit dem IFF-Regelwerk 2026
+   dürfen auch Torhüter ein Tor erzielen, die Auswahl filtert Rollen
+   deshalb bewusst nicht. Alternativ "Ohne Torschütze" wählen, wenn
+   z. B. der Gegner trifft.
+5. Notizen erscheinen neueste zuerst, jeweils mit Uhrzeit (und bei
    team-geteilten Spielen mit dem Namen der Autorin/des Autors).
 
 ## Zugriff und Löschen

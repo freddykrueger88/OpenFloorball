@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Trash2, Send } from 'lucide-react';
 import { useGames } from '../hooks/useGames.js';
 import { useComments } from '../hooks/useComments.js';
+import { useRoster } from '../hooks/useRoster.js';
 import { formatDate } from '../utils/formatDate.js';
 import useAnnounceStore from '../store/announceStore.js';
 import Button from '../components/common/Button.jsx';
@@ -26,6 +27,10 @@ export default function GamePage() {
   const { id } = useParams();
   const { fetchGame, updateGame } = useGames();
   const { comments: notes, loading: notesLoading, error: notesError, fetchComments, addComment, deleteComment } = useComments('games', id);
+  // IFF-Regelwerk 2026: auch Torhüter dürfen inzwischen Tore erzielen –
+  // die Torschützen-Auswahl filtert Rollen deshalb bewusst NICHT (TW
+  // erscheint wie jeder andere Kader-Spieler).
+  const { rosterPlayers, fetchRoster } = useRoster();
 
   const [game,          setGame         ] = useState(null);
   const [gameError,     setGameError    ] = useState(null);
@@ -35,7 +40,10 @@ export default function GamePage() {
   const [playedAt,      setPlayedAt     ] = useState('');
   const [draft,         setDraft        ] = useState('');
   const [sending,        setSending      ] = useState(false);
+  const [showScorerPicker, setShowScorerPicker] = useState(false);
   const opponentInputRef = useRef(null);
+
+  useEffect(() => { fetchRoster().catch(() => {}); }, [fetchRoster]);
 
   const load = useCallback(async () => {
     setGameLoading(true);
@@ -105,10 +113,11 @@ export default function GamePage() {
   // Auszeit/Team, Strafzeiten 2/5 Min./Matchstrafe) – ein Tap trägt die
   // Notiz direkt ein, ohne erst ins Eingabefeld tippen zu müssen. Fehler
   // laufen über dieselbe notesError-Anzeige wie bei frei eingegebenen
-  // Notizen (kein Sonderfall).
+  // Notizen (kein Sonderfall). "Tor" ist ein Sonderfall: öffnet statt
+  // eines Sofort-Eintrags die Torschützen-Auswahl (siehe unten).
   const PRESETS = [
     t('games.presetKickoffQ1'), t('games.presetKickoffQ2'), t('games.presetKickoffQ3'),
-    t('games.presetPeriodEnd'), t('games.presetTimeout'), t('games.presetGoal'),
+    t('games.presetPeriodEnd'), t('games.presetTimeout'),
     t('games.presetPenalty2'), t('games.presetPenalty5'), t('games.presetMatchPenalty'),
     t('games.presetGameEnd'),
   ];
@@ -132,6 +141,21 @@ export default function GamePage() {
       </main>
     );
   }
+
+  // Kader des Spiels: bei team-geteilten Spielen der Kader dieses Teams,
+  // sonst der persönliche Kader (teamId=null) – exakt dieselbe
+  // Zuordnung wie beim Spiel selbst.
+  const squadForGame = rosterPlayers.filter((p) => (game.teamId ? p.teamId === game.teamId : !p.teamId));
+
+  const handleSelectScorer = (player) => {
+    if (!player) {
+      handleAddPreset(t('games.presetGoal'));
+    } else {
+      const label = player.jerseyNumber != null ? `#${player.jerseyNumber} ${player.name}` : player.name;
+      handleAddPreset(`${t('games.presetGoal')} – ${label}`);
+    }
+    setShowScorerPicker(false);
+  };
 
   const notesNewestFirst = [...notes].reverse();
 
@@ -182,12 +206,44 @@ export default function GamePage() {
 
       <section className={styles.notesSection} aria-label={t('games.notesAriaLabel')}>
         <div className={styles.presetsRow} role="group" aria-label={t('games.presetsAriaLabel')}>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            aria-expanded={showScorerPicker}
+            onClick={() => setShowScorerPicker((v) => !v)}
+          >
+            {t('games.presetGoal')}
+          </Button>
           {PRESETS.map((text) => (
             <Button key={text} type="button" variant="secondary" size="sm" onClick={() => handleAddPreset(text)}>
               {text}
             </Button>
           ))}
         </div>
+
+        {showScorerPicker && (
+          <div className={styles.scorerPicker} role="group" aria-label={t('games.scorerAriaLabel')}>
+            {squadForGame.map((player) => (
+              <Button
+                key={player._id}
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => handleSelectScorer(player)}
+              >
+                {player.role && <span className={styles.scorerRole}>{player.role}</span>}
+                {player.jerseyNumber != null && `#${player.jerseyNumber} `}{player.name}
+              </Button>
+            ))}
+            <Button type="button" variant="secondary" size="sm" onClick={() => handleSelectScorer(null)}>
+              {t('games.scorerUnknown')}
+            </Button>
+            {squadForGame.length === 0 && (
+              <p className={styles.hint}>{t('games.scorerNoRoster')}</p>
+            )}
+          </div>
+        )}
 
         <form className={styles.addForm} onSubmit={handleAddNote}>
           <input

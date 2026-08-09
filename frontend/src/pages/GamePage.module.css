@@ -86,6 +86,23 @@
   gap: var(--space-2);
 }
 
+.scorerPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-surface-offset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.scorerRole {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-right: var(--space-1);
+}
+
 /* Bewusst groß/prominent – für schnelle Bedienung im Stehen/mit einer
    Hand während eines laufenden Spiels (Mobile First, siehe CLAUDE.md). */
 .addForm {

@@ -27,7 +27,10 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   Zusätzlich Vorlagen-Buttons für die reglementierten Spiel-Ereignisse
   nach IFF-Regelwerk (Anstoß je Drittel, Drittelende, Auszeit, Tor,
   Strafzeit 2/5 Min., Matchstrafe, Spielende) – ein Tap trägt die
-  Notiz direkt ein, ohne tippen zu müssen.
+  Notiz direkt ein, ohne tippen zu müssen. Der "Tor"-Button öffnet
+  zusätzlich eine Torschützen-Auswahl aus dem Kader des Spiels (seit
+  IFF-Regelwerk 2026 dürfen auch Torhüter Tore erzielen, die Auswahl
+  filtert Rollen deshalb bewusst nicht) oder "Ohne Torschütze".
 - Manueller Backup-Trigger: "Jetzt ausführen"-Button im Admin-Bereich
   bei den automatischen Backups, löst denselben Job wie der Cron-Lauf
   sofort für alle Nutzer aus (`POST /api/admin/backup-run`) –

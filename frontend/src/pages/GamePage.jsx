@@ -20,6 +20,7 @@ import { useRoster } from '../hooks/useRoster.js';
 import { useLines } from '../hooks/useLines.js';
 import { formatDate } from '../utils/formatDate.js';
 import useAnnounceStore from '../store/announceStore.js';
+import RsvpSection from '../components/rsvp/RsvpSection.jsx';
 import Button from '../components/common/Button.jsx';
 import styles from './GamePage.module.css';
 
@@ -237,6 +238,8 @@ export default function GamePage() {
       {(gameError || notesError) && (
         <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError}</div>
       )}
+
+      <RsvpSection resourceKind="games" resourceId={id} teamId={game.teamId} />
 
       {linesForGame.length > 0 && (
         <section className={styles.linesSection} aria-label={t('games.linesAriaLabel')}>

@@ -13,6 +13,16 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- RSVP/Anwesenheit für Spiele und Trainingseinheiten: bei einer
+  team-geteilten Ressource sehen alle Team-Mitglieder die volle
+  Team-Liste und können für sich selbst mit Zusage/Absage/Unsicher
+  antworten (auch ohne Schreibzugriff auf die Ressource selbst – eine
+  Selbstauskunft braucht keine Bearbeitungsberechtigung), bei einer
+  Absage optional mit Grund (Schnellauswahl oder Freitext). Neue
+  polymorphe `rsvps`-Tabelle (ein Status pro User+Ressource, Upsert)
+  nach exakt demselben Muster wie die bestehende `comments`-Tabelle.
+
 ### Fixed
 - Migration schlug auf einer komplett frischen Datenbank fehl ("relation
   teams does not exist") – die `lines`-Tabelle referenzierte `team_id

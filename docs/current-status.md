@@ -34,6 +34,9 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 - **Live-Spielnotizen** – Spiele anlegen (Gegner/Datum, optional
   team-geteilt), während des laufenden Spiels schnelle,
   zeitgestempelte Notizen erfassen. Details: [Live-Spielnotizen](./wiki/Live-Spielnotizen.md).
+- **RSVP/Anwesenheit** – Team-Mitglieder sagen für Spiele/Trainings
+  zu/ab/unsicher, optional mit Absagegrund. Details:
+  [Live-Spielnotizen](./wiki/Live-Spielnotizen.md#anwesenheit-rsvp).
 - **Team-Kader**, **Teams und Vereine** – zweistufiges Rollenmodell
   je Ebene (Details: [docs/wiki/Teams-und-Vereine.md](./wiki/Teams-und-Vereine.md)).
 - **Board-Sharing** – Kollaboratoren (nur Owner verwaltet),

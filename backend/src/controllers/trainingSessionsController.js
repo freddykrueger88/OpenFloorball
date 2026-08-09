@@ -17,6 +17,7 @@ import { success, created, error } from '../utils/apiResponse.js';
 import { getUserTeamIds, assertTeamAccess } from '../utils/teamAccess.js';
 import { assertBoardAccess } from '../utils/boardAccess.js';
 import { deleteCommentsForResource } from './commentsController.js';
+import { deleteRsvpsForResource } from './rsvpsController.js';
 
 const MAX_SESSIONS = 20;
 const MAX_ITEMS_PER_SESSION = 30;
@@ -222,6 +223,7 @@ export async function deleteSession(req, res) {
     // deleted_at). training_sessions werden hart gelöscht, daher hier
     // explizit aufräumen, sonst blieben verwaiste Kommentare zurück.
     await deleteCommentsForResource('training_session', req.params.id);
+    await deleteRsvpsForResource('training_session', req.params.id);
     res.json(success({ message: 'Trainingseinheit gelöscht' }));
   } catch (err) {
     logger.error('[deleteSession]', err);

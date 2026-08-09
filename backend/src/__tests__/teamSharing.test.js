@@ -225,6 +225,16 @@ describe('Spiele/Live-Notizen (games + comments) – Team-Sharing', () => {
     expect(res.status).toBe(200);
   });
 
+  it('member darf per RSVP für sich selbst zusagen (Lesezugriff reicht)', async () => {
+    const res = await request(app).put(`/api/games/${gameId}/rsvps/me`).set('Cookie', member.cookie).send({ status: 'yes' });
+    expect(res.status).toBe(200);
+  });
+
+  it('ein Fremder darf keine RSVP-Antwort zum Team-Spiel abgeben (404)', async () => {
+    const res = await request(app).put(`/api/games/${gameId}/rsvps/me`).set('Cookie', stranger.cookie).send({ status: 'yes' });
+    expect(res.status).toBe(404);
+  });
+
   it('member darf das Spiel NICHT löschen (404)', async () => {
     const res = await request(app).delete(`/api/games/${gameId}`).set('Cookie', member.cookie);
     expect(res.status).toBe(404);

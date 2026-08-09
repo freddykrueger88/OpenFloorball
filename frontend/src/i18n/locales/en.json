@@ -299,6 +299,27 @@
     "deleteBtn": "Delete",
     "deleteAriaLabel": "Delete comment"
   },
+  "rsvp": {
+    "title": "Attendance",
+    "ariaLabel": "Attendance",
+    "loading": "Loading attendance list…",
+    "you": "You",
+    "respondAriaLabel": "Your response",
+    "statusYes": "Yes",
+    "statusNo": "No",
+    "statusMaybe": "Maybe",
+    "statusNone": "No response",
+    "reasonPlaceholder": "Reason (optional)",
+    "reasonAriaLabel": "Reason for declining",
+    "reason": {
+      "sick": "Sick",
+      "injured": "Injured",
+      "work": "Work",
+      "vacation": "Vacation",
+      "school": "School",
+      "private": "Private"
+    }
+  },
   "versions": {
     "title": "History",
     "ariaLabel": "Version history",

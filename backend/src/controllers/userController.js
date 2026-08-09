@@ -14,6 +14,7 @@ import { success, error } from '../utils/apiResponse.js';
 import { COOKIE_OPTS } from '../utils/cookies.js';
 import { buildUserExport, BACKUP_FORMAT } from '../services/exportUserData.js';
 import { deleteCommentsForUser } from './commentsController.js';
+import { deleteRsvpsForUser } from './rsvpsController.js';
 
 const MAX_FRAMES_PER_BOARD = 50;
 const MAX_ROSTER_PLAYERS = 40;
@@ -57,6 +58,7 @@ export async function deleteAccount(req, res) {
     // sitzt die Kommentar-Aufräumung sonst. Vorher explizit anstoßen, sonst
     // blieben Kommentare anderer Nutzer als verwaiste Zeilen zurück.
     await deleteCommentsForUser(req.user.id);
+    await deleteRsvpsForUser(req.user.id);
     await pool.query('DELETE FROM users WHERE id = $1', [req.user.id]);
     res.clearCookie('token', { ...COOKIE_OPTS, maxAge: 0 });
 

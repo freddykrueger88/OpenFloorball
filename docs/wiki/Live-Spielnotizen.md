@@ -43,6 +43,18 @@ dieselbe Regel wie bei [Kommentaren](./Export.md). Ein Bearbeiten von
 Notizen ist bewusst nicht vorgesehen: bei einem Tippfehler einfach
 löschen und neu erfassen.
 
+## Anwesenheit (RSVP)
+
+Bei einem team-geteilten Spiel erscheint über den Notizen ein
+"Anwesenheit"-Bereich: jedes Team-Mitglied sieht die volle Team-Liste
+und kann für sich selbst mit Zusage/Absage/Unsicher antworten – auch
+ohne Schreibzugriff auf das Spiel (eine Selbstauskunft braucht keine
+Bearbeitungsberechtigung). Bei einer Absage lässt sich optional ein
+Grund angeben (Schnellauswahl: Krank, Verletzt, Arbeit, Urlaub, Schule,
+Privat, oder freier Text). Ohne Team-Zuordnung (persönliches Spiel)
+gibt es keinen Empfängerkreis, der Bereich erscheint dann nicht. Gilt
+identisch für [Trainingseinheiten](./Trainingsplaner.md).
+
 ## Technischer Hinweis
 
 Notizen sind keine eigene Datenbanktabelle, sondern nutzen dieselbe

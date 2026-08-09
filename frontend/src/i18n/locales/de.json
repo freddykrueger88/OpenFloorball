@@ -299,6 +299,27 @@
     "deleteBtn": "Löschen",
     "deleteAriaLabel": "Kommentar löschen"
   },
+  "rsvp": {
+    "title": "Anwesenheit",
+    "ariaLabel": "Anwesenheit",
+    "loading": "Lädt Anwesenheitsliste…",
+    "you": "Du",
+    "respondAriaLabel": "Eigene Antwort",
+    "statusYes": "Zusage",
+    "statusNo": "Absage",
+    "statusMaybe": "Unsicher",
+    "statusNone": "Ohne Antwort",
+    "reasonPlaceholder": "Grund (optional)",
+    "reasonAriaLabel": "Absagegrund",
+    "reason": {
+      "sick": "Krank",
+      "injured": "Verletzt",
+      "work": "Arbeit",
+      "vacation": "Urlaub",
+      "school": "Schule",
+      "private": "Privat"
+    }
+  },
   "versions": {
     "title": "Verlauf",
     "ariaLabel": "Versionsverlauf",

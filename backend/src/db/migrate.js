@@ -440,6 +440,32 @@ export async function runMigrations() {
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_comments_resource ON comments(resource_type, resource_id);`);
 
+    // ── rsvps (Roadmap-Audit: RSVP/Anwesenheit für Spiele/Trainings) ────────
+    // Polymorph wie comments oben, aber genau EIN Status pro User+Ressource
+    // (UNIQUE) statt beliebig vieler Einträge. Kein FK auf resource_id
+    // (polymorph) – Aufräumen läuft explizit über deleteRsvpsForResource/
+    // deleteRsvpsForUser, analog deleteCommentsForResource/-ForUser.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS rsvps (
+        id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        resource_type TEXT NOT NULL CHECK (resource_type IN ('game', 'training_session')),
+        resource_id   UUID NOT NULL,
+        user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        status        TEXT NOT NULL CHECK (status IN ('yes', 'no', 'maybe')),
+        reason        TEXT NOT NULL DEFAULT '',
+        created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (resource_type, resource_id, user_id)
+      );
+    `);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_rsvps_updated_at ON rsvps;
+      CREATE TRIGGER trg_rsvps_updated_at
+        BEFORE UPDATE ON rsvps
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_rsvps_resource ON rsvps(resource_type, resource_id);`);
+
     // ── board_versions (ROADMAP Phase 2 – automatische Versionierung) ────
     // Snapshot ALLER Frames eines Boards, entsteht automatisch bei jedem
     // Speichern (siehe framesController.updateFrame). Aufbewahrungsgrenze

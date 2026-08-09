@@ -15,6 +15,7 @@ import { teamColorToFillStroke } from '../utils/color.js';
 import FieldMiniature from '../components/field/FieldMiniature.jsx';
 import BoardPickerModal from '../components/trainings/BoardPickerModal.jsx';
 import CommentsPanel from '../components/comments/CommentsPanel.jsx';
+import RsvpSection from '../components/rsvp/RsvpSection.jsx';
 import Button from '../components/common/Button.jsx';
 import styles from './TrainingSessionPage.module.css';
 
@@ -315,6 +316,8 @@ export default function TrainingSessionPage() {
           adding={adding}
         />
       )}
+
+      <RsvpSection resourceKind="trainings" resourceId={id} teamId={session.teamId} />
 
       <div className={styles.commentsSection}>
         <CommentsPanel resourceKind="trainings" resourceId={id} />

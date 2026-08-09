@@ -27,7 +27,6 @@ function toApiBoard(row) {
     showGrid:     row.show_grid,
     showNames:    row.show_names,
     namePosition: row.name_position,
-    activeLineId: row.active_line_id,
     players:      row.players_json,
     elements:     row.elements_json,
     playbookId:   row.playbook_id,

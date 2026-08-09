@@ -151,14 +151,6 @@ describe('Kollaboratoren-Verwaltung (Owner-only)', () => {
     expect(res.body.data.label).toBe('Vom Kollaborator geändert');
   });
 
-  it('write-Kollaborator kann eine Line anlegen (POST)', async () => {
-    const res = await request(app)
-      .post(`/api/boards/${boardId}/lines`)
-      .set('Cookie', collaborator.cookie)
-      .send({ name: 'Linie vom Kollaborator' });
-    expect(res.status).toBe(201);
-  });
-
   it('write-Kollaborator kann das Board NICHT löschen (404)', async () => {
     const res = await request(app).delete(`/api/boards/${boardId}`).set('Cookie', collaborator.cookie);
     expect(res.status).toBe(404);

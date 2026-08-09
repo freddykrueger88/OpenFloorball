@@ -5,7 +5,6 @@
  */
 import pool from '../db/pool.js';
 import { toApiFrame } from '../controllers/framesController.js';
-import { toApiLine } from '../controllers/linesController.js';
 
 export const BACKUP_FORMAT = 'openfloorball-backup-v1';
 
@@ -36,10 +35,6 @@ export async function buildUserExport(userId) {
       'SELECT * FROM frames WHERE board_id = $1 ORDER BY order_index ASC',
       [b.id]
     );
-    const linesResult = await pool.query(
-      'SELECT * FROM lines WHERE board_id = $1 ORDER BY order_index ASC, created_at ASC',
-      [b.id]
-    );
 
     boards.push({
       name:         b.name,
@@ -54,7 +49,50 @@ export async function buildUserExport(userId) {
       namePosition: b.name_position,
       createdAt:    b.created_at,
       frames:       framesResult.rows.map(toApiFrame),
-      lines:        linesResult.rows.map(toApiLine),
+    });
+  }
+
+  // Kader + Lines sind nutzer-, nicht board-gebunden (fachlicher Umbau:
+  // Lines sind taktische Zusammenstellungen echter Kader-Spieler, siehe
+  // linesController.js) – deshalb Top-Level statt pro Board. Nur eigene
+  // Einträge (WHERE user_id = userId), keine team-geteilten Einträge
+  // anderer Nutzer – der Export enthält ausschließlich Daten, die diesem
+  // Account gehören. team_id wird bewusst NICHT exportiert/wiederhergestellt:
+  // ein Re-Import (ggf. in einen anderen Account) kann keine sinnvolle
+  // Team-Zuordnung herstellen, importierte Einträge sind daher immer
+  // persönlich.
+  const rosterResult = await pool.query(
+    'SELECT * FROM roster_players WHERE user_id = $1 ORDER BY created_at ASC',
+    [userId]
+  );
+  const rosterPlayers = rosterResult.rows.map((r) => ({
+    name: r.name,
+    jerseyNumber: r.jersey_number,
+    role: r.role,
+  }));
+
+  const linesResult = await pool.query(
+    'SELECT * FROM lines WHERE user_id = $1 ORDER BY created_at ASC',
+    [userId]
+  );
+  const lines = [];
+  for (const l of linesResult.rows) {
+    const playersResult = await pool.query(
+      `SELECT r.name, r.jersey_number, r.role, lp.order_index
+       FROM line_players lp JOIN roster_players r ON r.id = lp.roster_player_id
+       WHERE lp.line_id = $1 ORDER BY lp.order_index ASC`,
+      [l.id]
+    );
+    lines.push({
+      name: l.name,
+      color: l.color,
+      type: l.type,
+      // Spieler werden über Name+Nummer+Rolle referenziert statt über die
+      // alte DB-ID, da roster_players beim Re-Import ohnehin frische IDs
+      // bekommt (siehe userController.importAccount).
+      players: playersResult.rows.map((p) => ({
+        name: p.name, jerseyNumber: p.jersey_number, role: p.role, order: p.order_index,
+      })),
     });
   }
 
@@ -69,5 +107,7 @@ export async function buildUserExport(userId) {
     },
     settings,
     boards,
+    rosterPlayers,
+    lines,
   };
 }

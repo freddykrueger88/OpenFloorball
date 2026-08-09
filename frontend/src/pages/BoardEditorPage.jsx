@@ -19,7 +19,6 @@ import {
   Undo2,
   Redo2,
   Keyboard,
-  Layers,
   Star,
   Video,
   Download,
@@ -57,14 +56,12 @@ import { FrameTimeline } from '../components/frames/index.js';
 import { PlaybackControls } from '../components/playback/index.js';
 import { NotesPanel, BoardDetailsPanel, ExportPanel, PdfExportPanel, ShortcutsOverlay, ShareBoardModal, BoardSidePanelTabs, VersionsPanel, VideoPanel } from '../components/board/index.js';
 import PublishBoardModal from '../components/library/PublishBoardModal.jsx';
-import { LinesPanel } from '../components/lines/index.js';
 import { FormationsPanel } from '../components/formations/index.js';
 import CommentsPanel from '../components/comments/CommentsPanel.jsx';
 import Button from '../components/common/Button.jsx';
 
 import { useBoardsApi } from '../hooks/useBoardsApi.js';
 import { useFrames } from '../hooks/useFrames.js';
-import { useLines } from '../hooks/useLines.js';
 import { useFormations } from '../hooks/useFormations.js';
 import { useRoster } from '../hooks/useRoster.js';
 import { useTeams } from '../hooks/useTeams.js';
@@ -201,7 +198,6 @@ export default function BoardEditorPage() {
   const presence = usePresence(boardId, { onOp: handleRemoteOp });
   presenceRef.current = presence;
   const otherPresentUsers = presence.users.filter((u) => u.userId !== currentUserId);
-  const lines = useLines(boardId);
   const formations = useFormations();
   const roster = useRoster();
   // ROADMAP Phase 2: eigene Teams laden, um Formations-Vorlagen optional
@@ -249,7 +245,6 @@ export default function BoardEditorPage() {
       if (b?.homeColor) setHomeColor(normalizeStoredColor(b.homeColor) ?? DEFAULT_TEAM_COLORS.home.fill);
       if (b?.awayColor) setAwayColor(normalizeStoredColor(b.awayColor) ?? DEFAULT_TEAM_COLORS.away.fill);
       if (b?.ballColor) setBallColor(b.ballColor);
-      lines.loadLines(b?.activeLineId ?? null);
     }).catch(() => {});
     loadFrames();
     formations.fetchFormations();
@@ -636,8 +631,6 @@ export default function BoardEditorPage() {
               showNames={showNames}
               namePosition={namePosition}
               showHints={showHints}
-              activeLinePlayerIds={lines.activeLine?.playerIds ?? null}
-              activeLineColor={lines.activeLine?.color ?? null}
               cursors={presence.cursors}
               onFieldPointerMove={presence.sendCursor}
               onFieldPointerLeave={presence.sendCursorLeave}
@@ -693,24 +686,6 @@ export default function BoardEditorPage() {
                   field={IFF_FIELDS[field.fieldType] ?? IFF_FIELDS.large}
                   onAddArrow={drawing.addArrowElement}
                   onAddFreehand={drawing.addFreehandElement}
-                />
-              ),
-            },
-            canEdit && {
-              id: 'lines',
-              label: t('boardEditor.tabs.lines'),
-              icon: <Layers size={16} aria-hidden="true" />,
-              content: (
-                <LinesPanel
-                  lines={lines.lines}
-                  activeLineId={lines.activeLineId}
-                  players={drawing.players}
-                  onAddLine={lines.addLine}
-                  onRenameLine={(id, name) => lines.updateLine(id, { name })}
-                  onDeleteLine={lines.deleteLine}
-                  onSetActiveLine={lines.setActiveLine}
-                  onTogglePlayer={lines.togglePlayerInLine}
-                  canAddLine={lines.canAddLine}
                 />
               ),
             },

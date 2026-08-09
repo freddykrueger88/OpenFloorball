@@ -42,8 +42,6 @@ export default function FloorballField({
   snapToGrid = 0,
   showNames    = false,
   namePosition = 'unten',
-  activeLinePlayerIds = null,
-  activeLineColor     = null,
   showHints    = false, // Issue #27
   // Zeichnen
   drawingElements  = [],
@@ -184,8 +182,6 @@ export default function FloorballField({
         readonly={readonly}
         showNames={showNames}
         namePosition={namePosition}
-        activeLinePlayerIds={activeLinePlayerIds}
-        activeLineColor={activeLineColor}
         showHints={showHints}
       />
 

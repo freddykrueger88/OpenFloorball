@@ -23,6 +23,9 @@ frontend/src/
 | `/trainings` | `TrainingsPage.jsx` |
 | `/trainings/:id` | `TrainingSessionPage.jsx` |
 | `/roster` | `RosterPage.jsx` |
+| `/lines` | `LinesPage.jsx` |
+| `/games` | `GamesPage.jsx` |
+| `/games/:id` | `GamePage.jsx` |
 | `/settings` | `SettingsPage.jsx` |
 | `/share/:token` | `SharePage.jsx` (öffentlich, kein Login) |
 | `/privacy` | `PrivacyPage.jsx` |
@@ -39,8 +42,8 @@ Alle Seiten sind `lazy()`-geladen (Code-Splitting pro Route).
 | `drawing/` | Zeichenwerkzeuge, Koordinaten-Formular |
 | `frames/` | Frame-Timeline |
 | `playback/` | Play/Pause/Speed/Loop-Steuerung |
-| `lines/` | Lines-Panel |
 | `formations/` | Formationen-Panel |
+| `games/` | Spiel-Kachel (`GameCard`) für die Spiele-Übersicht |
 | `board/` | Notizen, Export-Panels, Kollaboratoren-Modal, Tab-Menü (`BoardSidePanelTabs`) |
 | `boards/` | Board-Übersicht (Kacheln, Postkarten-Galerie, Playbook-Filter) |
 | `trainings/` | Trainingsplaner-UI |
@@ -58,8 +61,10 @@ Ein Hook pro Backend-Ressource kapselt üblicherweise: Laden, Anlegen,
 | `useBoardsApi` | Boards CRUD |
 | `useFrames` | Frames + aktiver Frame |
 | `useDrawing` | Zeichenwerkzeuge, Undo/Redo, Tastaturkürzel |
-| `useLines`, `useFormations`, `usePlaybooks` | jeweiliges Backend-Modul |
+| `useFormations`, `usePlaybooks` | jeweiliges Backend-Modul |
 | `useRoster` | Kader |
+| `useLines` | Lines (Kader-Spieler-Kombinationen, nicht board-gebunden) |
+| `useGames` | Spiele (Live-Spielnotizen laufen über `useComments('games', id)`) |
 | `useTrainingSessions`, `useTrainingSessionItems` | Trainingsplaner |
 | `useBoardCollaborators` | Board-Sharing |
 | `useAutoSave` | Debounced + Intervall-Speichern, Status-Anzeige |

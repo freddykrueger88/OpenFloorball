@@ -32,11 +32,8 @@ export default function PlayerLayer({
   readonly    = false,
   showNames   = false,
   namePosition = 'unten',
-  activeLinePlayerIds = null, // Set/Array von player.id der aktiven Line (Issue #12)
-  activeLineColor     = null,
   showHints   = false, // Issue #27
 }) {
-  const activeSet = activeLinePlayerIds ? new Set(activeLinePlayerIds) : null;
   return (
     <Layer>
       {players.map((p) => {
@@ -78,7 +75,6 @@ export default function PlayerLayer({
             readonly={readonly}
             showName={showNames}
             namePosition={namePosition}
-            lineHighlightColor={activeSet?.has(p.id) ? activeLineColor : null}
             showHints={showHints}
           />
         );

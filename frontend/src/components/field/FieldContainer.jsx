@@ -26,8 +26,6 @@ export default function FieldContainer({
   snapToGrid = 0,
   showNames    = false,
   namePosition = 'unten',
-  activeLinePlayerIds = null,
-  activeLineColor     = null,
   showHints    = false, // Issue #27
   // Zeichnen
   drawingElements    = [],
@@ -89,8 +87,6 @@ export default function FieldContainer({
         snapToGrid={snapToGrid}
         showNames={showNames}
         namePosition={namePosition}
-        activeLinePlayerIds={activeLinePlayerIds}
-        activeLineColor={activeLineColor}
         showHints={showHints}
         drawingElements={drawingElements}
         selectedDrawingId={selectedDrawingId}

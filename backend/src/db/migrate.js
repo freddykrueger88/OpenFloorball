@@ -112,7 +112,10 @@ export async function runMigrations() {
     await client.query(`ALTER TABLE boards ADD COLUMN IF NOT EXISTS players_json JSONB NOT NULL DEFAULT '[]';`);
     await client.query(`ALTER TABLE boards ADD COLUMN IF NOT EXISTS elements_json JSONB NOT NULL DEFAULT '[]';`);
     await client.query(`ALTER TABLE boards ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ DEFAULT NULL;`);
-    await client.query(`ALTER TABLE boards ADD COLUMN IF NOT EXISTS active_line_id UUID DEFAULT NULL;`);
+    // active_line_id gehörte zur alten, board-gescopten Lines-Funktion
+    // (siehe unten) und wurde beim fachlichen Umbau auf Kader-basierte
+    // Lines entfernt – kein Ersatz auf boards nötig.
+    await client.query(`ALTER TABLE boards DROP COLUMN IF EXISTS active_line_id;`);
     // Issue #52 – nullable, ON DELETE SET NULL: löscht man ein Playbook,
     // bleiben die zugeordneten Boards erhalten, nur die Zuordnung entfällt.
     await client.query(`ALTER TABLE boards ADD COLUMN IF NOT EXISTS playbook_id UUID
@@ -149,21 +152,20 @@ export async function runMigrations() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_frames_board_id ON frames(board_id);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_frames_order ON frames(board_id, order_index);`);
 
-    // ── lines (Sturmreihen / Linien-Konfiguration) ────────────────────────
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS lines (
-        id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        board_id        UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
-        name            TEXT NOT NULL,
-        color           TEXT NOT NULL DEFAULT '#3B82F6',
-        player_ids_json JSONB NOT NULL DEFAULT '[]',
-        created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      );
-    `);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_lines_board_id ON lines(board_id);`);
-    await client.query(`ALTER TABLE lines ADD COLUMN IF NOT EXISTS type TEXT NOT NULL DEFAULT 'offense'
-      CHECK (type IN ('offense', 'defense', 'special'));`);
-    await client.query(`ALTER TABLE lines ADD COLUMN IF NOT EXISTS order_index INTEGER NOT NULL DEFAULT 0;`);
+    // Die alte, board-gescopte "lines"-Tabelle (Issue #12, v0.4.0) wird
+    // weiter unten (nach roster_players, da line_players darauf referenziert)
+    // durch das fachlich korrekte Kader-basierte Modell ersetzt. Der DROP
+    // darf nur EINMALIG laufen (Migrationen laufen bei jedem Backend-Start
+    // erneut!) – Erkennungsmerkmal: die alte Tabelle hatte eine board_id-
+    // Spalte, die es im neuen Modell nicht mehr gibt. Ohne diese Prüfung
+    // würde jeder Neustart versuchen, die (dann schon neue) Tabelle erneut
+    // zu droppen und an der line_players-FK-Abhängigkeit scheitern.
+    const oldLinesShape = await client.query(
+      `SELECT 1 FROM information_schema.columns WHERE table_name = 'lines' AND column_name = 'board_id'`
+    );
+    if (oldLinesShape.rows.length > 0) {
+      await client.query('DROP TABLE lines CASCADE;');
+    }
 
     // ── formation_templates (Issue #46 – wiederverwendbare Aufstellungen) ──
     // Nutzer-gebunden statt board-gebunden – über alle eigenen Boards
@@ -230,6 +232,57 @@ export async function runMigrations() {
       );
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_roster_players_user_id ON roster_players(user_id);`);
+
+    // ── lines (fachlicher Umbau: Kader-basierte taktische Linien) ──────────
+    // Ersetzt die alte, board-gescopte "lines"-Tabelle (Issue #12, v0.4.0,
+    // oben per DROP TABLE entfernt), die nur anonyme Platzhalter-Tokens
+    // EINES Board-Frames gruppierte – ohne jeden Bezug zum echten Kader.
+    // Fachlich korrekt: eine Line ist eine taktische Zusammenstellung
+    // echter Kader-Spieler (roster_players), wiederverwendbar über Boards/
+    // Spiele hinweg, nutzer-/team-gebunden wie roster_players/games. Nur 2
+    // Zeilen der alten Tabelle betroffen (Stand Umbau) – eine automatische
+    // Migration wäre ohnehin unmöglich gewesen, da die alten Einträge keine
+    // echte Spieler-Identität enthielten.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS lines (
+        id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        team_id    UUID REFERENCES teams(id) ON DELETE SET NULL,
+        name       TEXT NOT NULL,
+        color      TEXT NOT NULL DEFAULT '#3B82F6',
+        type       TEXT NOT NULL DEFAULT 'offense' CHECK (type IN ('offense', 'defense', 'special')),
+        is_active  BOOLEAN NOT NULL DEFAULT false,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_lines_user_id ON lines(user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_lines_team_id ON lines(team_id) WHERE team_id IS NOT NULL;`);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_lines_updated_at ON lines;
+      CREATE TRIGGER trg_lines_updated_at
+        BEFORE UPDATE ON lines
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `);
+
+    // Many-to-many: ein Kader-Spieler darf in beliebig vielen Lines stehen,
+    // eine Line enthält beliebig viele Kader-Spieler – exakt dasselbe Muster
+    // wie team_members/board_collaborators (Junction-Tabelle, UNIQUE-Paar,
+    // beidseitig ON DELETE CASCADE, ein Index pro FK-Seite). CASCADE sorgt
+    // dafür, dass Löschen eines Spielers/einer Line automatisch nur die
+    // Zuordnung entfernt, nie die jeweils andere Seite.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS line_players (
+        id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        line_id          UUID NOT NULL REFERENCES lines(id) ON DELETE CASCADE,
+        roster_player_id UUID NOT NULL REFERENCES roster_players(id) ON DELETE CASCADE,
+        order_index      INTEGER NOT NULL DEFAULT 0,
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (line_id, roster_player_id)
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_line_players_line_id ON line_players(line_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_line_players_roster_player_id ON line_players(roster_player_id);`);
 
     // ── board_collaborators (Issue #51 MVP – Board-Sharing) ─────────────────
     // Kein Echtzeit-Sync (das wäre ein deutlich größerer Scope, siehe

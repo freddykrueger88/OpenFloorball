@@ -225,6 +225,64 @@ describe('Spiele/Live-Notizen (games + comments) – Team-Sharing', () => {
   });
 });
 
+describe('Lines (fachlicher Umbau: Kader-basiert) – Team-Sharing', () => {
+  let lineId;
+  let teamPlayerId;
+
+  it('member darf keine team-geteilte Line anlegen (404)', async () => {
+    const res = await request(app).post('/api/lines').set('Cookie', member.cookie).send({ name: 'Sollte fehlschlagen', teamId });
+    expect(res.status).toBe(404);
+  });
+
+  it('coach legt eine team-geteilte Line an', async () => {
+    const res = await request(app).post('/api/lines').set('Cookie', coach.cookie).send({ name: 'Team-Line', teamId });
+    expect(res.status).toBe(201);
+    lineId = res.body.data._id;
+  });
+
+  it('member sieht die Line in der Liste (nur lesend)', async () => {
+    const res = await request(app).get('/api/lines').set('Cookie', member.cookie);
+    expect(res.body.data.some((l) => l._id === lineId)).toBe(true);
+  });
+
+  it('ein Fremder sieht die Line nicht', async () => {
+    const res = await request(app).get('/api/lines').set('Cookie', stranger.cookie);
+    expect(res.body.data.some((l) => l._id === lineId)).toBe(false);
+  });
+
+  it('coach legt einen team-geteilten Kader-Spieler an, den die Line nutzen kann', async () => {
+    const res = await request(app).post('/api/roster').set('Cookie', coach.cookie).send({ name: 'Team-Kader-Spieler', teamId });
+    expect(res.status).toBe(201);
+    teamPlayerId = res.body.data._id;
+  });
+
+  it('member darf KEINEN Spieler zur Team-Line hinzufügen (404)', async () => {
+    const res = await request(app)
+      .post(`/api/lines/${lineId}/players`)
+      .set('Cookie', member.cookie)
+      .send({ rosterPlayerId: teamPlayerId });
+    expect(res.status).toBe(404);
+  });
+
+  it('owner darf einen Spieler zur Team-Line hinzufügen, die coach angelegt hat', async () => {
+    const res = await request(app)
+      .post(`/api/lines/${lineId}/players`)
+      .set('Cookie', owner.cookie)
+      .send({ rosterPlayerId: teamPlayerId });
+    expect(res.status).toBe(201);
+  });
+
+  it('member darf die Line NICHT löschen (404)', async () => {
+    const res = await request(app).delete(`/api/lines/${lineId}`).set('Cookie', member.cookie);
+    expect(res.status).toBe(404);
+  });
+
+  it('coach darf die Line löschen', async () => {
+    const res = await request(app).delete(`/api/lines/${lineId}`).set('Cookie', coach.cookie);
+    expect(res.status).toBe(200);
+  });
+});
+
 describe('Formationsvorlagen (formation_templates) – Team-Sharing', () => {
   let formationId;
 

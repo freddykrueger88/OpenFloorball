@@ -24,8 +24,11 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   (Bewegungs-/Pass-/Schusspfeile, Freihand), Frame-by-Frame-Animation,
   automatische Versionierung (bis zu 50 Snapshots/Board,
   wiederherstellbar).
-- **Lines, Formationsvorlagen, Playbooks** – Sturm-/Defensivreihen,
-  wiederverwendbare Aufstellungen, Board-Sammlungen.
+- **Lines** – taktische Zusammenstellungen echter Kader-Spieler
+  (Sturm-/Defensivreihen/Special-Teams), ein Spieler kann in beliebig
+  vielen Lines stehen, schneller Wechsel direkt auf der Spielseite.
+  Details: [Lines](./wiki/Lines.md). **Formationsvorlagen, Playbooks**
+  – wiederverwendbare Aufstellungen, Board-Sammlungen.
 - **Trainingsplaner** – Trainingseinheiten mit Übungen, referenziert
   Boards live per Fremdschlüssel statt Kopie.
 - **Live-Spielnotizen** – Spiele anlegen (Gegner/Datum, optional
@@ -52,9 +55,10 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 - **Kommentare** auf Boards und Trainingseinheiten.
 - **Admin-Bereich** – Nutzerverwaltung, Bibliotheks-Moderation,
   Backup-Zeitplan, KI-Anbieter-Konfiguration.
-- **DSGVO/GDPR** – Datenauskunft (Art. 15), vollständiger Backup-
-  Export/Import (ZIP), Account-Löschung inkl. Anonymisierung
-  veröffentlichter Bibliothekseinträge.
+- **DSGVO/GDPR** – Datenauskunft (Art. 15), Backup-Export/Import (ZIP,
+  Boards inkl. Frames, Kader, Lines – siehe "Teilweise implementiert"),
+  Account-Löschung inkl. Anonymisierung veröffentlichter
+  Bibliothekseinträge.
 - **Automatische Backups** (Cron, konfigurierbares Zeitplan/
   Aufbewahrung) sowie ein manueller "Jetzt ausführen"-Button im
   Admin-Bereich für einen sofortigen Lauf unabhängig vom Zeitplan.
@@ -98,6 +102,10 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   aber bewusst keine serverseitige Konfliktauflösung oder
   Zusammenführung von Änderungen durch – rein informativ, kein
   Ersatz für die Konflikterkennung des Offline-Modus.
+- **Backup-Export/Import (GDPR)**: enthält Boards (inkl. Frames), Kader
+  und Lines. Formationsvorlagen, Playbooks und Trainingspläne sind
+  aktuell nicht Teil des Backups – wer diese Daten sichern will, muss
+  die entsprechenden Vorlagen/Trainingspläne aktuell manuell notieren.
 
 ## In Entwicklung
 

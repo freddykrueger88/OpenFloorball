@@ -34,7 +34,6 @@ Im Board-Editor:
   [zeichnen](./Spielzuege-Zeichnen.md)
 - Weitere [Frames](./Animation.md) für eine Bewegungsabfolge anlegen
   (Frame-Leiste unten)
-- Optional [Lines](./Lines.md) (Sturm-/Defensivreihen) definieren
 
 Änderungen werden automatisch gespeichert (Sichtbar am
 Speicherstatus im Header).
@@ -54,8 +53,12 @@ Im unteren Tab-Menü ("⚙️ Einstellungen"-Tab ausklappen für Details):
 
 - [Kader](./Kader.md): zentraler Spieler-Pool, einmal pflegen, in
   jedem Board zuweisbar
+- [Lines](./Lines.md): taktische Kader-Spieler-Kombinationen, schnell
+  während eines Spiels wechselbar
 - [Trainingsplaner](./Trainingsplaner.md): mehrere Boards zu einer
   Trainingseinheit mit Dauer/Reihenfolge zusammenstellen
+- [Live-Spielnotizen](./Live-Spielnotizen.md): Spiele anlegen,
+  zeitgestempelte Notizen während des Spiels erfassen
 
 ## Nächste Schritte
 

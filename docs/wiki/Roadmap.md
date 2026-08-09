@@ -18,6 +18,11 @@ Repository und werden dort kontinuierlich aktualisiert:
 - **Manueller Backup-Trigger** – "Jetzt ausführen"-Button im
   Admin-Bereich für einen sofortigen Backup-Lauf unabhängig vom
   Zeitplan. Siehe [Backup](./Backup.md).
+- **Lines grundlegend überarbeitet** (fachlicher Umbau) – Lines waren
+  bisher rein board-interne Hervorhebungs-Gruppen ohne Bezug zum
+  Kader; jetzt echte taktische Kader-Spieler-Kombinationen (ein
+  Spieler kann in beliebig vielen Lines stehen), schneller Wechsel
+  direkt auf der Spielseite. Siehe [Lines](./Lines.md).
 - **Echtzeit-Zusammenarbeit** – Präsenzanzeige und Live-Cursor beim
   gemeinsamen Bearbeiten eines Boards. Siehe
   [Echtzeit-Zusammenarbeit](./Echtzeit-Zusammenarbeit.md).

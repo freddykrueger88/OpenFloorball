@@ -46,16 +46,6 @@ Ressourcen-ID überhaupt existiert).
 | PUT | `/api/boards/:id/frames/:frameId` | Frame ändern |
 | DELETE | `/api/boards/:id/frames/:frameId` | Frame löschen |
 
-## Lines
-
-| Methode | Pfad | Beschreibung |
-|---|---|---|
-| GET | `/api/boards/:id/lines` | Lines eines Boards |
-| POST | `/api/boards/:id/lines` | Line anlegen (max. 10/Board) |
-| PUT | `/api/boards/:id/lines/active` | Aktive Line setzen |
-| PUT | `/api/boards/:id/lines/:lineId` | Line ändern |
-| DELETE | `/api/boards/:id/lines/:lineId` | Line löschen |
-
 ## Board-Kollaboratoren
 
 | Methode | Pfad | Beschreibung |
@@ -141,6 +131,7 @@ Nur für Nutzer mit Admin-Rolle.
 | PUT | `/api/admin/users/:id/role` | Rolle ändern |
 | GET | `/api/admin/backup-config` | Backup-Zeitplan lesen |
 | PUT | `/api/admin/backup-config` | Backup-Zeitplan ändern |
+| POST | `/api/admin/backup-run` | Backup sofort ausführen (unabhängig vom Zeitplan) |
 | GET | `/api/admin/library-reports` | Gemeldete Bibliothekseinträge |
 | GET | `/api/admin/ai-config` | KI-Anbieter-Konfiguration lesen (API-Key nur als "gesetzt/nicht gesetzt") |
 | PUT | `/api/admin/ai-config` | KI-Anbieter-Konfiguration ändern |
@@ -179,10 +170,44 @@ Nur für Nutzer mit Admin-Rolle.
 
 | Methode | Pfad | Beschreibung |
 |---|---|---|
-| GET | `/api/roster` | Eigener Kader |
-| POST | `/api/roster` | Spieler anlegen (max. 40) |
+| GET | `/api/roster` | Eigener Kader (+ team-geteilte Einträge) |
+| POST | `/api/roster` | Spieler anlegen (max. 40, optional teamId) |
+| GET | `/api/roster/:id` | Einzelner Kader-Spieler |
 | PUT | `/api/roster/:id` | Spieler ändern |
-| DELETE | `/api/roster/:id` | Spieler löschen |
+| DELETE | `/api/roster/:id` | Spieler löschen (räumt seine Line-Zuordnungen mit auf) |
+
+## Lines
+
+Nutzer-/team-gebunden wie Kader/Spiele, **nicht** board-gebunden. Ein
+Kader-Spieler kann in beliebig vielen Lines stehen (many-to-many über
+die interne `line_players`-Tabelle) – siehe [Lines](./Lines.md).
+
+| Methode | Pfad | Beschreibung |
+|---|---|---|
+| GET | `/api/lines` | Eigene Lines (+ team-geteilte) |
+| POST | `/api/lines` | Line anlegen (max. 20) |
+| PUT | `/api/lines/:id` | Line ändern (Name/Farbe/Typ) |
+| DELETE | `/api/lines/:id` | Line löschen (Spieler bleiben im Kader) |
+| POST | `/api/lines/:id/players` | Kader-Spieler zur Line hinzufügen |
+| DELETE | `/api/lines/:id/players/:rosterPlayerId` | Spieler aus der Line entfernen |
+| PUT | `/api/lines/:id/active` | Aktivieren/Deaktivieren (deaktiviert andere Lines derselben Gruppe) |
+
+## Spiele (Live-Spielnotizen)
+
+Nutzer-/team-gebunden, nicht board-gebunden. Die Notizen selbst laufen
+über die Kommentar-Infrastruktur (`resource_type='game'`) – siehe
+[Live-Spielnotizen](./Live-Spielnotizen.md).
+
+| Methode | Pfad | Beschreibung |
+|---|---|---|
+| GET | `/api/games` | Eigene Spiele (+ team-geteilte) |
+| POST | `/api/games` | Spiel anlegen (max. 30) |
+| GET | `/api/games/:id` | Einzelnes Spiel |
+| PUT | `/api/games/:id` | Spiel ändern (Gegner/Datum/Notizen) |
+| DELETE | `/api/games/:id` | Spiel löschen (räumt seine Notizen mit auf) |
+| GET | `/api/games/:id/comments` | Live-Notizen des Spiels |
+| POST | `/api/games/:id/comments` | Notiz hinzufügen (Lesezugriff genügt) |
+| DELETE | `/api/games/:id/comments/:commentId` | Notiz löschen (Autor oder Schreibzugriff) |
 
 ## Teams
 

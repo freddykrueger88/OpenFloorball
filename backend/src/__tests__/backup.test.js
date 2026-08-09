@@ -77,11 +77,6 @@ describe('GET /api/user/export', () => {
       .post(`/api/boards/${boardId}/frames`)
       .set('Cookie', owner.cookie)
       .send({ label: 'Frame 1', players: [], elements: [] });
-
-    await request(app)
-      .post(`/api/boards/${boardId}/lines`)
-      .set('Cookie', owner.cookie)
-      .send({ name: 'Sturm 1', color: '#3B82F6', type: 'offense', playerIds: [] });
   });
 
   it('liefert ein gültiges ZIP mit korrekten Daten', async () => {
@@ -114,8 +109,6 @@ describe('GET /api/user/export', () => {
     // manuell angelegten "Frame 1" erwartet.
     expect(board.frames).toHaveLength(2);
     expect(board.frames.some((f) => f.label === 'Frame 1')).toBe(true);
-    expect(board.lines).toHaveLength(1);
-    expect(board.lines[0].name).toBe('Sturm 1');
   });
 
   it('lehnt nicht authentifizierte Anfragen mit 401 ab', async () => {
@@ -142,7 +135,6 @@ describe('POST /api/user/import', () => {
         namePosition: 'below',
         createdAt,
         frames: [{ label: 'F1', players: [], elements: [], duration: 1200 }],
-        lines: [{ name: 'Import Linie', color: '#3B82F6', type: 'defense', playerIds: [] }],
       }],
     });
 
@@ -164,9 +156,6 @@ describe('POST /api/user/import', () => {
 
     const framesRes = await pool.query('SELECT * FROM frames WHERE board_id = $1', [boardId]);
     expect(framesRes.rows).toHaveLength(1);
-    const linesRes = await pool.query('SELECT * FROM lines WHERE board_id = $1', [boardId]);
-    expect(linesRes.rows).toHaveLength(1);
-    expect(linesRes.rows[0].name).toBe('Import Linie');
   });
 
   it('überspringt beim erneuten Import ein bereits importiertes Board (Duplikat-Erkennung)', async () => {
@@ -174,7 +163,7 @@ describe('POST /api/user/import', () => {
     const createdAt = new Date().toISOString();
     const zipBuffer = buildBackupZip({
       boards: [{
-        name: boardName, fieldType: 'large', createdAt, frames: [], lines: [],
+        name: boardName, fieldType: 'large', createdAt, frames: [],
       }],
     });
 
@@ -227,6 +216,77 @@ describe('POST /api/user/import', () => {
       .set('Cookie', regular.cookie)
       .attach('file', Buffer.from('nur text'), { filename: 'backup.txt', contentType: 'text/plain' });
     expect(res.status).toBe(400);
+  });
+});
+
+describe('Kader + Lines im Export/Import-Roundtrip (fachlicher Umbau)', () => {
+  let rosterUser;
+  let lineId;
+
+  beforeAll(async () => {
+    rosterUser = await registerAndLogin('roster-lines');
+    const p1 = await request(app).post('/api/roster').set('Cookie', rosterUser.cookie).send({ name: 'Max', jerseyNumber: 10, role: 'C' });
+    const p2 = await request(app).post('/api/roster').set('Cookie', rosterUser.cookie).send({ name: 'Peter', jerseyNumber: 23, role: 'V' });
+
+    const lineRes = await request(app).post('/api/lines').set('Cookie', rosterUser.cookie).send({ name: 'Export-Line', color: '#3B82F6', type: 'offense' });
+    lineId = lineRes.body.data._id;
+    await request(app).post(`/api/lines/${lineId}/players`).set('Cookie', rosterUser.cookie).send({ rosterPlayerId: p1.body.data._id });
+    await request(app).post(`/api/lines/${lineId}/players`).set('Cookie', rosterUser.cookie).send({ rosterPlayerId: p2.body.data._id });
+  });
+
+  it('exportiert Kader und Lines als Top-Level-Felder (nicht mehr pro Board)', async () => {
+    const res = await request(app)
+      .get('/api/user/export')
+      .set('Cookie', rosterUser.cookie)
+      .buffer(true)
+      .parse((response, callback) => {
+        const chunks = [];
+        response.on('data', (chunk) => chunks.push(chunk));
+        response.on('end', () => callback(null, Buffer.concat(chunks)));
+      });
+
+    const zip = new AdmZip(res.body);
+    const data = JSON.parse(zip.getEntry('backup.json').getData().toString('utf8'));
+
+    expect(data.rosterPlayers).toHaveLength(2);
+    expect(data.rosterPlayers.map((p) => p.name).sort()).toEqual(['Max', 'Peter']);
+    expect(data.lines).toHaveLength(1);
+    expect(data.lines[0].name).toBe('Export-Line');
+    expect(data.lines[0].players.map((p) => p.name).sort()).toEqual(['Max', 'Peter']);
+  });
+
+  it('stellt Kader-Zuordnung beim Re-Import in einen frischen Account korrekt wieder her', async () => {
+    const exportRes = await request(app)
+      .get('/api/user/export')
+      .set('Cookie', rosterUser.cookie)
+      .buffer(true)
+      .parse((response, callback) => {
+        const chunks = [];
+        response.on('data', (chunk) => chunks.push(chunk));
+        response.on('end', () => callback(null, Buffer.concat(chunks)));
+      });
+    const zip = new AdmZip(exportRes.body);
+    const backupBuffer = zip.getEntry('backup.json').getData();
+
+    const freshUser = await registerAndLogin('fresh-import');
+    const freshZip = new AdmZip();
+    freshZip.addFile('backup.json', backupBuffer);
+
+    const importRes = await request(app)
+      .post('/api/user/import')
+      .set('Cookie', freshUser.cookie)
+      .attach('file', freshZip.toBuffer(), 'backup.zip');
+    expect(importRes.status).toBe(200);
+
+    const rosterRes = await request(app).get('/api/roster').set('Cookie', freshUser.cookie);
+    expect(rosterRes.body.data).toHaveLength(2);
+
+    const linesRes = await request(app).get('/api/lines').set('Cookie', freshUser.cookie);
+    expect(linesRes.body.data).toHaveLength(1);
+    expect(linesRes.body.data[0].players.map((p) => p.name).sort()).toEqual(['Max', 'Peter']);
+    // Frisch importierte Lines/Kader-Einträge sind immer persönlich (kein
+    // Team-Bezug wiederherstellbar, siehe exportUserData.js)
+    expect(linesRes.body.data[0].teamId).toBeNull();
   });
 });
 

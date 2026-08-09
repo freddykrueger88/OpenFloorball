@@ -82,12 +82,6 @@ async function seed() {
       drawLines: [],
     })]);
 
-    // Demo-Line (Sturmlinie)
-    await client.query(`
-      INSERT INTO lines (board_id, name, color, player_ids_json)
-      VALUES ($1, 'Linie 1 – Sturm', '#3B82F6', $2)
-    `, [boardId, JSON.stringify(['home-5', 'home-4', 'home-6'])]);
-
     await client.query('COMMIT');
     logger.info('Seed abgeschlossen.');
   } catch (err) {

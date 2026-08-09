@@ -1,36 +1,51 @@
 /**
- * /api/boards/:id/lines – Lines-Routen (Issue #12, authentifiziert, user-scoped)
+ * /api/lines – Lines: taktische Zusammenstellungen echter Kader-Spieler
+ * (fachlicher Umbau, siehe linesController.js) – nicht mehr board-gescoped.
  */
 import { Router } from 'express';
 import { body, param } from 'express-validator';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { getLines, createLine, updateLine, deleteLine, setActiveLine } from '../controllers/linesController.js';
+import {
+  getLines, createLine, updateLine, deleteLine,
+  addPlayerToLine, removePlayerFromLine, setLineActive,
+} from '../controllers/linesController.js';
 
-const router = Router({ mergeParams: true });
+const router = Router();
 
 router.use(authenticate);
 
-const validateBoardId = param('id').isUUID().withMessage('Ungültige Board-ID');
-const validateLineId  = param('lineId').isUUID().withMessage('Ungültige Line-ID');
+const idParam = param('id').isUUID().withMessage('Ungültige Line-ID');
+const rosterPlayerIdParam = param('rosterPlayerId').isUUID().withMessage('Ungültige Spieler-ID');
 
-const validateLineBody = [
-  body('name').optional().trim().isLength({ min: 1, max: 40 }).withMessage('Name 1-40 Zeichen'),
+router.get   ('/',    getLines);
+router.post  ('/',    [
+  body('name').trim().notEmpty().withMessage('Name ist erforderlich').isLength({ max: 40 }),
   body('color').optional().matches(/^#[0-9a-fA-F]{6}$/).withMessage('Farbe muss ein Hex-Code sein'),
   body('type').optional().isIn(['offense', 'defense', 'special']),
-  body('playerIds').optional().isArray(),
-];
-
-router.get   ('/',        [validateBoardId, validate], getLines);
-router.post  ('/',        [
-  validateBoardId,
-  body('name').trim().notEmpty().withMessage('Name ist erforderlich').isLength({ max: 40 }),
-  body('color').optional().matches(/^#[0-9a-fA-F]{6}$/),
-  body('type').optional().isIn(['offense', 'defense', 'special']),
+  body('teamId').optional({ nullable: true }).isUUID().withMessage('Ungültige Team-ID'),
   validate,
 ], createLine);
-router.put   ('/active',  [validateBoardId, validate], setActiveLine);
-router.put   ('/:lineId', [validateBoardId, validateLineId, ...validateLineBody, validate], updateLine);
-router.delete('/:lineId', [validateBoardId, validateLineId, validate], deleteLine);
+router.put   ('/:id', [
+  idParam,
+  body('name').optional().trim().notEmpty().withMessage('Name ist erforderlich').isLength({ max: 40 }),
+  body('color').optional().matches(/^#[0-9a-fA-F]{6}$/).withMessage('Farbe muss ein Hex-Code sein'),
+  body('type').optional().isIn(['offense', 'defense', 'special']),
+  validate,
+], updateLine);
+router.delete('/:id', [idParam, validate], deleteLine);
+
+router.post  ('/:id/players', [
+  idParam,
+  body('rosterPlayerId').isUUID().withMessage('Ungültige Spieler-ID'),
+  validate,
+], addPlayerToLine);
+router.delete('/:id/players/:rosterPlayerId', [idParam, rosterPlayerIdParam, validate], removePlayerFromLine);
+
+router.put   ('/:id/active', [
+  idParam,
+  body('active').isBoolean().withMessage('active muss boolean sein'),
+  validate,
+], setLineActive);
 
 export default router;

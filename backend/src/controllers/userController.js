@@ -16,7 +16,8 @@ import { buildUserExport, BACKUP_FORMAT } from '../services/exportUserData.js';
 import { deleteCommentsForUser } from './commentsController.js';
 
 const MAX_FRAMES_PER_BOARD = 50;
-const MAX_LINES_PER_BOARD = 10;
+const MAX_ROSTER_PLAYERS = 40;
+const MAX_LINES = 20;
 
 export async function deleteAccount(req, res) {
   try {
@@ -169,17 +170,57 @@ export async function importAccount(req, res) {
         );
       }
 
-      const lines = (board.lines ?? []).slice(0, MAX_LINES_PER_BOARD);
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
+      imported++;
+    }
+
+    // Kader + Lines sind nutzer-, nicht board-gebunden (siehe
+    // exportUserData.js) – Duplikat-Erkennung analog zu Boards: exakte
+    // Übereinstimmung aller Felder für denselben Nutzer wird übersprungen.
+    const rosterIdByKey = new Map();
+    const rosterPlayers = (data.rosterPlayers ?? []).slice(0, MAX_ROSTER_PLAYERS);
+    for (const p of rosterPlayers) {
+      const existing = await client.query(
+        `SELECT id FROM roster_players WHERE user_id = $1 AND name = $2
+         AND jersey_number IS NOT DISTINCT FROM $3 AND role IS NOT DISTINCT FROM $4`,
+        [req.user.id, p.name, p.jerseyNumber ?? null, p.role ?? null]
+      );
+      const key = `${p.name}|${p.jerseyNumber ?? ''}|${p.role ?? ''}`;
+      if (existing.rows.length > 0) {
+        rosterIdByKey.set(key, existing.rows[0].id);
+        continue;
+      }
+      const inserted = await client.query(
+        `INSERT INTO roster_players (user_id, name, jersey_number, role) VALUES ($1, $2, $3, $4) RETURNING id`,
+        [req.user.id, p.name, p.jerseyNumber ?? null, p.role ?? null]
+      );
+      rosterIdByKey.set(key, inserted.rows[0].id);
+    }
+
+    const lines = (data.lines ?? []).slice(0, MAX_LINES);
+    for (const line of lines) {
+      const existingLine = await client.query(
+        `SELECT id FROM lines WHERE user_id = $1 AND name = $2 AND color = $3 AND type = $4`,
+        [req.user.id, line.name, line.color ?? '#3B82F6', line.type ?? 'offense']
+      );
+      if (existingLine.rows.length > 0) continue;
+
+      const lineResult = await client.query(
+        `INSERT INTO lines (user_id, name, color, type) VALUES ($1, $2, $3, $4) RETURNING id`,
+        [req.user.id, line.name, line.color ?? '#3B82F6', line.type ?? 'offense']
+      );
+      const newLineId = lineResult.rows[0].id;
+
+      const players = (line.players ?? []);
+      for (let i = 0; i < players.length; i++) {
+        const p = players[i];
+        const rosterPlayerId = rosterIdByKey.get(`${p.name}|${p.jerseyNumber ?? ''}|${p.role ?? ''}`);
+        if (!rosterPlayerId) continue; // Spieler war nicht im Kader-Export enthalten
         await client.query(
-          `INSERT INTO lines (board_id, name, color, type, player_ids_json, order_index)
-           VALUES ($1, $2, $3, $4, $5::jsonb, $6)`,
-          [newBoardId, line.name, line.color ?? '#3B82F6', line.type ?? 'offense', JSON.stringify(line.playerIds ?? []), i]
+          `INSERT INTO line_players (line_id, roster_player_id, order_index) VALUES ($1, $2, $3)
+           ON CONFLICT (line_id, roster_player_id) DO NOTHING`,
+          [newLineId, rosterPlayerId, i]
         );
       }
-
-      imported++;
     }
 
     await client.query('COMMIT');

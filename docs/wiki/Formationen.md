@@ -30,5 +30,5 @@ Frame nicht verlässt).
 | Konzept | Was es speichert |
 |---|---|
 | **Formation** | Eine komplette Startaufstellung (Positionen) |
-| [**Line**](./Lines.md) | Eine Gruppe von Spielern innerhalb eines Boards (z. B. eine Sturmreihe) |
+| [**Line**](./Lines.md) | Eine taktische Kombination echter Kader-Spieler (z. B. eine Sturmreihe), nicht board-gebunden |
 | [**Playbook**](./Playbooks.md) | Eine thematische Sammlung mehrerer Boards |

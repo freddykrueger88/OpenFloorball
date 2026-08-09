@@ -1,99 +1,87 @@
 /**
- * useLines – State-Management für Lines (Sturm-/Defensivreihen)
- * (Issue #12 – v0.4.0)
+ * useLines – API-Hook für Lines: taktische Zusammenstellungen echter
+ * Kader-Spieler (fachlicher Umbau, siehe linesController.js). Nicht mehr
+ * board-gebunden, analog useGames.js/useRoster.js.
  */
 import { useState, useCallback } from 'react';
 import { apiFetch } from '../utils/apiFetch.js';
 
-const BASE = (boardId) => `/api/boards/${boardId}/lines`;
+const BASE = '/api/lines';
+const MAX_LINES = 20;
 
-export function useLines(boardId) {
-  const [lines,        setLines       ] = useState([]);
-  const [activeLineId, setActiveLineId] = useState(null);
-  const [loading,      setLoading     ] = useState(false);
-  const [error,        setError       ] = useState(null);
+export function useLines() {
+  const [lines,   setLines  ] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error,   setError  ] = useState(null);
 
-  const loadLines = useCallback(async (initialActiveLineId = null) => {
-    if (!boardId) return;
+  const request = useCallback(async (fn) => {
     setLoading(true);
+    setError(null);
     try {
-      const data = await apiFetch(BASE(boardId));
-      setLines(data);
-      setActiveLineId(initialActiveLineId);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [boardId]);
-
-  const addLine = useCallback(async (name, color = '#facc15', type = 'offense') => {
-    try {
-      const newLine = await apiFetch(BASE(boardId), {
-        method: 'POST',
-        body: JSON.stringify({ name, color, type, playerIds: [] }),
-      });
-      setLines((prev) => [...prev, newLine]);
-      return newLine;
+      return await fn();
     } catch (err) {
       setError(err.message);
       throw err;
+    } finally {
+      setLoading(false);
     }
-  }, [boardId]);
+  }, []);
 
-  const updateLine = useCallback(async (lineId, patch) => {
-    try {
-      const updated = await apiFetch(`${BASE(boardId)}/${lineId}`, {
-        method: 'PUT',
-        body: JSON.stringify(patch),
+  const fetchLines = useCallback(() =>
+    request(async () => setLines(await apiFetch(BASE))), [request]);
+
+  const createLine = useCallback((name, color, type, teamId = null) =>
+    request(async () => {
+      const newLine = await apiFetch(BASE, { method: 'POST', body: JSON.stringify({ name, color, type, teamId }) });
+      setLines((prev) => [...prev, newLine]);
+      return newLine;
+    }), [request]);
+
+  const updateLine = useCallback((id, patch, { baselineUpdatedAt = null, label = null } = {}) =>
+    request(async () => {
+      const updated = await apiFetch(`${BASE}/${id}`, { method: 'PUT', body: JSON.stringify(patch) }, {
+        baselineUpdatedAt, conflictCheckUrl: `${BASE}/${id}`, label,
       });
-      setLines((prev) => prev.map((l) => (l._id === lineId ? updated : l)));
-    } catch (err) {
-      setError(err.message);
-    }
-  }, [boardId]);
+      setLines((prev) => prev.map((l) => l._id === id ? updated : l));
+      return updated;
+    }), [request]);
 
-  const deleteLine = useCallback(async (lineId) => {
-    try {
-      await apiFetch(`${BASE(boardId)}/${lineId}`, { method: 'DELETE' });
-      setLines((prev) => prev.filter((l) => l._id !== lineId));
-      setActiveLineId((prev) => (prev === lineId ? null : prev));
-    } catch (err) {
-      setError(err.message);
-    }
-  }, [boardId]);
-
-  // Spieler einer Line zu-/abwählen (Toggle per Klick auf Spieler-Icon)
-  const togglePlayerInLine = useCallback(async (lineId, playerId) => {
-    const line = lines.find((l) => l._id === lineId);
-    if (!line) return;
-    const already = line.playerIds.includes(playerId);
-    const nextPlayerIds = already
-      ? line.playerIds.filter((id) => id !== playerId)
-      : [...line.playerIds, playerId];
-    await updateLine(lineId, { playerIds: nextPlayerIds });
-  }, [lines, updateLine]);
-
-  // Aktive Line umschalten (nur lokal + synchron mit Server, ohne Ladeanimation)
-  const setActiveLine = useCallback(async (lineId) => {
-    setActiveLineId(lineId);
-    try {
-      await apiFetch(`${BASE(boardId)}/active`, {
-        method: 'PUT',
-        body: JSON.stringify({ lineId }),
+  const deleteLine = useCallback((id, { baselineUpdatedAt = null, label = null } = {}) =>
+    request(async () => {
+      await apiFetch(`${BASE}/${id}`, { method: 'DELETE' }, {
+        baselineUpdatedAt, conflictCheckUrl: `${BASE}/${id}`, label,
       });
-    } catch (err) {
-      setError(err.message);
-    }
-  }, [boardId]);
+      setLines((prev) => prev.filter((l) => l._id !== id));
+    }), [request]);
 
-  const activeLine = lines.find((l) => l._id === activeLineId) ?? null;
+  const addPlayer = useCallback((lineId, rosterPlayerId) =>
+    request(async () => {
+      const players = await apiFetch(`${BASE}/${lineId}/players`, { method: 'POST', body: JSON.stringify({ rosterPlayerId }) });
+      setLines((prev) => prev.map((l) => l._id === lineId ? { ...l, players } : l));
+      return players;
+    }), [request]);
+
+  const removePlayer = useCallback((lineId, rosterPlayerId) =>
+    request(async () => {
+      const players = await apiFetch(`${BASE}/${lineId}/players/${rosterPlayerId}`, { method: 'DELETE' });
+      setLines((prev) => prev.map((l) => l._id === lineId ? { ...l, players } : l));
+      return players;
+    }), [request]);
+
+  // Aktivieren/Deaktivieren löst serverseitig die Exklusivität aus (alle
+  // anderen Lines derselben Sichtbarkeits-Gruppe werden deaktiviert) – hier
+  // deshalb nach dem Request die komplette Liste neu laden statt lokal zu
+  // patchen, sonst wüssten wir nicht, welche anderen Lines betroffen waren.
+  const setActive = useCallback((lineId, active) =>
+    request(async () => {
+      await apiFetch(`${BASE}/${lineId}/active`, { method: 'PUT', body: JSON.stringify({ active }) });
+      setLines(await apiFetch(BASE));
+    }), [request]);
 
   return {
-    lines, activeLine, activeLineId,
-    loading, error,
-    loadLines, addLine, updateLine, deleteLine,
-    togglePlayerInLine, setActiveLine,
-    canAddLine: lines.length < 10,
+    lines, loading, error,
+    fetchLines, createLine, updateLine, deleteLine,
+    addPlayer, removePlayer, setActive,
+    canAddLine: lines.length < MAX_LINES,
   };
 }

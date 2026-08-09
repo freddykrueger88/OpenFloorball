@@ -94,8 +94,8 @@ Alle Tabellen sind Postgres, Migration idempotent über
 `CREATE TABLE IF NOT EXISTS` / `ADD COLUMN IF NOT EXISTS`):
 
 - `users`, `settings` – Konto & Präferenzen
-- `boards`, `frames`, `lines` – Kern-Taktikdaten (ein Board hat mehrere
-  Frames für Animation, mehrere Lines für Sturm-/Defensivreihen)
+- `boards`, `frames` – Kern-Taktikdaten (ein Board hat mehrere Frames
+  für Animation)
 - `board_versions` – automatische Snapshots bei jeder Frame-Änderung
   (max. 50/Board, älteste werden verdrängt), erlaubt Wiederherstellen
 - `board_collaborators`, `board_invites` – Board-Sharing für
@@ -108,6 +108,11 @@ Alle Tabellen sind Postgres, Migration idempotent über
 - `training_sessions`, `training_session_items` – Trainingsplaner,
   referenziert Boards per Fremdschlüssel statt Kopie (Issue #45)
 - `roster_players` – zentraler Team-Kader (Issue #53)
+- `lines`, `line_players` – Lines als taktische Kader-Spieler-
+  Kombinationen, `line_players` als Many-to-Many-Junction (ein Spieler
+  kann in beliebig vielen Lines stehen, fachlicher Umbau)
+- `games` – Live-Spielnotizen (Gegner/Datum), die Notizen selbst laufen
+  über `comments` mit `resource_type='game'`
 - `teams`, `team_members` – Mannschaften mit Rollenmodell
 - `organizations`, `organization_members` – Vereine mit mehreren Teams
 - `library_entries`, `library_entry_reports` – Community-Bibliothek

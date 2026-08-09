@@ -14,6 +14,23 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Lines grundlegend auf den Kader umgestellt: eine Line ist jetzt eine
+  taktische Zusammenstellung echter Kader-Spieler (`/lines`, neue
+  eigenständige Seite), kein Board-internes Detail mehr. Ein Spieler
+  kann in beliebig vielen Lines stehen (echte Many-to-Many-Beziehung
+  über eine neue `line_players`-Junction-Tabelle, analog
+  `team_members`/`board_collaborators`) – Hinzufügen zu einer zweiten
+  Line entfernt ihn nicht aus der ersten, Entfernen aus einer Line
+  lässt andere unberührt, Löschen eines Kader-Spielers räumt seine
+  Zuordnungen in allen Lines automatisch auf (Kader-Spieler und Lines
+  selbst bleiben dabei jeweils erhalten). Optional team-geteilt wie
+  Kader/Spiele. Auf der [Spielseite](./docs/wiki/Live-Spielnotizen.md)
+  erscheinen die Lines direkt über den Live-Notizen für einen
+  schnellen Wechsel während des Spiels – Aktivieren postet automatisch
+  eine Notiz ("Linienwechsel – Line 2"). GDPR-Export/Import
+  (`/api/user/export`) um Kader und Lines als Top-Level-Felder
+  erweitert (Kader-Spieler werden beim Re-Import über
+  Name+Nummer+Rolle wiedererkannt, nicht über die alte ID).
 - Live-Spielnotizen: neuer Bereich "Spiele" – ein Spiel (Gegner,
   Datum, optional team-geteilt) anlegen und während des laufenden
   Spiels schnelle, automatisch zeitgestempelte Notizen erfassen
@@ -424,6 +441,21 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   bleiben bewusst beim bisherigen Last-Write-Wins.
 
 ### Changed
+- Lines waren bisher (Issue #12, v0.4.0) rein board-interne
+  Hervorhebungs-Gruppen: sie gruppierten anonyme Platzhalter-Positionen
+  EINES Board-Frames zur farblichen Hervorhebung auf dem
+  Taktik-Diagramm, ohne jeden Bezug zum echten Kader
+  (`roster_players`). Das entsprach nicht dem tatsächlichen
+  Floorball-Konzept einer Line (laufende, unbegrenzte
+  Spielerwechsel – eine Line ist eine wiederverwendbare Kombination
+  echter Spieler, kein Board-Detail). Die alte Tabelle `lines`
+  (`board_id` + `player_ids_json`) und die Board-Spalte
+  `active_line_id` wurden ersetzt (nur 2 Zeilen betroffen, automatische
+  Migration wäre ohnehin unmöglich gewesen, da die alten Einträge keine
+  echte Spieler-Identität enthielten). Das Lines-Panel im Board-Editor
+  (Tab zwischen "Zeichnen" und "Formationen") sowie die zugehörige
+  Hervorhebung von Spieler-Tokens auf dem Feld entfallen ersatzlos –
+  siehe "Added" für das neue Modell.
 - Board-Editor: Gegner + Übungsbibliothek-Metadaten (Kategorie/Altersklasse/
   Ziel/Material) aus dem "Einstellungen"-Tab in einen umbenannten "Info"-Tab
   (vormals "Notizen") verschoben, zusammen mit den bestehenden Notizen

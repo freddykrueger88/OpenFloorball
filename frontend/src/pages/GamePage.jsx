@@ -17,6 +17,7 @@ import { AlertTriangle, Trash2, Send } from 'lucide-react';
 import { useGames } from '../hooks/useGames.js';
 import { useComments } from '../hooks/useComments.js';
 import { useRoster } from '../hooks/useRoster.js';
+import { useLines } from '../hooks/useLines.js';
 import { formatDate } from '../utils/formatDate.js';
 import useAnnounceStore from '../store/announceStore.js';
 import Button from '../components/common/Button.jsx';
@@ -31,6 +32,11 @@ export default function GamePage() {
   // die Zuordnungs-Auswahl (Tor/Strafzeiten/Matchstrafe) filtert Rollen
   // deshalb bewusst NICHT (TW erscheint wie jeder andere Kader-Spieler).
   const { rosterPlayers, fetchRoster } = useRoster();
+  // §6 des Lines-Umbaus ("wichtigster Anwendungsfall"): schneller
+  // Line-Wechsel direkt während des Spiels, ohne auf /lines wechseln zu
+  // müssen. Aktivieren postet zusätzlich eine Notiz über den bereits
+  // vorhandenen Preset-Mechanismus (reine Wiederverwendung).
+  const { lines, fetchLines, setActive: setLineActive } = useLines();
 
   const [game,          setGame         ] = useState(null);
   const [gameError,     setGameError    ] = useState(null);
@@ -48,6 +54,7 @@ export default function GamePage() {
   const opponentInputRef = useRef(null);
 
   useEffect(() => { fetchRoster().catch(() => {}); }, [fetchRoster]);
+  useEffect(() => { fetchLines().catch(() => {}); }, [fetchLines]);
 
   const load = useCallback(async () => {
     setGameLoading(true);
@@ -162,6 +169,14 @@ export default function GamePage() {
   // treffen wie das eigene Team, daher immer beide Optionen (Kader +
   // "Gegner") statt nur beim Tor.
   const squadForGame = rosterPlayers.filter((p) => (game.teamId ? p.teamId === game.teamId : !p.teamId));
+  const linesForGame = lines.filter((l) => (game.teamId ? l.teamId === game.teamId : !l.teamId));
+
+  const handleActivateLine = async (line) => {
+    try {
+      await setLineActive(line._id, true);
+      await handleAddPreset(t('games.lineSwitchNote', { name: line.name }));
+    } catch { /* error via hook */ }
+  };
 
   const handleSelectAttribution = (choice) => {
     const base = openAttributionPreset;
@@ -221,6 +236,25 @@ export default function GamePage() {
 
       {(gameError || notesError) && (
         <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError}</div>
+      )}
+
+      {linesForGame.length > 0 && (
+        <section className={styles.linesSection} aria-label={t('games.linesAriaLabel')}>
+          <div className={styles.linesRow} role="group" aria-label={t('games.linesAriaLabel')}>
+            {linesForGame.map((line) => (
+              <Button
+                key={line._id}
+                variant={line.isActive ? 'primary' : 'secondary'}
+                size="sm"
+                disabled={line.isActive}
+                onClick={() => handleActivateLine(line)}
+              >
+                {line.isActive ? t('games.lineActive', { name: line.name }) : line.name}
+              </Button>
+            ))}
+          </div>
+          <Link to="/lines" className={styles.manageLinesLink}>{t('games.manageLines')}</Link>
+        </section>
       )}
 
       <section className={styles.notesSection} aria-label={t('games.notesAriaLabel')}>

@@ -75,8 +75,8 @@ Details, Einschränkungen und bekannte Probleme:
 | Bereich | Status | Details |
 |---|---|---|
 | Taktikboard (Spielfeld, Zeichnen, Frame-Animation, Versionierung) | ✅ | [Spielzüge zeichnen](docs/wiki/Spielzuege-Zeichnen.md), [Animation](docs/wiki/Animation.md) |
-| Lines, Formationsvorlagen, Playbooks | ✅ | [Lines](docs/wiki/Lines.md), [Formationen](docs/wiki/Formationen.md), [Playbooks](docs/wiki/Playbooks.md) |
-| Trainingsplaner, Kader | ✅ | [Trainingsplaner](docs/wiki/Trainingsplaner.md), [Kader](docs/wiki/Kader.md) |
+| Formationsvorlagen, Playbooks | ✅ | [Formationen](docs/wiki/Formationen.md), [Playbooks](docs/wiki/Playbooks.md) |
+| Trainingsplaner, Kader, Lines | ✅ | [Trainingsplaner](docs/wiki/Trainingsplaner.md), [Kader](docs/wiki/Kader.md), [Lines](docs/wiki/Lines.md) |
 | Live-Spielnotizen | ✅ | [Live-Spielnotizen](docs/wiki/Live-Spielnotizen.md) |
 | Teams und Vereine | ✅ | [Teams und Vereine](docs/wiki/Teams-und-Vereine.md) |
 | Board-Sharing (Kollaboratoren, Einladungen, Links) | ✅ | [Export & Teilen](docs/wiki/Export.md) |
@@ -95,11 +95,11 @@ Details, Einschränkungen und bekannte Probleme:
 ## 🗺️ Roadmap
 
 **Fertig** (Auszug, vollständig siehe [CHANGELOG](CHANGELOG.md)):
-Taktikboard-Kern, Trainingsplaner, Live-Spielnotizen, Teams/Vereine,
-Community-Bibliothek, KI-Assistenten, Video-Integration (inkl.
-Video → Taktik-Board), Echtzeit-Präsenz, Onboarding-Tour, vertiefte
-Editor-Tour, erweiterte Offline-Konfliktlösung, Passwort-Reset-Flow,
-manueller Backup-Trigger.
+Taktikboard-Kern, Trainingsplaner, Kader-basierte Lines,
+Live-Spielnotizen, Teams/Vereine, Community-Bibliothek,
+KI-Assistenten, Video-Integration (inkl. Video → Taktik-Board),
+Echtzeit-Präsenz, Onboarding-Tour, vertiefte Editor-Tour, erweiterte
+Offline-Konfliktlösung, Passwort-Reset-Flow, manueller Backup-Trigger.
 
 **In Arbeit:** aktuell kein Feature in sichtbar unfertigem Zustand –
 siehe [docs/current-status.md](docs/current-status.md) für den

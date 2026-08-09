@@ -37,6 +37,9 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 - **RSVP/Anwesenheit** – Team-Mitglieder sagen für Spiele/Trainings
   zu/ab/unsicher, optional mit Absagegrund. Details:
   [Live-Spielnotizen](./wiki/Live-Spielnotizen.md#anwesenheit-rsvp).
+- **Match-Kader** – pro Kader-Spieler spielt/Ersatz/verletzt/fehlt für
+  ein konkretes Spiel festlegen, getrennt von Lines und RSVP. Details:
+  [Live-Spielnotizen](./wiki/Live-Spielnotizen.md#match-kader).
 - **Team-Kader**, **Teams und Vereine** – zweistufiges Rollenmodell
   je Ebene (Details: [docs/wiki/Teams-und-Vereine.md](./wiki/Teams-und-Vereine.md)).
 - **Board-Sharing** – Kollaboratoren (nur Owner verwaltet),

@@ -320,6 +320,19 @@
       "private": "Private"
     }
   },
+  "matchSquad": {
+    "title": "Match Squad",
+    "ariaLabel": "Match squad for this game",
+    "loading": "Loading match squad…",
+    "setStatusAriaLabel": "Set status for {{name}}",
+    "statusPlaying": "Playing",
+    "statusReserve": "Reserve",
+    "statusInjured": "Injured",
+    "statusAbsent": "Absent",
+    "statusNone": "Not decided",
+    "clearAriaLabel": "Reset status for {{name}}",
+    "clearTitle": "Reset (not decided)"
+  },
   "versions": {
     "title": "History",
     "ariaLabel": "Version history",

@@ -320,6 +320,19 @@
       "private": "Privat"
     }
   },
+  "matchSquad": {
+    "title": "Match-Kader",
+    "ariaLabel": "Match-Kader für dieses Spiel",
+    "loading": "Lädt Match-Kader…",
+    "setStatusAriaLabel": "Status für {{name}} setzen",
+    "statusPlaying": "Spielt",
+    "statusReserve": "Ersatz",
+    "statusInjured": "Verletzt",
+    "statusAbsent": "Fehlt",
+    "statusNone": "Nicht entschieden",
+    "clearAriaLabel": "Status von {{name}} zurücksetzen",
+    "clearTitle": "Zurücksetzen (nicht entschieden)"
+  },
   "versions": {
     "title": "Verlauf",
     "ariaLabel": "Versionsverlauf",

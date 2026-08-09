@@ -21,6 +21,7 @@ import { useLines } from '../hooks/useLines.js';
 import { formatDate } from '../utils/formatDate.js';
 import useAnnounceStore from '../store/announceStore.js';
 import RsvpSection from '../components/rsvp/RsvpSection.jsx';
+import MatchSquadSection from '../components/matchSquad/MatchSquadSection.jsx';
 import Button from '../components/common/Button.jsx';
 import styles from './GamePage.module.css';
 
@@ -240,6 +241,8 @@ export default function GamePage() {
       )}
 
       <RsvpSection resourceKind="games" resourceId={id} teamId={game.teamId} />
+
+      <MatchSquadSection gameId={id} />
 
       {linesForGame.length > 0 && (
         <section className={styles.linesSection} aria-label={t('games.linesAriaLabel')}>

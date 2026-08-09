@@ -727,6 +727,34 @@ export async function runMigrations() {
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_games_user_id ON games(user_id);`);
 
+    // ── game_squad (Roadmap-Audit: Match-Kader für ein konkretes Spiel) ─────
+    // Anders als rsvps/comments KEINE polymorphe Tabelle, sondern eine echte
+    // Junction wie line_players – direkte FKs auf beide Seiten, dadurch
+    // automatisches Aufräumen per CASCADE (kein manueller Cleanup-Code nötig,
+    // weder beim Löschen eines Spiels noch eines Kader-Spielers/Accounts).
+    // Status bewusst 4 statt der im Auftrag genannten 5 Zustände – "fährt
+    // mit" ist inhaltlich playing ODER reserve, keine eigene Kategorie wert.
+    // Muss NACH games UND roster_players stehen (beide FK-Ziele).
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS game_squad (
+        id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        game_id          UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+        roster_player_id UUID NOT NULL REFERENCES roster_players(id) ON DELETE CASCADE,
+        status           TEXT NOT NULL CHECK (status IN ('playing', 'reserve', 'injured', 'absent')),
+        note             TEXT NOT NULL DEFAULT '',
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (game_id, roster_player_id)
+      );
+    `);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_game_squad_updated_at ON game_squad;
+      CREATE TRIGGER trg_game_squad_updated_at
+        BEFORE UPDATE ON game_squad
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_game_squad_game_id ON game_squad(game_id);`);
+
     await client.query(`ALTER TABLE comments DROP CONSTRAINT IF EXISTS comments_resource_type_check;`);
     await client.query(`
       ALTER TABLE comments ADD CONSTRAINT comments_resource_type_check

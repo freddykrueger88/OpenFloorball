@@ -235,6 +235,22 @@ describe('Spiele/Live-Notizen (games + comments) – Team-Sharing', () => {
     expect(res.status).toBe(404);
   });
 
+  it('coach darf einen Match-Kader-Status für das Team-Spiel setzen', async () => {
+    const playerRes = await request(app).post('/api/roster').set('Cookie', coach.cookie).send({ name: 'Match-Kader-Spieler', teamId });
+    const playerId = playerRes.body.data._id;
+    const res = await request(app).put(`/api/games/${gameId}/squad/${playerId}`).set('Cookie', coach.cookie).send({ status: 'playing' });
+    expect(res.status).toBe(200);
+  });
+
+  it('member darf den Match-Kader NICHT bearbeiten (404), aber lesen', async () => {
+    const squadRes = await request(app).get(`/api/games/${gameId}/squad`).set('Cookie', member.cookie);
+    expect(squadRes.status).toBe(200);
+    const playerId = squadRes.body.data[0].rosterPlayerId;
+
+    const res = await request(app).put(`/api/games/${gameId}/squad/${playerId}`).set('Cookie', member.cookie).send({ status: 'absent' });
+    expect(res.status).toBe(404);
+  });
+
   it('member darf das Spiel NICHT löschen (404)', async () => {
     const res = await request(app).delete(`/api/games/${gameId}`).set('Cookie', member.cookie);
     expect(res.status).toBe(404);

@@ -55,6 +55,19 @@ Privat, oder freier Text). Ohne Team-Zuordnung (persönliches Spiel)
 gibt es keinen Empfängerkreis, der Bereich erscheint dann nicht. Gilt
 identisch für [Trainingseinheiten](./Trainingsplaner.md).
 
+## Match-Kader
+
+Zusätzlich zur Anwesenheit (oben) zeigt jedes Spiel einen
+"Match-Kader"-Bereich: pro [Kader-Spieler](./Kader.md) legt der
+Trainer fest, ob er **spielt**, **Ersatz** ist, **verletzt** ist oder
+**fehlt** – unabhängig davon, ob dieser Spieler überhaupt einen
+eigenen Account hat (anders als RSVP, das nur für Team-Mitglieder mit
+Login funktioniert). Ein Klick auf ⟲ setzt den Status zurück auf
+"nicht entschieden". Match-Kader ist bewusst getrennt von
+[Lines](./Lines.md): eine Line ist eine spielübergreifende taktische
+Vorlage, der Match-Kader gilt nur für dieses eine Spiel und verändert
+keine Line.
+
 ## Technischer Hinweis
 
 Notizen sind keine eigene Datenbanktabelle, sondern nutzen dieselbe

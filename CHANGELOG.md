@@ -13,6 +13,16 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- Match-Kader für ein konkretes Spiel: pro Kader-Spieler festlegen, ob
+  er spielt/Ersatz ist/verletzt ist/fehlt – unabhängig von Lines
+  (spielübergreifende taktische Vorlage) und unabhängig von RSVP
+  (Selbstauskunft der Account-Inhaber). Neue `game_squad`-Tabelle als
+  echte Junction (wie `line_players`, mit direkten FKs auf Spiel und
+  Kader-Spieler) statt polymorph wie `rsvps`/`comments` – dadurch
+  räumt `ON DELETE CASCADE` automatisch auf, kein manueller
+  Cleanup-Code nötig.
+
 ### Changed
 - Neue Frames übernehmen Zeichnungen (Pfeile/Freihand) nicht mehr
   automatisch, nur noch die Spielerpositionen – ein neuer Frame ist

@@ -8,8 +8,8 @@ Mannschaft) und **Organizations** (ein Verein mit mehreren Teams).
 | Rolle | Rechte |
 |---|---|
 | owner | Alles, inkl. Mitglieder verwalten. Kann nicht entfernt/degradiert werden, solange er der einzige Owner ist |
-| coach | Team-geteilte Inhalte (Kader, Playbooks, Trainingspläne, Formationen) anlegen/bearbeiten |
-| member | Nur ansehen |
+| coach | Team-geteilte Inhalte (Kader, Lines, Spiele, Playbooks, Trainingspläne, Formationen) anlegen/bearbeiten |
+| member | Nur ansehen – bei Spielen/Trainingseinheiten zusätzlich: per [RSVP](./Live-Spielnotizen.md#anwesenheit-rsvp) für sich selbst zu-/absagen |
 
 Einladung setzt einen **bereits bestehenden** OpenFloorball-Account der
 eingeladenen Person voraus – anders als bei Board-Kollaboratoren gibt
@@ -28,11 +28,16 @@ Boards sind bewusst **kein** Teil des Team-/Vereinsmodells. Wer an
 einem Board mitarbeiten soll, wird über
 [Board-Kollaboratoren](./Export.md#board-teilen-kollaboratoren) eingeladen – unabhängig
 davon, ob beide Personen im selben Team sind. Team-geteilt werden
-können dagegen: Kader-Einträge, Playbooks, Formationsvorlagen und
-Trainingspläne (jeweils optional, per `teamId`).
+können dagegen: Kader-Einträge, Lines, Spiele, Playbooks,
+Formationsvorlagen und Trainingspläne (jeweils optional, per
+`teamId`). Ist ein Spiel oder eine Trainingseinheit team-geteilt,
+steht dort automatisch auch die [Anwesenheitsliste (RSVP)](./Live-Spielnotizen.md#anwesenheit-rsvp)
+für die ganze Mannschaft zur Verfügung.
 
 ## Verwandte Seiten
 
 - [Export & Teilen](./Export.md)
 - [Kader](./Kader.md)
+- [Lines](./Lines.md)
 - [Trainingsplaner](./Trainingsplaner.md)
+- [Live-Spielnotizen](./Live-Spielnotizen.md)

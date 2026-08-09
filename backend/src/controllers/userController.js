@@ -18,6 +18,10 @@ import { deleteCommentsForUser } from './commentsController.js';
 const MAX_FRAMES_PER_BOARD = 50;
 const MAX_ROSTER_PLAYERS = 40;
 const MAX_LINES = 20;
+const MAX_PLAYBOOKS = 15;
+const MAX_FORMATIONS = 20;
+const MAX_TRAINING_SESSIONS = 20;
+const MAX_TRAINING_ITEMS_PER_SESSION = 30;
 
 export async function deleteAccount(req, res) {
   try {
@@ -129,7 +133,36 @@ export async function importAccount(req, res) {
   try {
     await client.query('BEGIN');
 
+    // Playbooks VOR den Boards importieren, damit deren neue IDs beim
+    // Board-Insert für playbook_id zur Verfügung stehen (siehe
+    // exportUserData.js – Boards referenzieren ein Playbook per Name).
+    const playbookIdByKey = new Map();
+    const playbooks = (data.playbooks ?? []).slice(0, MAX_PLAYBOOKS);
+    for (const pb of playbooks) {
+      const existing = await client.query(
+        'SELECT id FROM playbooks WHERE user_id = $1 AND name = $2',
+        [req.user.id, pb.name]
+      );
+      if (existing.rows.length > 0) {
+        playbookIdByKey.set(pb.name, existing.rows[0].id);
+        continue;
+      }
+      const inserted = await client.query(
+        'INSERT INTO playbooks (user_id, name) VALUES ($1, $2) RETURNING id',
+        [req.user.id, pb.name]
+      );
+      playbookIdByKey.set(pb.name, inserted.rows[0].id);
+    }
+
+    // Für Trainingsplan-Items (Schritt weiter unten): Boards referenzieren
+    // sich selbst per Name+Feldtyp+createdAt (derselbe Schlüssel wie die
+    // Duplikaterkennung direkt darunter) – in BEIDEN Zweigen befüllen,
+    // damit auch übersprungene (bereits vorhandene) Boards auflösbar bleiben.
+    const boardIdByKey = new Map();
+
     for (const board of data.boards) {
+      const boardKey = `${board.name}|${board.fieldType}|${board.createdAt}`;
+
       // date_trunc auf Millisekunden, da JS Date/JSON beim Export/Import
       // die Mikrosekunden-Präzision von Postgres' created_at kappt – ohne
       // das würde die Duplikat-Erkennung für real erzeugte Boards nie greifen.
@@ -139,22 +172,25 @@ export async function importAccount(req, res) {
         [req.user.id, board.name, board.fieldType, board.createdAt]
       );
       if (existing.rows.length > 0) {
+        boardIdByKey.set(boardKey, existing.rows[0].id);
         skipped++;
         continue;
       }
 
+      const playbookId = board.playbookName ? (playbookIdByKey.get(board.playbookName) ?? null) : null;
       const boardResult = await client.query(
-        `INSERT INTO boards (user_id, name, notes, field_type, theme, home_color, away_color, ball_color, show_grid, show_names, name_position, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        `INSERT INTO boards (user_id, name, notes, field_type, theme, home_color, away_color, ball_color, show_grid, show_names, name_position, created_at, playbook_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          RETURNING id`,
         [
           req.user.id, board.name, board.notes ?? '', board.fieldType ?? 'large', board.theme ?? 'dark',
           board.homeColor ?? '#1d4ed8', board.awayColor ?? '#dc2626', board.ballColor ?? '#ffffff',
           board.showGrid ?? false, board.showNames ?? true, board.namePosition ?? 'below',
-          board.createdAt ?? new Date().toISOString(),
+          board.createdAt ?? new Date().toISOString(), playbookId,
         ]
       );
       const newBoardId = boardResult.rows[0].id;
+      boardIdByKey.set(boardKey, newBoardId);
 
       const frames = (board.frames ?? []).slice(0, MAX_FRAMES_PER_BOARD);
       for (let i = 0; i < frames.length; i++) {
@@ -219,6 +255,60 @@ export async function importAccount(req, res) {
           `INSERT INTO line_players (line_id, roster_player_id, order_index) VALUES ($1, $2, $3)
            ON CONFLICT (line_id, roster_player_id) DO NOTHING`,
           [newLineId, rosterPlayerId, i]
+        );
+      }
+    }
+
+    // Formationsvorlagen: kein Cross-Reference zu anderen Ressourcen,
+    // analog Lines-Dedup (Feld-Gleichheit statt Zeitstempel).
+    const formations = (data.formations ?? []).slice(0, MAX_FORMATIONS);
+    for (const f of formations) {
+      const existing = await client.query(
+        'SELECT id FROM formation_templates WHERE user_id = $1 AND name = $2 AND field_type = $3',
+        [req.user.id, f.name, f.fieldType ?? 'large']
+      );
+      if (existing.rows.length > 0) continue;
+
+      await client.query(
+        `INSERT INTO formation_templates (user_id, name, field_type, players_json)
+         VALUES ($1, $2, $3, $4::jsonb)`,
+        [req.user.id, f.name, f.fieldType ?? 'large', JSON.stringify(f.players ?? [])]
+      );
+    }
+
+    // Trainingspläne: date_trunc auf Millisekunden aus demselben Grund wie
+    // bei Boards oben. Items referenzieren ein Board über boardIdByKey
+    // (siehe Board-Import-Schleife) – fehlt der Verweis (Board war nicht
+    // Teil des Exports), wird das Item übersprungen statt einen Fehler zu
+    // werfen (analog line_players bei fehlendem Kader-Spieler).
+    const trainingSessions = (data.trainingSessions ?? []).slice(0, MAX_TRAINING_SESSIONS);
+    for (const session of trainingSessions) {
+      const existingSession = await client.query(
+        `SELECT id FROM training_sessions WHERE user_id = $1 AND name = $2
+         AND date_trunc('milliseconds', created_at) = date_trunc('milliseconds', $3::timestamptz)`,
+        [req.user.id, session.name, session.createdAt]
+      );
+      if (existingSession.rows.length > 0) continue;
+
+      const sessionResult = await client.query(
+        `INSERT INTO training_sessions (user_id, name, notes, scheduled_date, goal, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        [
+          req.user.id, session.name, session.notes ?? '', session.scheduledDate ?? null,
+          session.goal ?? null, session.createdAt ?? new Date().toISOString(),
+        ]
+      );
+      const newSessionId = sessionResult.rows[0].id;
+
+      const items = (session.items ?? []).slice(0, MAX_TRAINING_ITEMS_PER_SESSION);
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const boardId = boardIdByKey.get(`${item.boardName}|${item.boardFieldType}|${item.boardCreatedAt}`);
+        if (!boardId) continue; // Board war nicht Teil des Exports/Imports
+        await client.query(
+          `INSERT INTO training_session_items (session_id, board_id, order_index, duration_minutes, note)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [newSessionId, boardId, i, item.durationMinutes ?? 15, item.note ?? '']
         );
       }
     }

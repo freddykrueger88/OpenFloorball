@@ -290,6 +290,121 @@ describe('Kader + Lines im Export/Import-Roundtrip (fachlicher Umbau)', () => {
   });
 });
 
+describe('Formationen + Playbooks + Trainingspläne im Export/Import-Roundtrip', () => {
+  let owner;
+  let boardId;
+
+  beforeAll(async () => {
+    owner = await registerAndLogin('formations-playbooks-training');
+
+    await request(app).post('/api/formations').set('Cookie', owner.cookie)
+      .send({ name: 'Export-Formation', fieldType: 'small' });
+
+    const pbRes = await request(app).post('/api/playbooks').set('Cookie', owner.cookie)
+      .send({ name: 'Export-Playbook' });
+    const playbookId = pbRes.body.data._id;
+
+    const boardRes = await request(app).post('/api/boards').set('Cookie', owner.cookie)
+      .send({ name: 'Export-Playbook-Board', fieldType: 'large', playbookId });
+    boardId = boardRes.body.data._id;
+
+    const sessionRes = await request(app).post('/api/trainings').set('Cookie', owner.cookie)
+      .send({ name: 'Export-Trainingsplan', goal: 'Passspiel' });
+    const sessionId = sessionRes.body.data._id;
+    await request(app).post(`/api/trainings/${sessionId}/items`).set('Cookie', owner.cookie)
+      .send({ boardId, durationMinutes: 20, note: 'Aufwärmen' });
+  });
+
+  async function exportBackupJson(cookie) {
+    const res = await request(app)
+      .get('/api/user/export')
+      .set('Cookie', cookie)
+      .buffer(true)
+      .parse((response, callback) => {
+        const chunks = [];
+        response.on('data', (chunk) => chunks.push(chunk));
+        response.on('end', () => callback(null, Buffer.concat(chunks)));
+      });
+    const zip = new AdmZip(res.body);
+    return { data: JSON.parse(zip.getEntry('backup.json').getData().toString('utf8')), raw: zip.getEntry('backup.json').getData() };
+  }
+
+  it('exportiert Formationen, Playbooks und Trainingspläne als Top-Level-Felder', async () => {
+    const { data } = await exportBackupJson(owner.cookie);
+
+    expect(data.formations).toHaveLength(1);
+    expect(data.formations[0]).toMatchObject({ name: 'Export-Formation', fieldType: 'small' });
+
+    expect(data.playbooks).toHaveLength(1);
+    expect(data.playbooks[0].name).toBe('Export-Playbook');
+
+    const board = data.boards.find((b) => b.name === 'Export-Playbook-Board');
+    expect(board.playbookName).toBe('Export-Playbook');
+
+    expect(data.trainingSessions).toHaveLength(1);
+    expect(data.trainingSessions[0].name).toBe('Export-Trainingsplan');
+    expect(data.trainingSessions[0].items).toHaveLength(1);
+    expect(data.trainingSessions[0].items[0]).toMatchObject({ boardName: 'Export-Playbook-Board', boardFieldType: 'large', note: 'Aufwärmen' });
+  });
+
+  it('stellt Playbook-/Trainingsplan-Zuordnung beim Re-Import in einen frischen Account korrekt wieder her', async () => {
+    const { raw } = await exportBackupJson(owner.cookie);
+
+    const freshUser = await registerAndLogin('fresh-import-fptr');
+    const freshZip = new AdmZip();
+    freshZip.addFile('backup.json', raw);
+
+    const importRes = await request(app)
+      .post('/api/user/import')
+      .set('Cookie', freshUser.cookie)
+      .attach('file', freshZip.toBuffer(), 'backup.zip');
+    expect(importRes.status).toBe(200);
+
+    const formationsRes = await request(app).get('/api/formations').set('Cookie', freshUser.cookie);
+    expect(formationsRes.body.data).toHaveLength(1);
+    expect(formationsRes.body.data[0].name).toBe('Export-Formation');
+
+    const playbooksRes = await request(app).get('/api/playbooks').set('Cookie', freshUser.cookie);
+    expect(playbooksRes.body.data).toHaveLength(1);
+    const newPlaybookId = playbooksRes.body.data[0]._id;
+
+    const boardsRes = await request(app).get('/api/boards').set('Cookie', freshUser.cookie);
+    const importedBoard = boardsRes.body.data.find((b) => b.name === 'Export-Playbook-Board');
+    expect(importedBoard.playbookId).toBe(newPlaybookId);
+
+    const sessionsRes = await request(app).get('/api/trainings').set('Cookie', freshUser.cookie);
+    expect(sessionsRes.body.data).toHaveLength(1);
+    const newSessionId = sessionsRes.body.data[0]._id;
+
+    const sessionDetailRes = await request(app).get(`/api/trainings/${newSessionId}`).set('Cookie', freshUser.cookie);
+    expect(sessionDetailRes.body.data.items).toHaveLength(1);
+    expect(sessionDetailRes.body.data.items[0].boardId).toBe(importedBoard._id);
+  });
+
+  it('überspringt ein Trainingsplan-Item, dessen Board nicht Teil des Imports war, ohne Fehler', async () => {
+    const { raw } = await exportBackupJson(owner.cookie);
+    const data = JSON.parse(raw.toString('utf8'));
+    // Board absichtlich aus dem Import entfernen, Trainingsplan-Item bleibt
+    // mit einer nun unauflösbaren Board-Referenz übrig.
+    data.boards = data.boards.filter((b) => b.name !== 'Export-Playbook-Board');
+
+    const freshUser = await registerAndLogin('fresh-import-orphan-item');
+    const freshZip = new AdmZip();
+    freshZip.addFile('backup.json', Buffer.from(JSON.stringify(data)));
+
+    const importRes = await request(app)
+      .post('/api/user/import')
+      .set('Cookie', freshUser.cookie)
+      .attach('file', freshZip.toBuffer(), 'backup.zip');
+    expect(importRes.status).toBe(200);
+
+    const sessionsRes = await request(app).get('/api/trainings').set('Cookie', freshUser.cookie);
+    const newSessionId = sessionsRes.body.data[0]._id;
+    const sessionDetailRes = await request(app).get(`/api/trainings/${newSessionId}`).set('Cookie', freshUser.cookie);
+    expect(sessionDetailRes.body.data.items).toHaveLength(0);
+  });
+});
+
 describe('Admin Backup-Config', () => {
   it('lehnt Nicht-Admins mit 403 ab', async () => {
     const res = await request(app).get('/api/admin/backup-config').set('Cookie', regular.cookie);

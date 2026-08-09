@@ -24,6 +24,20 @@ export async function buildUserExport(userId) {
   );
   const settings = settingsResult.rows[0]?.preferences_json ?? {};
 
+  // Playbooks werden VOR den Boards geladen, damit jedes Board seinen
+  // Playbook-NAMEN (statt der ID, die beim Re-Import ohnehin verworfen
+  // wird) mitbekommen kann – team_id bewusst nicht exportiert, siehe
+  // Begründung bei Kader/Lines unten.
+  const playbooksResult = await pool.query(
+    'SELECT * FROM playbooks WHERE user_id = $1 ORDER BY created_at ASC',
+    [userId]
+  );
+  const playbookNameById = new Map(playbooksResult.rows.map((p) => [p.id, p.name]));
+  const playbooks = playbooksResult.rows.map((p) => ({
+    name: p.name,
+    createdAt: p.created_at,
+  }));
+
   const boardsResult = await pool.query(
     `SELECT * FROM boards WHERE user_id = $1 AND deleted_at IS NULL ORDER BY created_at ASC`,
     [userId]
@@ -48,6 +62,9 @@ export async function buildUserExport(userId) {
       showNames:    b.show_names,
       namePosition: b.name_position,
       createdAt:    b.created_at,
+      // Referenz per Name statt playbook_id (siehe playbookNameById oben) –
+      // das importierte Playbook bekommt beim Re-Import ohnehin eine neue ID.
+      playbookName: playbookNameById.get(b.playbook_id) ?? null,
       frames:       framesResult.rows.map(toApiFrame),
     });
   }
@@ -96,6 +113,54 @@ export async function buildUserExport(userId) {
     });
   }
 
+  // Formationsvorlagen: nutzer-gebunden wie Kader/Lines, kein Cross-Reference
+  // zu anderen Ressourcen (players_json ist ein reiner Snapshot).
+  const formationsResult = await pool.query(
+    'SELECT * FROM formation_templates WHERE user_id = $1 ORDER BY created_at ASC',
+    [userId]
+  );
+  const formations = formationsResult.rows.map((f) => ({
+    name: f.name,
+    fieldType: f.field_type,
+    players: f.players_json ?? [],
+    createdAt: f.created_at,
+  }));
+
+  // Trainingspläne referenzieren Boards live per FK (training_session_items.
+  // board_id, kein Snapshot) – beim Export wird das Board deshalb über
+  // Name+Feldtyp+createdAt referenziert, genau der Schlüssel, den
+  // importAccount schon für die Board-Duplikaterkennung nutzt (siehe unten).
+  const sessionsResult = await pool.query(
+    'SELECT * FROM training_sessions WHERE user_id = $1 ORDER BY created_at ASC',
+    [userId]
+  );
+  const trainingSessions = [];
+  for (const s of sessionsResult.rows) {
+    const itemsResult = await pool.query(
+      `SELECT i.order_index, i.duration_minutes, i.note,
+              b.name AS board_name, b.field_type AS board_field_type, b.created_at AS board_created_at
+       FROM training_session_items i
+       JOIN boards b ON b.id = i.board_id
+       WHERE i.session_id = $1 ORDER BY i.order_index ASC`,
+      [s.id]
+    );
+    trainingSessions.push({
+      name: s.name,
+      notes: s.notes,
+      scheduledDate: s.scheduled_date,
+      goal: s.goal,
+      createdAt: s.created_at,
+      items: itemsResult.rows.map((i) => ({
+        boardName: i.board_name,
+        boardFieldType: i.board_field_type,
+        boardCreatedAt: i.board_created_at,
+        orderIndex: i.order_index,
+        durationMinutes: i.duration_minutes,
+        note: i.note,
+      })),
+    });
+  }
+
   return {
     format: BACKUP_FORMAT,
     exportedAt: new Date().toISOString(),
@@ -109,5 +174,8 @@ export async function buildUserExport(userId) {
     boards,
     rosterPlayers,
     lines,
+    playbooks,
+    formations,
+    trainingSessions,
   };
 }

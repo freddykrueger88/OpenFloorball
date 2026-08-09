@@ -3,15 +3,19 @@
 ## Manueller Export (jeder Nutzer)
 
 Unter `/settings` → Konto: vollständiger Datenexport als ZIP
-(`GET /api/user/export`) – enthält Boards (inkl. Frames), Kader und
-Lines als JSON. Derselbe Export lässt sich über `POST /api/user/import`
-wieder einspielen; Kader-Spieler werden dabei über Name+Nummer+Rolle
-wiedererkannt (nicht über die alte ID), damit Line-Zuordnungen korrekt
-wiederherstellt werden. Team-Zuordnungen werden bewusst nicht
+(`GET /api/user/export`) – enthält Boards (inkl. Frames), Kader, Lines,
+Formationsvorlagen, Playbooks und Trainingspläne als JSON. Derselbe
+Export lässt sich über `POST /api/user/import` wieder einspielen;
+Kader-Spieler werden dabei über Name+Nummer+Rolle wiedererkannt (nicht
+über die alte ID), damit Line-Zuordnungen korrekt wiederherstellt
+werden – Boards referenzieren ihr Playbook über den Namen, Trainingsplan-
+Einträge ihr Board über Name+Feldtyp+Erstellungszeitpunkt (dieselbe
+Erkennung wie bei der Board-Duplikatprüfung). Fehlt eine referenzierte
+Ressource beim Re-Import (z. B. weil nur ein Teil-Export eingespielt
+wird), wird die betroffene Zuordnung stillschweigend übersprungen statt
+einen Fehler zu werfen. Team-Zuordnungen werden bewusst nicht
 mit-exportiert (ein Re-Import kann keine sinnvolle Team-Zuordnung
-herstellen) – importierte Kader-Einträge/Lines sind immer persönlich.
-Formationsvorlagen, Playbooks und Trainingspläne sind aktuell **nicht**
-Teil dieses Backups.
+herstellen) – importierte Einträge sind immer persönlich.
 
 ## Automatische Backups (Admin)
 

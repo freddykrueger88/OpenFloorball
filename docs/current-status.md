@@ -56,9 +56,9 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 - **Admin-Bereich** – Nutzerverwaltung, Bibliotheks-Moderation,
   Backup-Zeitplan, KI-Anbieter-Konfiguration.
 - **DSGVO/GDPR** – Datenauskunft (Art. 15), Backup-Export/Import (ZIP,
-  Boards inkl. Frames, Kader, Lines – siehe "Teilweise implementiert"),
-  Account-Löschung inkl. Anonymisierung veröffentlichter
-  Bibliothekseinträge.
+  Boards inkl. Frames, Kader, Lines, Formationsvorlagen, Playbooks,
+  Trainingspläne), Account-Löschung inkl. Anonymisierung
+  veröffentlichter Bibliothekseinträge.
 - **Automatische Backups** (Cron, konfigurierbares Zeitplan/
   Aufbewahrung) sowie ein manueller "Jetzt ausführen"-Button im
   Admin-Bereich für einen sofortigen Lauf unabhängig vom Zeitplan.
@@ -98,10 +98,6 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   aber bewusst keine serverseitige Konfliktauflösung oder
   Zusammenführung von Änderungen durch – rein informativ, kein
   Ersatz für die Konflikterkennung des Offline-Modus.
-- **Backup-Export/Import (GDPR)**: enthält Boards (inkl. Frames), Kader
-  und Lines. Formationsvorlagen, Playbooks und Trainingspläne sind
-  aktuell nicht Teil des Backups – wer diese Daten sichern will, muss
-  die entsprechenden Vorlagen/Trainingspläne aktuell manuell notieren.
 
 ## In Entwicklung
 

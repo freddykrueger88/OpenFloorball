@@ -33,6 +33,16 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   auf seine Standardposition aus `buildDefaultPlayers` zurück.
 
 ### Added
+- GDPR-Backup-Export/Import (`/api/user/export`, `/api/user/import`) um
+  Formationsvorlagen, Playbooks und Trainingspläne erweitert – bisher
+  nur Boards, Kader und Lines. Boards referenzieren ihr Playbook beim
+  Export über den Namen (nicht die ID, die beim Re-Import ohnehin neu
+  vergeben wird), Trainingsplan-Einträge ihr Board über
+  Name+Feldtyp+Erstellungszeitpunkt (derselbe Schlüssel, den der Import
+  schon für die Board-Duplikaterkennung nutzt). Fehlt eine referenzierte
+  Ressource beim Re-Import, wird die Zuordnung übersprungen statt einen
+  Fehler zu werfen (wie schon bei fehlenden Kader-Referenzen in Lines).
+  team_id bleibt wie bei Kader/Lines bewusst außen vor.
 - Formationsvorlagen und Playbooks lassen sich jetzt umbenennen (bisher
   nur Anlegen/Löschen) – Doppelklick auf den Namen im
   Formationen-Tab des Board-Editors bzw. auf den Playbook-Chip auf

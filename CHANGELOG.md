@@ -14,6 +14,18 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Fixed
+- Migration schlug auf einer komplett frischen Datenbank fehl ("relation
+  teams does not exist") – die `lines`-Tabelle referenzierte `team_id
+  REFERENCES teams(id)` inline in ihrem `CREATE TABLE`, obwohl `teams`
+  erst deutlich später in der Migration angelegt wird. Betraf jede
+  frische Self-Hosting-Installation und die CI (dort wird die
+  Test-Datenbank immer frisch angelegt) – auf einer bereits
+  migrierten Datenbank (z.B. dem laufenden Dev-Server) blieb es
+  unbemerkt, da `CREATE TABLE IF NOT EXISTS` dort nichts mehr tat.
+  `team_id` wird jetzt wie bei roster_players/playbooks/
+  training_sessions/formation_templates per `ALTER TABLE` nach der
+  `teams`-Tabelle ergänzt. Verifiziert gegen eine frisch angelegte
+  Datenbank (kompletter Testlauf, 481/481 grün).
 - "Position zurücksetzen"-Button im Spieler-Info-Panel des Board-Editors
   war seit dem Wechsel von `usePlayerState` auf `useDrawing` funktionslos
   (fehlende `onReset`-Prop) – Klick hat nichts ausgelöst. Jetzt wieder

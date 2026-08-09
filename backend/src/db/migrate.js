@@ -243,11 +243,15 @@ export async function runMigrations() {
     // Zeilen der alten Tabelle betroffen (Stand Umbau) – eine automatische
     // Migration wäre ohnehin unmöglich gewesen, da die alten Einträge keine
     // echte Spieler-Identität enthielten.
+    // team_id wird NICHT hier inline referenziert (teams wird erst weiter
+    // unten angelegt) - CI/frische Self-Hosting-Installationen liefen sonst
+    // beim allerersten Migrationslauf mit "relation teams does not exist"
+    // auf einen Fehler. Kommt wie bei roster_players/playbooks/
+    // training_sessions/formation_templates per ALTER TABLE nach.
     await client.query(`
       CREATE TABLE IF NOT EXISTS lines (
         id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        team_id    UUID REFERENCES teams(id) ON DELETE SET NULL,
         name       TEXT NOT NULL,
         color      TEXT NOT NULL DEFAULT '#3B82F6',
         type       TEXT NOT NULL DEFAULT 'offense' CHECK (type IN ('offense', 'defense', 'special')),
@@ -257,7 +261,6 @@ export async function runMigrations() {
       );
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_lines_user_id ON lines(user_id);`);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_lines_team_id ON lines(team_id) WHERE team_id IS NOT NULL;`);
     await client.query(`
       DROP TRIGGER IF EXISTS trg_lines_updated_at ON lines;
       CREATE TRIGGER trg_lines_updated_at
@@ -407,6 +410,8 @@ export async function runMigrations() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_training_sessions_team_id ON training_sessions(team_id) WHERE team_id IS NOT NULL;`);
     await client.query(`ALTER TABLE formation_templates ADD COLUMN IF NOT EXISTS team_id UUID REFERENCES teams(id) ON DELETE SET NULL;`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_formation_templates_team_id ON formation_templates(team_id) WHERE team_id IS NOT NULL;`);
+    await client.query(`ALTER TABLE lines ADD COLUMN IF NOT EXISTS team_id UUID REFERENCES teams(id) ON DELETE SET NULL;`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_lines_team_id ON lines(team_id) WHERE team_id IS NOT NULL;`);
 
     // ── comments (ROADMAP Phase 2 – Kommentare auf Boards und
     // Trainingseinheiten) ────────────────────────────────────────────────

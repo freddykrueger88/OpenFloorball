@@ -7,6 +7,7 @@ import { body } from 'express-validator';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { deleteAccount, exportAccount, importAccount, getUserData } from '../controllers/userController.js';
+import { getFeedStatus, generateFeedToken, revokeFeedToken } from '../controllers/calendarFeedController.js';
 import { error } from '../utils/apiResponse.js';
 
 const router = Router();
@@ -20,6 +21,10 @@ router.delete('/account', [
 
 router.get('/data', getUserData);
 router.get('/export', exportAccount);
+
+router.get('/calendar-feed', getFeedStatus);
+router.post('/calendar-feed', generateFeedToken);
+router.delete('/calendar-feed', revokeFeedToken);
 
 const upload = multer({
   storage: multer.memoryStorage(),

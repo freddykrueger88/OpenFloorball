@@ -14,6 +14,17 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- ICS-Kalender-Abo (`/calendar`): persönlicher, wiederholt abrufbarer
+  Kalender-Feed für Google Calendar/Apple Kalender/Outlook, gespeist
+  aus datierten Spielen und Trainingseinheiten. Klartext-Token
+  (`users.calendar_feed_token`, wie Share-/Invite-Links) statt
+  gehashtem Token wie beim Passwort-Reset, da nur Lesezugriff auf
+  Termine gewährt wird, nicht auf den Account selbst. Neuer,
+  öffentlicher Endpunkt `GET /api/calendar-feed/:token.ics` (kein
+  Auth, analog Share-/Einladungs-Links), Verwaltung
+  (erzeugen/regenerieren/widerrufen) unter `/api/user/calendar-feed`.
+  Hand-geschriebener RFC-5545-Generator ohne npm-Abhängigkeit
+  (`backend/src/utils/ics.js`).
 - Kalenderansicht (`/calendar`): Monatsraster zeigt Spiele und
   Trainingseinheiten gemeinsam an, farblich unterschieden, mit
   Monatsnavigation und "Heute"-Sprung. Reine Frontend-Arbeit auf den

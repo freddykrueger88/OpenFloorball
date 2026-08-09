@@ -17,6 +17,7 @@ import { ChevronLeft, ChevronRight, Volleyball, Clipboard } from 'lucide-react';
 import { useGames } from '../hooks/useGames.js';
 import { useTrainingSessions } from '../hooks/useTrainingSessions.js';
 import Button from '../components/common/Button.jsx';
+import CalendarFeedPanel from '../components/calendar/CalendarFeedPanel.jsx';
 import styles from './CalendarPage.module.css';
 
 const MAX_CHIPS_PER_DAY = 3;
@@ -147,6 +148,8 @@ export default function CalendarPage() {
           })}
         </div>
       </div>
+
+      <CalendarFeedPanel />
     </main>
   );
 }

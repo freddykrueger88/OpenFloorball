@@ -13,6 +13,7 @@ import videoRoutes from './videos.js';
 import exportRoutes from './exports.js';
 import shareViewRoutes from './shareView.js';
 import inviteRoutes from './invite.js';
+import calendarFeedRoutes from './calendarFeed.js';
 import settingsRoutes from './settings.js';
 import userRoutes from './user.js';
 import adminRoutes from './admin.js';
@@ -68,6 +69,8 @@ router.use('/export', express.json({ limit: '50mb' }), exportRoutes);
 router.use('/share', shareViewRoutes);
 // Öffentliche Einladungs-Vorschau – bewusst NICHT hinter authenticate
 router.use('/invite', inviteRoutes);
+// Öffentlicher ICS-Kalender-Feed – bewusst NICHT hinter authenticate
+router.use('/calendar-feed', calendarFeedRoutes);
 router.use('/settings', settingsRoutes);
 router.use('/user', userRoutes);
 router.use('/admin', adminRoutes);

@@ -344,7 +344,20 @@
     "legendTrainings": "Trainings",
     "unnamedGame": "Game without opponent",
     "moreCount_one": "+{{count}} more",
-    "moreCount_other": "+{{count}} more"
+    "moreCount_other": "+{{count}} more",
+    "feed": {
+      "title": "Calendar subscription",
+      "hint": "Subscribe to your games and trainings in Google Calendar, Apple Calendar or Outlook – changes appear there automatically.",
+      "generate": "Create calendar feed",
+      "generating": "Creating …",
+      "subscribe": "Subscribe",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "regenerate": "Regenerate",
+      "revoke": "Revoke",
+      "urlAriaLabel": "Calendar feed URL",
+      "error": "Error: {{error}}"
+    }
   },
   "versions": {
     "title": "History",

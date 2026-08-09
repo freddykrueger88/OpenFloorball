@@ -43,6 +43,16 @@ export async function runMigrations() {
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);`);
 
+    // ── users: Kalender-Feed-Token (Roadmap-Audit: ICS-Kalender-Abo) ────────
+    // Bewusst Klartext wie share_token/invite-Tokens, nicht gehasht wie
+    // password_reset_tokens.token_hash – ein Kalender-Feed-Token gewährt nur
+    // Lesezugriff auf Termine (kein Account-Übernahme-Risiko wie bei einem
+    // Passwort-Reset) und muss bei jedem Kalender-Client-Poll schnell ohne
+    // erneutes Hashen nachschlagbar sein. Regenerieren ersetzt den Wert
+    // vollständig – das macht die alte URL sofort ungültig (einziges
+    // Widerruf-Mittel neben explizitem Löschen).
+    await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS calendar_feed_token UUID UNIQUE;`);
+
     // ── settings ─────────────────────────────────────────────────────────
     await client.query(`
       CREATE TABLE IF NOT EXISTS settings (

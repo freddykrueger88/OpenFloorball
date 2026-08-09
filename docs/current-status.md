@@ -41,7 +41,9 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   ein konkretes Spiel festlegen, getrennt von Lines und RSVP. Details:
   [Live-Spielnotizen](./wiki/Live-Spielnotizen.md#match-kader).
 - **Kalenderansicht** (`/calendar`) – Monatsraster zeigt Spiele und
-  Trainingseinheiten gemeinsam an.
+  Trainingseinheiten gemeinsam an. Inkl. ICS-Kalender-Abo für
+  Google Calendar/Apple Kalender/Outlook (Details:
+  [docs/wiki/Kalender.md](./wiki/Kalender.md)).
 - **Team-Kader**, **Teams und Vereine** – zweistufiges Rollenmodell
   je Ebene (Details: [docs/wiki/Teams-und-Vereine.md](./wiki/Teams-und-Vereine.md)).
 - **Board-Sharing** – Kollaboratoren (nur Owner verwaltet),

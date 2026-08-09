@@ -344,7 +344,20 @@
     "legendTrainings": "Trainings",
     "unnamedGame": "Spiel ohne Gegner",
     "moreCount_one": "+{{count}} weiterer",
-    "moreCount_other": "+{{count}} weitere"
+    "moreCount_other": "+{{count}} weitere",
+    "feed": {
+      "title": "Kalender-Abo",
+      "hint": "Abonniere deine Spiele und Trainings in Google Calendar, Apple Kalender oder Outlook – Änderungen erscheinen dort automatisch.",
+      "generate": "Kalender-Feed erzeugen",
+      "generating": "Wird erzeugt …",
+      "subscribe": "Abonnieren",
+      "copy": "Kopieren",
+      "copied": "Kopiert!",
+      "regenerate": "Neu erzeugen",
+      "revoke": "Widerrufen",
+      "urlAriaLabel": "Kalender-Feed-URL",
+      "error": "Fehler: {{error}}"
+    }
   },
   "versions": {
     "title": "Verlauf",

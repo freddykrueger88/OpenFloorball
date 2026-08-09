@@ -13,6 +13,13 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Fixed
+- "Position zurücksetzen"-Button im Spieler-Info-Panel des Board-Editors
+  war seit dem Wechsel von `usePlayerState` auf `useDrawing` funktionslos
+  (fehlende `onReset`-Prop) – Klick hat nichts ausgelöst. Jetzt wieder
+  verdrahtet: setzt den ausgewählten Spieler per `movePlayer` (undo-bar)
+  auf seine Standardposition aus `buildDefaultPlayers` zurück.
+
 ### Added
 - Formationsvorlagen und Playbooks lassen sich jetzt umbenennen (bisher
   nur Anlegen/Löschen) – Doppelklick auf den Namen im

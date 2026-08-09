@@ -35,7 +35,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 
-import { IFF_FIELDS, DEFAULT_TEAM_COLORS, IFF_BALL_COLORS, ensureBall, BALL_ID } from '../constants/fieldConfig.js';
+import { IFF_FIELDS, DEFAULT_TEAM_COLORS, IFF_BALL_COLORS, ensureBall, BALL_ID, buildDefaultPlayers } from '../constants/fieldConfig.js';
 import { POSITION_HINTS } from '../constants/positionHints.js';
 import { EDITOR_TOUR_STEPS } from '../constants/tourSteps.js';
 import { rescalePlayers, rescaleElements } from '../utils/fieldRescale.js';
@@ -236,6 +236,15 @@ export default function BoardEditorPage() {
       ? { ...p, name: rosterPlayer.name, number: rosterPlayer.jerseyNumber ?? undefined }
       : p)));
   }, [drawing]);
+
+  // "Position zurücksetzen"-Button im PlayerInfoPanel: Spieler-ids (h1..h6/
+  // a1..a6) sind über alle Feldtypen stabil (siehe fieldConfig.js), daher
+  // reicht ein Id-Match gegen buildDefaultPlayers statt Rollen-Logik.
+  // movePlayer (nicht setPlayersRaw) hält das undo-bar wie Drag&Drop.
+  const handleResetPlayerPosition = useCallback((id) => {
+    const defaultPlayer = buildDefaultPlayers(field.fieldType).find((p) => p.id === id);
+    if (defaultPlayer) drawing.movePlayer(id, defaultPlayer.x, defaultPlayer.y);
+  }, [drawing, field.fieldType]);
 
   // Backlog: Lines sollen auch im Spielfeld schnell durchwechselbar sein.
   // Trägt die Namen/Nummern der Line-Spieler auf die Heimteam-Positionen
@@ -689,6 +698,7 @@ export default function BoardEditorPage() {
                 <PlayerInfoPanel
                   player={drawing.players.find((p) => p.id === selectedPlayerId)}
                   onClose={() => handleSelectPlayer(null)}
+                  onReset={handleResetPlayerPosition}
                   onNameChange={handleNameChange}
                   rosterPlayers={roster.rosterPlayers}
                   onAssignRoster={handleAssignRoster}

@@ -924,7 +924,18 @@
     "noteAddedAnnouncement": "Notiz hinzugefügt",
     "loadingNotes": "Lädt Notizen...",
     "noNotesYet": "Noch keine Notizen – erfasse während des Spiels schnelle Beobachtungen.",
-    "deleteNoteAriaLabel": "Notiz löschen"
+    "deleteNoteAriaLabel": "Notiz löschen",
+    "presetsAriaLabel": "Vorlagen für häufige Spielereignisse (IFF-Regelwerk)",
+    "presetKickoffQ1": "Anstoß 1. Drittel",
+    "presetKickoffQ2": "Anstoß 2. Drittel",
+    "presetKickoffQ3": "Anstoß 3. Drittel",
+    "presetPeriodEnd": "Drittelende",
+    "presetTimeout": "Auszeit",
+    "presetGoal": "Tor",
+    "presetPenalty2": "Strafzeit 2 Min.",
+    "presetPenalty5": "Strafzeit 5 Min.",
+    "presetMatchPenalty": "Matchstrafe",
+    "presetGameEnd": "Spielende"
   },
   "roster": {
     "title": "Kader",

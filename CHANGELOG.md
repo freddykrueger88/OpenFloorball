@@ -24,6 +24,10 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   (resource_type='game') – identisches Muster wie Kommentare auf
   Boards/Trainingseinheiten, nur mit eigener, auf Geschwindigkeit
   ausgelegter Oberfläche statt der generischen Kommentar-Ansicht.
+  Zusätzlich Vorlagen-Buttons für die reglementierten Spiel-Ereignisse
+  nach IFF-Regelwerk (Anstoß je Drittel, Drittelende, Auszeit, Tor,
+  Strafzeit 2/5 Min., Matchstrafe, Spielende) – ein Tap trägt die
+  Notiz direkt ein, ohne tippen zu müssen.
 - Manueller Backup-Trigger: "Jetzt ausführen"-Button im Admin-Bereich
   bei den automatischen Backups, löst denselben Job wie der Cron-Lauf
   sofort für alle Nutzer aus (`POST /api/admin/backup-run`) –

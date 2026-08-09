@@ -18,7 +18,12 @@ Unter `/games`:
 2. Auf der Spielseite über das große Eingabefeld Notizen eintippen und
    mit "Hinzufügen" bestätigen – bewusst ein einzelnes Textfeld statt
    eines Formulars, für schnelle Bedienung im Stehen.
-3. Notizen erscheinen neueste zuerst, jeweils mit Uhrzeit (und bei
+3. Für die reglementierten Spielunterbrechungen nach IFF-Regelwerk
+   (3 Drittel à 20 Min., eine Auszeit pro Team, Strafzeiten 2/5 Min.,
+   Matchstrafe) gibt es Vorlagen-Buttons oberhalb des Eingabefelds –
+   ein Tap trägt die Notiz direkt mit Zeitstempel ein, ohne tippen zu
+   müssen.
+4. Notizen erscheinen neueste zuerst, jeweils mit Uhrzeit (und bei
    team-geteilten Spielen mit dem Namen der Autorin/des Autors).
 
 ## Zugriff und Löschen

@@ -80,6 +80,12 @@
   gap: var(--space-4);
 }
 
+.presetsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
 /* Bewusst groß/prominent – für schnelle Bedienung im Stehen/mit einer
    Hand während eines laufenden Spiels (Mobile First, siehe CLAUDE.md). */
 .addForm {

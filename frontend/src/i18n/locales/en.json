@@ -924,7 +924,18 @@
     "noteAddedAnnouncement": "Note added",
     "loadingNotes": "Loading notes...",
     "noNotesYet": "No notes yet – capture quick observations while the game is on.",
-    "deleteNoteAriaLabel": "Delete note"
+    "deleteNoteAriaLabel": "Delete note",
+    "presetsAriaLabel": "Presets for common game events (IFF rules)",
+    "presetKickoffQ1": "Kickoff 1st period",
+    "presetKickoffQ2": "Kickoff 2nd period",
+    "presetKickoffQ3": "Kickoff 3rd period",
+    "presetPeriodEnd": "End of period",
+    "presetTimeout": "Timeout",
+    "presetGoal": "Goal",
+    "presetPenalty2": "2-minute penalty",
+    "presetPenalty5": "5-minute penalty",
+    "presetMatchPenalty": "Match penalty",
+    "presetGameEnd": "End of game"
   },
   "roster": {
     "title": "Roster",

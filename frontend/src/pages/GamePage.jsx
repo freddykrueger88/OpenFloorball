@@ -101,6 +101,27 @@ export default function GamePage() {
     }
   };
 
+  // Feste Ereignisse aus dem IFF-Regelwerk (3 Drittel à 20 Min., eine
+  // Auszeit/Team, Strafzeiten 2/5 Min./Matchstrafe) – ein Tap trägt die
+  // Notiz direkt ein, ohne erst ins Eingabefeld tippen zu müssen. Fehler
+  // laufen über dieselbe notesError-Anzeige wie bei frei eingegebenen
+  // Notizen (kein Sonderfall).
+  const PRESETS = [
+    t('games.presetKickoffQ1'), t('games.presetKickoffQ2'), t('games.presetKickoffQ3'),
+    t('games.presetPeriodEnd'), t('games.presetTimeout'), t('games.presetGoal'),
+    t('games.presetPenalty2'), t('games.presetPenalty5'), t('games.presetMatchPenalty'),
+    t('games.presetGameEnd'),
+  ];
+
+  const handleAddPreset = async (text) => {
+    try {
+      await addComment(text);
+      useAnnounceStore.getState().announce(t('games.noteAddedAnnouncement'));
+    } catch {
+      // Fehler über notesError – Ereignis einfach erneut antippen.
+    }
+  };
+
   if (gameLoading && !game) {
     return <main className={styles.page} id="main-content"><p>{t('games.loadingGame')}</p></main>;
   }
@@ -160,6 +181,14 @@ export default function GamePage() {
       )}
 
       <section className={styles.notesSection} aria-label={t('games.notesAriaLabel')}>
+        <div className={styles.presetsRow} role="group" aria-label={t('games.presetsAriaLabel')}>
+          {PRESETS.map((text) => (
+            <Button key={text} type="button" variant="secondary" size="sm" onClick={() => handleAddPreset(text)}>
+              {text}
+            </Button>
+          ))}
+        </div>
+
         <form className={styles.addForm} onSubmit={handleAddNote}>
           <input
             autoFocus

@@ -52,6 +52,7 @@ als GIF/MP4/PDF/Link, Docker-basiert und IFF-konform.
 - [Kader](./Kader.md)
 - [Lines & Sturmreihen](./Lines.md)
 - [Live-Spielnotizen](./Live-Spielnotizen.md)
+- [Kalender](./Kalender.md)
 - [Teams und Vereine](./Teams-und-Vereine.md)
 - [Video-Integration](./Video-Integration.md)
 - [Echtzeit-Zusammenarbeit](./Echtzeit-Zusammenarbeit.md)

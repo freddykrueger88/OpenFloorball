@@ -47,6 +47,7 @@ export default function Header() {
     { to: '/roster',    label: t('nav.roster') },
     { to: '/lines',     label: t('nav.lines') },
     { to: '/games',     label: t('nav.games') },
+    { to: '/calendar',  label: t('nav.calendar') },
     { to: '/library',   label: t('nav.library'),   tourId: 'nav-library' },
     { to: '/knowledge', label: t('nav.knowledge') },
     { to: '/settings',  label: t('nav.settings'),  tourId: 'nav-settings' },

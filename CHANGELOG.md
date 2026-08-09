@@ -14,6 +14,13 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Kalenderansicht (`/calendar`): Monatsraster zeigt Spiele und
+  Trainingseinheiten gemeinsam an, farblich unterschieden, mit
+  Monatsnavigation und "Heute"-Sprung. Reine Frontend-Arbeit auf den
+  bereits vorhandenen Datumsfeldern (`games.playedAt`,
+  `training_sessions.scheduledDate`) – kein neues Backend-Modell.
+  Monats-/Wochentagsnamen über `Intl.DateTimeFormat` lokalisiert, keine
+  neuen Übersetzungsstrings dafür nötig.
 - Match-Kader für ein konkretes Spiel: pro Kader-Spieler festlegen, ob
   er spielt/Ersatz ist/verletzt ist/fehlt – unabhängig von Lines
   (spielübergreifende taktische Vorlage) und unabhängig von RSVP

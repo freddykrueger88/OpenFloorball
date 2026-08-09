@@ -15,6 +15,7 @@
     "roster": "Roster",
     "lines": "Lines",
     "games": "Games",
+    "calendar": "Calendar",
     "library": "Exercise Library",
     "knowledge": "Knowledge"
   },
@@ -332,6 +333,18 @@
     "statusNone": "Not decided",
     "clearAriaLabel": "Reset status for {{name}}",
     "clearTitle": "Reset (not decided)"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "navAriaLabel": "Month navigation",
+    "prevMonthAriaLabel": "Previous month",
+    "nextMonthAriaLabel": "Next month",
+    "today": "Today",
+    "legendGames": "Games",
+    "legendTrainings": "Trainings",
+    "unnamedGame": "Game without opponent",
+    "moreCount_one": "+{{count}} more",
+    "moreCount_other": "+{{count}} more"
   },
   "versions": {
     "title": "History",

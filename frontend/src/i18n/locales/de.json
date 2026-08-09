@@ -15,6 +15,7 @@
     "roster": "Kader",
     "lines": "Lines",
     "games": "Spiele",
+    "calendar": "Kalender",
     "library": "Übungsbibliothek",
     "knowledge": "Wissen"
   },
@@ -332,6 +333,18 @@
     "statusNone": "Nicht entschieden",
     "clearAriaLabel": "Status von {{name}} zurücksetzen",
     "clearTitle": "Zurücksetzen (nicht entschieden)"
+  },
+  "calendar": {
+    "title": "Kalender",
+    "navAriaLabel": "Monatsnavigation",
+    "prevMonthAriaLabel": "Vorheriger Monat",
+    "nextMonthAriaLabel": "Nächster Monat",
+    "today": "Heute",
+    "legendGames": "Spiele",
+    "legendTrainings": "Trainings",
+    "unnamedGame": "Spiel ohne Gegner",
+    "moreCount_one": "+{{count}} weiterer",
+    "moreCount_other": "+{{count}} weitere"
   },
   "versions": {
     "title": "Verlauf",

@@ -94,9 +94,6 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   Bearbeiten-Endpunkt für diese beiden Ressourcen entstehen, muss die
   Konflikterkennung dafür nachgezogen werden (gleiches Muster wie bei
   Kader-Einträgen).
-- **Video-Integration**: die Funktion selbst ist vollständiger, als
-  ein Kommentar im Code (`videoController.js`) behauptet – siehe
-  "Bekannte Probleme".
 - **Echtzeit-Zusammenarbeit**: zeigt Präsenz und Live-Cursor an, führt
   aber bewusst keine serverseitige Konfliktauflösung oder
   Zusammenführung von Änderungen durch – rein informativ, kein
@@ -123,14 +120,6 @@ konkrete Backlog-Einträge vor (siehe unten).
 
 ## Bekannte Probleme
 
-- Stale Code-Kommentar in `backend/src/controllers/videoController.js`:
-  der Dateikopf behauptet, es gebe "keine Zeichnungen über dem Video,
-  kein Schnitt/Trimmen, keine Szenen-Timeline" – tatsächlich
-  unterstützt die Funktion `updateVideo` bereits alle drei
-  (`elements`, `trimStart`/`trimEnd`, `markers`). Nur der Kommentar ist
-  veraltet, die Funktion selbst arbeitet korrekt.
-- GitHub-Release-Titel heißen "FloorForge" statt "OpenFloorball" –
-  eine Namensinkonsistenz aus einer früheren Projektbenennung.
 - Nur zwei der neun im CHANGELOG dokumentierten Versionen (v0.1.0,
   v0.9.0) haben ein Git-Tag; die Zwischenversionen 0.2.0–0.8.0
   existieren nur als CHANGELOG-Abschnitte, nicht als Tag/Release.

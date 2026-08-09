@@ -1,13 +1,17 @@
 /**
- * videoController – Video-Integration MVP (ROADMAP-Backlog:
+ * videoController – Video-Integration (ROADMAP-Backlog:
  * Video-/Spielfilm-Integration)
  *
- * Umfang dieser ersten Ausbaustufe bewusst schmal gehalten: ein Board
- * kann sich mehrere kurze Videoclips anhängen lassen (z.B. eine konkrete
- * Spielsituation des Gegners), abspielbar über den nativen Browser-Player
- * (Range-Requests für Scrubbing, siehe streamVideo). KEINE Zeichnungen
- * über dem Video, kein Schnitt/Trimmen, keine Szenen-Timeline – das sind
- * eigene, deutlich größere Ausbaustufen mit eigenem UX-Konzept.
+ * Ein Board kann sich mehrere kurze Videoclips anhängen lassen (z.B.
+ * eine konkrete Spielsituation des Gegners), abspielbar über den
+ * nativen Browser-Player (Range-Requests für Scrubbing, siehe
+ * streamVideo). `updateVideo` deckt darüber hinaus bereits Zeichnungen
+ * über dem Video (`elements`), Schnitt/Trimmen (`trimStart`/`trimEnd`)
+ * und eine Szenen-Timeline (`markers`) ab – siehe
+ * VideoAnnotationOverlay.jsx im Frontend. Die Video-Zeichnung selbst
+ * lässt sich zusätzlich als neues, eigenständiges Taktik-Board
+ * übernehmen (rein clientseitig, siehe
+ * videoElementsToBoardElements.js – keine Backend-Beteiligung nötig).
  *
  * Ablage: Disk (VIDEOS_DIR), nicht als DB-Blob – analog EXPORTS_DIR.
  * Zugriff: wie Frames/Lines/etc. über assertBoardAccess ('write' zum

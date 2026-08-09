@@ -624,6 +624,48 @@ P2/P3
 
 ---
 
+# EPIC 011 – Vereinsebene als Koordinationsschicht
+
+Priorität:
+
+P3
+
+---
+
+## Ausgangslage
+
+Organizations (Vereine) sind bisher rein verwaltend: mehrere Teams
+einem Verein zuordnen, Admin/Member-Rollen, aber kein geteilter Inhalt
+über Teams hinweg. Diskussion (2026-08-09): Trainer-Alltag bleibt der
+Kern der Plattform, aber ein Verein mit mehreren Sparten (z.B. 1.
+Herren, U15, U18) braucht zusätzlich eine dünne
+Koordinationsschicht **über** den einzelnen Teams, ohne sich Richtung
+generisches Vereinsverwaltungs-Tool zu entwickeln (Finanzen,
+Mitgliederverwaltung, Registrierung bleiben bewusst außerhalb, siehe
+Roadmap-Audit "Phase Z" für die dort schon geprüften, nicht
+empfohlenen Punkte).
+
+---
+
+## Mögliche Bausteine
+
+* Vereins-Dashboard: Termine/Spiele aller Teams eines Vereins
+  gebündelt (nur Lesen, kein neuer Bearbeitungsweg)
+* Vereinsweit geteilte Übungsbibliothek/Playbooks – optional zusätzlich
+  zu `teamId`, analog zum bestehenden Muster
+* Org-Admin sieht Team-übergreifend, wer wo Trainer ist (Übersicht,
+  kein automatisches Bearbeitungsrecht an Team-Inhalten)
+
+---
+
+## Abgrenzung (bewusst NICHT Teil dieses Epics)
+
+* Finanzen/Mitgliedsbeiträge/Rechnungen
+* Mitgliederregistrierung/Formulare/Waiver
+* Turniere/Ligen zwischen mehreren Vereinen
+
+---
+
 # Entscheidungsregel
 
 Bei jedem neuen Issue prüfen:

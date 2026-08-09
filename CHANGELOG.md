@@ -14,6 +14,16 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Live-Spielnotizen: neuer Bereich "Spiele" – ein Spiel (Gegner,
+  Datum, optional team-geteilt) anlegen und während des laufenden
+  Spiels schnelle, automatisch zeitgestempelte Notizen erfassen
+  (großes Eingabefeld, für Bedienung im Stehen/mit einer Hand
+  optimiert). Schließt den bisher unadressierten Backlog-Punkt
+  "Erweiterung: Live-Unterstützung". Die Notizen selbst sind keine
+  neue Tabelle, sondern nutzen die bestehende `comments`-Infrastruktur
+  (resource_type='game') – identisches Muster wie Kommentare auf
+  Boards/Trainingseinheiten, nur mit eigener, auf Geschwindigkeit
+  ausgelegter Oberfläche statt der generischen Kommentar-Ansicht.
 - Manueller Backup-Trigger: "Jetzt ausführen"-Button im Admin-Bereich
   bei den automatischen Backups, löst denselben Job wie der Cron-Lauf
   sofort für alle Nutzer aus (`POST /api/admin/backup-run`) –

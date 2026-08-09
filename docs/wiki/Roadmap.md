@@ -12,6 +12,12 @@ Repository und werden dort kontinuierlich aktualisiert:
   inkl. Zeichnen-Überlagerung, Trimmen, Szenen-Marken und Übernahme
   der Video-Zeichnung als neues Taktik-Board. Siehe
   [Video-Integration](./Video-Integration.md).
+- **Live-Spielnotizen** ("Erweiterung: Live-Unterstützung") – Spiele
+  anlegen und während des laufenden Spiels schnelle, zeitgestempelte
+  Notizen erfassen. Siehe [Live-Spielnotizen](./Live-Spielnotizen.md).
+- **Manueller Backup-Trigger** – "Jetzt ausführen"-Button im
+  Admin-Bereich für einen sofortigen Backup-Lauf unabhängig vom
+  Zeitplan. Siehe [Backup](./Backup.md).
 - **Echtzeit-Zusammenarbeit** – Präsenzanzeige und Live-Cursor beim
   gemeinsamen Bearbeiten eines Boards. Siehe
   [Echtzeit-Zusammenarbeit](./Echtzeit-Zusammenarbeit.md).

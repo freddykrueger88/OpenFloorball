@@ -49,6 +49,7 @@ als GIF/MP4/PDF/Link, Docker-basiert und IFF-konform.
 - [Playbooks](./Playbooks.md)
 - [Formationen-Vorlagen](./Formationen.md)
 - [Trainingsplaner](./Trainingsplaner.md)
+- [Live-Spielnotizen](./Live-Spielnotizen.md)
 - [Kader](./Kader.md)
 - [Teams und Vereine](./Teams-und-Vereine.md)
 - [Video-Integration](./Video-Integration.md)

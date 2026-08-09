@@ -617,6 +617,38 @@ export async function runMigrations() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token_hash ON password_reset_tokens(token_hash);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);`);
 
+    // ── games (Backlog: Live-Spielnotizen, "Erweiterung: Live-Unterstützung") ──
+    // Bewusst schlank (nur Gegner/Datum/Team) – Live-Notizen selbst sind
+    // KEINE eigene Tabelle, sondern nutzen die bestehende `comments`-Tabelle
+    // mit resource_type='game' mit (siehe ALTER unten): identisches Muster
+    // (freier Text, zeitgestempelt, an eine Ressource gehängt) wie bei
+    // Boards/Trainingseinheiten, keine Duplikation nötig.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS games (
+        id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        team_id    UUID REFERENCES teams(id) ON DELETE SET NULL,
+        opponent   TEXT NOT NULL DEFAULT '',
+        played_at  DATE,
+        notes      TEXT NOT NULL DEFAULT '',
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_games_updated_at ON games;
+      CREATE TRIGGER trg_games_updated_at
+        BEFORE UPDATE ON games
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_games_user_id ON games(user_id);`);
+
+    await client.query(`ALTER TABLE comments DROP CONSTRAINT IF EXISTS comments_resource_type_check;`);
+    await client.query(`
+      ALTER TABLE comments ADD CONSTRAINT comments_resource_type_check
+        CHECK (resource_type IN ('board', 'training_session', 'game'));
+    `);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

@@ -20,6 +20,7 @@ import formationRoutes from './formations.js';
 import playbookRoutes from './playbooks.js';
 import trainingRoutes from './trainings.js';
 import rosterRoutes from './roster.js';
+import gamesRoutes from './games.js';
 import teamRoutes from './teams.js';
 import organizationRoutes from './organizations.js';
 import libraryRoutes from './library.js';
@@ -27,6 +28,7 @@ import aiRoutes from './ai.js';
 import { createCommentRoutes } from './comments.js';
 import { assertBoardAccess } from '../utils/boardAccess.js';
 import { assertSessionRead, assertSessionWrite } from '../controllers/trainingSessionsController.js';
+import { assertGameRead, assertGameWrite } from '../controllers/gamesController.js';
 // import tacticsRoutes from './tactics.js'; // Issue #7
 
 const boardCommentRoutes = createCommentRoutes('board', {
@@ -36,6 +38,10 @@ const boardCommentRoutes = createCommentRoutes('board', {
 const sessionCommentRoutes = createCommentRoutes('training_session', {
   assertRead:  assertSessionRead,
   assertWrite: assertSessionWrite,
+});
+const gameCommentRoutes = createCommentRoutes('game', {
+  assertRead:  assertGameRead,
+  assertWrite: assertGameWrite,
 });
 
 const router = Router();
@@ -49,6 +55,7 @@ router.use('/boards/:id/comments', boardCommentRoutes);
 router.use('/boards/:id/versions', boardVersionRoutes);
 router.use('/boards/:id/videos',  videoRoutes);
 router.use('/trainings/:id/comments', sessionCommentRoutes);
+router.use('/games/:id/comments', gameCommentRoutes);
 // GIF-Export braucht großes JSON-Limit (Base64-PNGs) – nur auf diesem Sub-Router
 router.use('/export', express.json({ limit: '50mb' }), exportRoutes);
 // Öffentliche Share-Link-Ansicht – bewusst NICHT hinter authenticate (Issue #16)
@@ -62,6 +69,7 @@ router.use('/formations', formationRoutes);
 router.use('/playbooks', playbookRoutes);
 router.use('/trainings', trainingRoutes);
 router.use('/roster', rosterRoutes);
+router.use('/games', gamesRoutes);
 router.use('/teams', teamRoutes);
 router.use('/organizations', organizationRoutes);
 router.use('/library', libraryRoutes);

@@ -32,6 +32,8 @@ const BoardEditorPage = lazy(() => import('./pages/BoardEditorPage.jsx'));
 const TrainingsPage       = lazy(() => import('./pages/TrainingsPage.jsx'));
 const TrainingSessionPage = lazy(() => import('./pages/TrainingSessionPage.jsx'));
 const RosterPage          = lazy(() => import('./pages/RosterPage.jsx'));
+const GamesPage           = lazy(() => import('./pages/GamesPage.jsx'));
+const GamePage            = lazy(() => import('./pages/GamePage.jsx'));
 const LibraryPage         = lazy(() => import('./pages/LibraryPage.jsx'));
 const KnowledgePage       = lazy(() => import('./pages/KnowledgePage.jsx'));
 const SharePage       = lazy(() => import('./pages/SharePage.jsx'));
@@ -128,6 +130,8 @@ export default function App() {
             <Route path="/board/:id" element={<PrivateRoute><BoardEditorPage /></PrivateRoute>} />
             <Route path="/trainings" element={<PrivateRoute><TrainingsPage /></PrivateRoute>} />
             <Route path="/trainings/:id" element={<PrivateRoute><TrainingSessionPage /></PrivateRoute>} />
+            <Route path="/games" element={<PrivateRoute><GamesPage /></PrivateRoute>} />
+            <Route path="/games/:id" element={<PrivateRoute><GamePage /></PrivateRoute>} />
             <Route path="/roster" element={<PrivateRoute><RosterPage /></PrivateRoute>} />
             <Route path="/library" element={<PrivateRoute><LibraryPage /></PrivateRoute>} />
             <Route path="/knowledge" element={<PrivateRoute><KnowledgePage /></PrivateRoute>} />

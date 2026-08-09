@@ -173,6 +173,58 @@ describe('Trainingspläne (training_sessions) – Team-Sharing', () => {
   });
 });
 
+describe('Spiele/Live-Notizen (games + comments) – Team-Sharing', () => {
+  let gameId;
+
+  it('member darf kein team-geteiltes Spiel anlegen (404)', async () => {
+    const res = await request(app).post('/api/games').set('Cookie', member.cookie).send({ opponent: 'Sollte fehlschlagen', teamId });
+    expect(res.status).toBe(404);
+  });
+
+  it('coach legt ein team-geteiltes Spiel an', async () => {
+    const res = await request(app).post('/api/games').set('Cookie', coach.cookie).send({ opponent: 'Team-Spiel', teamId });
+    expect(res.status).toBe(201);
+    gameId = res.body.data._id;
+  });
+
+  it('member kann das Spiel lesen (GET /:id)', async () => {
+    const res = await request(app).get(`/api/games/${gameId}`).set('Cookie', member.cookie);
+    expect(res.status).toBe(200);
+  });
+
+  it('ein Fremder kann das Spiel nicht lesen (404)', async () => {
+    const res = await request(app).get(`/api/games/${gameId}`).set('Cookie', stranger.cookie);
+    expect(res.status).toBe(404);
+  });
+
+  it('member darf eine Live-Notiz zum Team-Spiel hinzufügen (Lesezugriff reicht für Notizen)', async () => {
+    const res = await request(app).post(`/api/games/${gameId}/comments`).set('Cookie', member.cookie).send({ text: 'Beobachtung von der Bank' });
+    expect(res.status).toBe(201);
+  });
+
+  it('ein Fremder darf keine Notiz zum Team-Spiel hinzufügen (404)', async () => {
+    const res = await request(app).post(`/api/games/${gameId}/comments`).set('Cookie', stranger.cookie).send({ text: 'Sollte nicht gehen' });
+    expect(res.status).toBe(404);
+  });
+
+  it('owner (Team-Owner) darf die Notiz von member löschen (Moderation über Schreibzugriff)', async () => {
+    const listRes = await request(app).get(`/api/games/${gameId}/comments`).set('Cookie', owner.cookie);
+    const noteId = listRes.body.data[0]._id;
+    const res = await request(app).delete(`/api/games/${gameId}/comments/${noteId}`).set('Cookie', owner.cookie);
+    expect(res.status).toBe(200);
+  });
+
+  it('member darf das Spiel NICHT löschen (404)', async () => {
+    const res = await request(app).delete(`/api/games/${gameId}`).set('Cookie', member.cookie);
+    expect(res.status).toBe(404);
+  });
+
+  it('coach darf das Spiel löschen', async () => {
+    const res = await request(app).delete(`/api/games/${gameId}`).set('Cookie', coach.cookie);
+    expect(res.status).toBe(200);
+  });
+});
+
 describe('Formationsvorlagen (formation_templates) – Team-Sharing', () => {
   let formationId;
 

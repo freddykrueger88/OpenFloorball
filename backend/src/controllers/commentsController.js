@@ -157,4 +157,9 @@ export async function deleteCommentsForUser(userId) {
      AND resource_id IN (SELECT id FROM training_sessions WHERE user_id = $1)`,
     [userId]
   );
+  await pool.query(
+    `DELETE FROM comments WHERE resource_type = 'game'
+     AND resource_id IN (SELECT id FROM games WHERE user_id = $1)`,
+    [userId]
+  );
 }

@@ -273,6 +273,7 @@
     "tabsAriaLabel": "Tools",
     "tabs": {
       "draw": "Draw",
+      "lines": "Lines",
       "formations": "Formations",
       "video": "Video",
       "export": "Export",
@@ -495,6 +496,15 @@
     "pickerAriaLabel": "Add a player to \"{{name}}\"",
     "noMorePlayers": "All roster players are already in this line.",
     "removePlayerAriaLabel": "Remove {{name}} from this line"
+  },
+  "boardLines": {
+    "sectionAriaLabel": "Lines for this board",
+    "expand": "Expand lines panel",
+    "collapse": "Collapse lines panel",
+    "title": "Lines",
+    "emptyHint": "No line created yet – see \"Manage lines\".",
+    "applyTitle": "Apply this line's names to the home team",
+    "manageLink": "Manage lines"
   },
   "frames": {
     "timelineAriaLabel": "Frame timeline",

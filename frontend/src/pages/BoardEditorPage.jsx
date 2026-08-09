@@ -19,6 +19,7 @@ import {
   Undo2,
   Redo2,
   Keyboard,
+  Layers,
   Star,
   Video,
   Download,
@@ -54,7 +55,7 @@ import PlayerAccessibleList from '../components/field/PlayerAccessibleList.jsx';
 import { DrawingToolbar, DrawingCoordinatesForm } from '../components/drawing/index.js';
 import { FrameTimeline } from '../components/frames/index.js';
 import { PlaybackControls } from '../components/playback/index.js';
-import { NotesPanel, BoardDetailsPanel, ExportPanel, PdfExportPanel, ShortcutsOverlay, ShareBoardModal, BoardSidePanelTabs, VersionsPanel, VideoPanel } from '../components/board/index.js';
+import { NotesPanel, BoardDetailsPanel, ExportPanel, PdfExportPanel, ShortcutsOverlay, ShareBoardModal, BoardSidePanelTabs, VersionsPanel, VideoPanel, BoardLinesPanel } from '../components/board/index.js';
 import PublishBoardModal from '../components/library/PublishBoardModal.jsx';
 import { FormationsPanel } from '../components/formations/index.js';
 import CommentsPanel from '../components/comments/CommentsPanel.jsx';
@@ -63,6 +64,7 @@ import Button from '../components/common/Button.jsx';
 import { useBoardsApi } from '../hooks/useBoardsApi.js';
 import { useFrames } from '../hooks/useFrames.js';
 import { useFormations } from '../hooks/useFormations.js';
+import { useLines } from '../hooks/useLines.js';
 import { useRoster } from '../hooks/useRoster.js';
 import { useTeams } from '../hooks/useTeams.js';
 import { useField } from '../hooks/useField.js';
@@ -199,6 +201,7 @@ export default function BoardEditorPage() {
   presenceRef.current = presence;
   const otherPresentUsers = presence.users.filter((u) => u.userId !== currentUserId);
   const formations = useFormations();
+  const lines = useLines();
   const roster = useRoster();
   // ROADMAP Phase 2: eigene Teams laden, um Formations-Vorlagen optional
   // team-geteilt statt rein persönlich anzulegen (analog Roster/Trainings).
@@ -234,6 +237,33 @@ export default function BoardEditorPage() {
       : p)));
   }, [drawing]);
 
+  // Backlog: Lines sollen auch im Spielfeld schnell durchwechselbar sein.
+  // Trägt die Namen/Nummern der Line-Spieler auf die Heimteam-Positionen
+  // des aktuellen Frames ein, nach Rolle sortiert (gleiche Rollen-Codes
+  // TW/V/C/S wie roster_players) – analog handleAssignRoster, nur für
+  // eine ganze Line auf einmal statt einen einzelnen Spieler. Ändert
+  // bewusst nur Rollen, die die Line auch enthält; andere Positionen
+  // bleiben unverändert (kein ungewolltes Leeren bestehender Namen).
+  const handleApplyLine = useCallback((line) => {
+    const playersByRole = {};
+    line.players.forEach((p) => {
+      if (!p.role) return;
+      (playersByRole[p.role] ??= []).push(p);
+    });
+    const nextIndexByRole = {};
+    drawing.setPlayersRaw((prev) => prev.map((tok) => {
+      if (tok.team !== 'home' || !tok.role) return tok;
+      const pool = playersByRole[tok.role];
+      if (!pool) return tok;
+      const idx = nextIndexByRole[tok.role] ?? 0;
+      const player = pool[idx];
+      if (!player) return tok;
+      nextIndexByRole[tok.role] = idx + 1;
+      return { ...tok, name: player.name, number: player.jerseyNumber ?? undefined };
+    }));
+    lines.setActive(line._id, true).catch(() => {});
+  }, [drawing, lines]);
+
   const anim = useAnimation({ frames, activeIndex, goToFrame, arrowKeysEnabled: !selectedPlayerId });
 
   useEffect(() => {
@@ -248,6 +278,7 @@ export default function BoardEditorPage() {
     }).catch(() => {});
     loadFrames();
     formations.fetchFormations();
+    lines.fetchLines().catch(() => {});
     roster.fetchRoster().catch(() => {});
     fetchTeams().catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -686,6 +717,17 @@ export default function BoardEditorPage() {
                   field={IFF_FIELDS[field.fieldType] ?? IFF_FIELDS.large}
                   onAddArrow={drawing.addArrowElement}
                   onAddFreehand={drawing.addFreehandElement}
+                />
+              ),
+            },
+            canEdit && {
+              id: 'lines',
+              label: t('boardEditor.tabs.lines'),
+              icon: <Layers size={16} aria-hidden="true" />,
+              content: (
+                <BoardLinesPanel
+                  lines={lines.lines}
+                  onApply={handleApplyLine}
                 />
               ),
             },

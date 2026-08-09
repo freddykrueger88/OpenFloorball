@@ -49,6 +49,17 @@ Lines direkt über den Live-Notizen – ein Klick aktiviert die Line und
 trägt automatisch eine Notiz mit Zeitstempel ein (z. B. "Linienwechsel
 – Line 2"), ohne dass extra auf `/lines` gewechselt werden muss.
 
+## Im Board-Editor
+
+Im Board-Editor gibt es zwischen "Zeichnen" und "Formationen" ebenfalls
+einen "Lines"-Tab – dort lassen sich die eigenen Lines mit einem Klick
+**anwenden**: die Namen/Nummern der Line-Spieler werden nach Rolle
+(TW/V/C/S) auf die Heimteam-Positionen des aktuellen Frames übertragen,
+ohne Positionen zu verändern. Nur Rollen, die die Line auch enthält,
+werden angepasst – andere Positionen bleiben unverändert. Anlegen,
+Umbenennen und Spieler zuweisen bleibt bewusst auf `/lines`
+("Lines verwalten"-Link im Tab).
+
 ## Verwaltung
 
 - Lines umbenennen (Doppelklick auf den Namen), Löschen (Spieler

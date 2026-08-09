@@ -7,3 +7,4 @@ export { default as ShortcutsOverlay } from './ShortcutsOverlay.jsx';
 export { default as ShareBoardModal } from './ShareBoardModal.jsx';
 export { default as VersionsPanel } from './VersionsPanel.jsx';
 export { default as VideoPanel } from './VideoPanel.jsx';
+export { default as BoardLinesPanel } from './BoardLinesPanel.jsx';

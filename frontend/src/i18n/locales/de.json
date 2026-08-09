@@ -273,6 +273,7 @@
     "tabsAriaLabel": "Werkzeuge",
     "tabs": {
       "draw": "Zeichnen",
+      "lines": "Lines",
       "formations": "Formationen",
       "video": "Video",
       "export": "Export",
@@ -495,6 +496,15 @@
     "pickerAriaLabel": "Spieler zu \"{{name}}\" hinzufügen",
     "noMorePlayers": "Alle Kader-Spieler sind bereits in dieser Line.",
     "removePlayerAriaLabel": "{{name}} aus dieser Line entfernen"
+  },
+  "boardLines": {
+    "sectionAriaLabel": "Lines für dieses Board",
+    "expand": "Lines-Panel ausklappen",
+    "collapse": "Lines-Panel einklappen",
+    "title": "Lines",
+    "emptyHint": "Noch keine Line angelegt – siehe \"Lines verwalten\".",
+    "applyTitle": "Namen dieser Line auf das Heimteam übertragen",
+    "manageLink": "Lines verwalten"
   },
   "frames": {
     "timelineAriaLabel": "Frame-Timeline",

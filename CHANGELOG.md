@@ -30,7 +30,11 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   eine Notiz ("Linienwechsel – Line 2"). GDPR-Export/Import
   (`/api/user/export`) um Kader und Lines als Top-Level-Felder
   erweitert (Kader-Spieler werden beim Re-Import über
-  Name+Nummer+Rolle wiedererkannt, nicht über die alte ID).
+  Name+Nummer+Rolle wiedererkannt, nicht über die alte ID). Zusätzlich
+  im Board-Editor ein "Lines"-Tab (zwischen "Zeichnen" und
+  "Formationen"): ein Klick überträgt die Namen/Nummern der
+  Line-Spieler nach Rolle (TW/V/C/S) auf die Heimteam-Positionen des
+  aktuellen Frames – Anlegen/Bearbeiten bleibt bewusst auf `/lines`.
 - Live-Spielnotizen: neuer Bereich "Spiele" – ein Spiel (Gegner,
   Datum, optional team-geteilt) anlegen und während des laufenden
   Spiels schnelle, automatisch zeitgestempelte Notizen erfassen

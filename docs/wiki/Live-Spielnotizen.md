@@ -22,7 +22,8 @@ Unter `/games`:
    (3 Drittel à 20 Min., eine Auszeit pro Team, Strafzeiten 2/5 Min.,
    Matchstrafe) gibt es Vorlagen-Buttons oberhalb des Eingabefelds –
    ein Tap trägt die Notiz direkt mit Zeitstempel ein, ohne tippen zu
-   müssen.
+   müssen. Die Buttons sind alphabetisch sortiert (sprachabhängig,
+   die Reihenfolge unterscheidet sich also zwischen Deutsch/Englisch).
 4. Der "Tor"-Button öffnet zusätzlich eine Torschützen-Auswahl aus dem
    [Kader](./Kader.md) des Spiels (team-geteilte Spiele: Kader dieses
    Teams, sonst der persönliche Kader) – seit dem IFF-Regelwerk 2026

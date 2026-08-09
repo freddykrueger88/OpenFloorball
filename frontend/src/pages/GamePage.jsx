@@ -23,7 +23,7 @@ import Button from '../components/common/Button.jsx';
 import styles from './GamePage.module.css';
 
 export default function GamePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useParams();
   const { fetchGame, updateGame } = useGames();
   const { comments: notes, loading: notesLoading, error: notesError, fetchComments, addComment, deleteComment } = useComments('games', id);
@@ -114,13 +114,21 @@ export default function GamePage() {
   // Notiz direkt ein, ohne erst ins Eingabefeld tippen zu müssen. Fehler
   // laufen über dieselbe notesError-Anzeige wie bei frei eingegebenen
   // Notizen (kein Sonderfall). "Tor" ist ein Sonderfall: öffnet statt
-  // eines Sofort-Eintrags die Torschützen-Auswahl (siehe unten).
+  // eines Sofort-Eintrags die Torschützen-Auswahl (siehe unten) – bleibt
+  // aber Teil derselben, alphabetisch sortierten Liste (sprachabhängig,
+  // daher localeCompare statt fester Reihenfolge).
   const PRESETS = [
-    t('games.presetKickoffQ1'), t('games.presetKickoffQ2'), t('games.presetKickoffQ3'),
-    t('games.presetPeriodEnd'), t('games.presetTimeout'),
-    t('games.presetPenalty2'), t('games.presetPenalty5'), t('games.presetMatchPenalty'),
-    t('games.presetGameEnd'),
-  ];
+    { text: t('games.presetKickoffQ1') },
+    { text: t('games.presetKickoffQ2') },
+    { text: t('games.presetKickoffQ3') },
+    { text: t('games.presetPeriodEnd') },
+    { text: t('games.presetTimeout') },
+    { text: t('games.presetGoal'), isGoal: true },
+    { text: t('games.presetPenalty2') },
+    { text: t('games.presetPenalty5') },
+    { text: t('games.presetMatchPenalty') },
+    { text: t('games.presetGameEnd') },
+  ].sort((a, b) => a.text.localeCompare(b.text, i18n.language));
 
   const handleAddPreset = async (text) => {
     try {
@@ -206,18 +214,16 @@ export default function GamePage() {
 
       <section className={styles.notesSection} aria-label={t('games.notesAriaLabel')}>
         <div className={styles.presetsRow} role="group" aria-label={t('games.presetsAriaLabel')}>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            aria-expanded={showScorerPicker}
-            onClick={() => setShowScorerPicker((v) => !v)}
-          >
-            {t('games.presetGoal')}
-          </Button>
-          {PRESETS.map((text) => (
-            <Button key={text} type="button" variant="secondary" size="sm" onClick={() => handleAddPreset(text)}>
-              {text}
+          {PRESETS.map((preset) => (
+            <Button
+              key={preset.text}
+              type="button"
+              variant="secondary"
+              size="sm"
+              aria-expanded={preset.isGoal ? showScorerPicker : undefined}
+              onClick={() => (preset.isGoal ? setShowScorerPicker((v) => !v) : handleAddPreset(preset.text))}
+            >
+              {preset.text}
             </Button>
           ))}
         </div>

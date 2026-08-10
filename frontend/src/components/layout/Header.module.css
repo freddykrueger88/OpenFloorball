@@ -19,6 +19,20 @@
   flex-shrink: 0;
 }
 
+/* Das Logo-PNG hat fest eingebrannte Farben (dunkles Navy + Cyan) und
+   kann sich nicht über CSS-Variablen an ein Theme anpassen. Ein
+   dunkles Theme, dessen --color-surface zufällig nah am Logo-Navy
+   liegt (z.B. das "TB Uphusen Vikings"-Preset), lässt das Logo sonst
+   fast verschwinden. Ein fester, theme-unabhängiger heller Hintergrund
+   garantiert in jedem Theme ausreichenden Kontrast. */
+.brandLogoBackdrop {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  padding: 3px var(--space-2);
+}
+
 .brandLogo {
   display: block;
   height: 34px;

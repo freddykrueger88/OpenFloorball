@@ -60,7 +60,9 @@ export default function Header() {
       <a href="#main-content" className="sr-only sr-only-focusable">{t('accessibility.skipToContent')}</a>
 
       <Link to={user ? '/boards' : '/'} className={styles.brand} aria-label={t('nav.brandHome')}>
-        <img src={logo} alt="OpenFloorball" className={styles.brandLogo} />
+        <span className={styles.brandLogoBackdrop}>
+          <img src={logo} alt="OpenFloorball" className={styles.brandLogo} />
+        </span>
       </Link>
 
       {user && (

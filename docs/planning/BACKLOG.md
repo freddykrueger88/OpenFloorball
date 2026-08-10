@@ -630,6 +630,13 @@ Priorität:
 
 P3
 
+Status: erster Baustein umgesetzt (2026-08-10) – Vereins-Dashboard
+zeigt jetzt eine gebündelte, admin-only Übersicht anstehender
+Spiele+Trainings aller Teams des Vereins (`GET
+/api/organizations/:id/schedule`, rein lesend). Offen: vereinsweit
+geteilte Übungsbibliothek/Playbooks, Org-Admin-Übersicht "wer ist wo
+Trainer".
+
 ---
 
 ## Ausgangslage

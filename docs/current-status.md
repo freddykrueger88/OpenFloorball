@@ -61,7 +61,8 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   [docs/wiki/Kalender.md](./wiki/Kalender.md)).
 - **Team-Kader**, **Teams und Vereine** – zweistufiges Rollenmodell
   je Ebene, Vereine mit eigenem Dashboard (Umbenennen, Mitglieder,
-  Teams des Vereins, Team-Anlage direkt im Verein). Details:
+  Teams des Vereins, Team-Anlage direkt im Verein, admin-only
+  vereinsweite Termin-Übersicht über alle Teams hinweg). Details:
   [docs/wiki/Teams-und-Vereine.md](./wiki/Teams-und-Vereine.md).
 - **News/Ankündigungen** (`/news`) – Coach/Owner postet kurze
   Mitteilungen an sein Team, alle Mitglieder lesen sie chronologisch,

@@ -107,9 +107,18 @@ export function useOrganizations() {
     }
   }, []);
 
+  const fetchSchedule = useCallback(async (orgId) => {
+    try {
+      return await apiFetch(`/api/organizations/${orgId}/schedule`);
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
   return {
     organizations, loading, error,
     fetchOrganizations, fetchOrganization, createOrganization, renameOrganization, deleteOrganization,
-    fetchMembers, inviteMember, updateMemberRole, removeMember,
+    fetchMembers, inviteMember, updateMemberRole, removeMember, fetchSchedule,
   };
 }

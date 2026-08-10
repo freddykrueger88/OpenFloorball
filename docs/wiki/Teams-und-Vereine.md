@@ -31,6 +31,13 @@ zugeordnetes Team anlegen. Einfache Mitglieder sehen in diesem
 Abschnitt bewusst nur die Teams, in denen sie selbst Mitglied sind
 (Datensparsamkeit) – nicht automatisch alle Teams des Vereins.
 
+Zusätzlich, ebenfalls admin-only: "Anstehende Termine im Verein" –
+eine gebündelte, rein lesende Übersicht aller zukünftigen Spiele und
+Trainingseinheiten über alle Teams des Vereins hinweg (z.B. für
+Hallenbelegung/Terminkollisionen zwischen mehreren Sparten wie
+1. Herren und U15). Kein neuer Bearbeitungsweg – ändern bleibt weiter
+Sache des jeweiligen Teams. Für einfache Mitglieder unsichtbar.
+
 ## Was NICHT team-gebunden ist
 
 Boards sind bewusst **kein** Teil des Team-/Vereinsmodells. Wer an

@@ -223,7 +223,14 @@
     "noTeamsYet": "Noch keine Teams in diesem Verein.",
     "createTeamTitle": "Team erstellen",
     "createTeamPlaceholder": "Name des Teams",
-    "createTeamBtn": "Team erstellen"
+    "createTeamBtn": "Team erstellen",
+    "scheduleHeading": "Anstehende Termine im Verein",
+    "scheduleHint": "Nur für Vereinsadmins sichtbar, rein informativ – bearbeiten bleibt weiterhin im jeweiligen Team.",
+    "scheduleEmpty": "Keine anstehenden Termine in diesem Verein.",
+    "scheduleType": {
+      "game": "Spiel",
+      "training": "Training"
+    }
   },
   "accessibility": {
     "skipToContent": "Zum Inhalt springen",

@@ -7,7 +7,7 @@ import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
   getOrganizations, getOrganization, createOrganization, updateOrganization, deleteOrganization,
-  getMembers, inviteMember, updateMemberRole, removeMember,
+  getMembers, inviteMember, updateMemberRole, removeMember, getSchedule,
 } from '../controllers/organizationsController.js';
 
 const router = Router();
@@ -34,5 +34,7 @@ router.post  ('/:id/members',              [
 ], inviteMember);
 router.put   ('/:id/members/:memberId',    [validateOrgId, validateMemberId, validateRole, validate], updateMemberRole);
 router.delete('/:id/members/:memberId',    [validateOrgId, validateMemberId, validate], removeMember);
+
+router.get   ('/:id/schedule',             [validateOrgId, validate], getSchedule);
 
 export default router;

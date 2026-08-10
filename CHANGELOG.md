@@ -14,6 +14,14 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Vereinsweite Termin-Übersicht (EPIC 011, erster Baustein): das
+  Verein-Dashboard zeigt Vereinsadmins jetzt zusätzlich eine
+  gebündelte, rein lesende Liste aller anstehenden Spiele und
+  Trainingseinheiten über alle Teams des Vereins hinweg – nützlich bei
+  mehreren Sparten (z.B. 1. Herren, U15), um Terminüberschneidungen
+  bei der Hallenbelegung zu erkennen. Kein neuer Bearbeitungsweg, für
+  einfache Mitglieder unsichtbar, keine neue Migration (reine
+  Lese-Query über bestehende `games`/`training_sessions`/`teams`).
 - Vereinsebene ausgebaut: jeder Verein hat jetzt ein eigenes Dashboard
   (`/organizations/:id`) statt nur ein aufklappbares Listenelement in
   den Einstellungen zu sein – Umbenennen, Mitgliederverwaltung und ein

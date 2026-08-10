@@ -33,7 +33,7 @@ export default function OrganizationPage() {
   const {
     error: orgError,
     fetchOrganization, renameOrganization, deleteOrganization,
-    fetchMembers, inviteMember, updateMemberRole, removeMember,
+    fetchMembers, inviteMember, updateMemberRole, removeMember, fetchSchedule,
   } = useOrganizations();
   const { teams, fetchTeams, createTeam } = useTeams();
 
@@ -45,6 +45,7 @@ export default function OrganizationPage() {
   const [members,        setMembers       ] = useState([]);
   const [inviteForm,     setInviteForm    ] = useState({ email: '', role: 'member' });
   const [newTeamName,    setNewTeamName   ] = useState('');
+  const [schedule,       setSchedule      ] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -65,6 +66,10 @@ export default function OrganizationPage() {
 
   const orgTeams = teams.filter((tm) => tm.organizationId === id);
   const isAdmin = org?.role === 'admin';
+
+  useEffect(() => {
+    if (isAdmin) fetchSchedule(id).then(setSchedule).catch(() => {});
+  }, [isAdmin, fetchSchedule, id]);
 
   const commitName = async () => {
     setEditingName(false);
@@ -279,6 +284,28 @@ export default function OrganizationPage() {
             </form>
           )}
         </section>
+
+        {isAdmin && (
+          <section className={styles.section}>
+            <h2>{t('organization.scheduleHeading')}</h2>
+            <p className={styles.hint}>{t('organization.scheduleHint')}</p>
+
+            {schedule.length === 0 ? (
+              <p className={styles.hint}>{t('organization.scheduleEmpty')}</p>
+            ) : (
+              <ul className={styles.teamList} role="list">
+                {schedule.map((item) => (
+                  <li key={`${item.type}-${item._id}`} className={styles.teamRow}>
+                    <div className={pageStyles.teamRowContent}>
+                      <span>{item.date} · {item.teamName} · {item.title}</span>
+                      <span className={styles.roleBadge}>{t(`organization.scheduleType.${item.type}`)}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
       </div>
     </main>
   );

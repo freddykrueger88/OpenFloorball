@@ -223,7 +223,14 @@
     "noTeamsYet": "No teams in this organization yet.",
     "createTeamTitle": "Create team",
     "createTeamPlaceholder": "Team name",
-    "createTeamBtn": "Create team"
+    "createTeamBtn": "Create team",
+    "scheduleHeading": "Upcoming dates across the club",
+    "scheduleHint": "Visible only to organization admins, informational only – editing still happens within the respective team.",
+    "scheduleEmpty": "No upcoming dates in this organization.",
+    "scheduleType": {
+      "game": "Game",
+      "training": "Training"
+    }
   },
   "accessibility": {
     "skipToContent": "Skip to content",

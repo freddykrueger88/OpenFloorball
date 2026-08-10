@@ -34,6 +34,29 @@ function toApiMember(row) {
   };
 }
 
+// node-postgres liefert DATE-Spalten als Date-Objekt in der lokalen
+// Zeitzone des Prozesses – über die lokalen Getter statt toISOString()
+// zurück in "YYYY-MM-DD" wandeln (gleiches Problem/Lösung wie in
+// gamesController.js/trainingSessionsController.js).
+function toDateString(date) {
+  if (!date) return null;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function toApiScheduleItem(row) {
+  return {
+    _id:      row.id,
+    type:     row.type,
+    title:    row.title,
+    date:     toDateString(row.date),
+    teamId:   row.team_id,
+    teamName: row.team_name,
+  };
+}
+
 async function adminCount(organizationId) {
   const result = await pool.query(
     "SELECT COUNT(*)::int AS count FROM organization_members WHERE organization_id = $1 AND role = 'admin'",
@@ -264,6 +287,38 @@ export async function removeMember(req, res) {
     res.json(success({ message: 'Mitglied entfernt' }));
   } catch (err) {
     logger.error('[removeMember]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// GET /api/organizations/:id/schedule – Vereinsweite Übersicht aller
+// anstehenden Spiele+Trainings über alle Teams des Vereins hinweg,
+// nur Lesen (EPIC 011 "Vereinsebene als Koordinationsschicht").
+// Admin-only: reine Koordinationsschicht, kein neuer Bearbeitungsweg
+// an fremden Teams.
+export async function getSchedule(req, res) {
+  try {
+    const role = await getOrgRole(req.params.id, req.user.id);
+    if (role !== 'admin') {
+      return res.status(404).json(error('Verein nicht gefunden'));
+    }
+    const result = await pool.query(
+      `WITH org_teams AS (
+         SELECT id, name FROM teams WHERE organization_id = $1
+       )
+       SELECT 'game' AS type, g.id, g.opponent AS title, g.played_at AS date, g.team_id, ot.name AS team_name
+       FROM games g JOIN org_teams ot ON ot.id = g.team_id
+       WHERE g.played_at >= CURRENT_DATE
+       UNION ALL
+       SELECT 'training' AS type, s.id, s.name AS title, s.scheduled_date AS date, s.team_id, ot.name AS team_name
+       FROM training_sessions s JOIN org_teams ot ON ot.id = s.team_id
+       WHERE s.scheduled_date >= CURRENT_DATE
+       ORDER BY date ASC`,
+      [req.params.id]
+    );
+    res.json(success(result.rows.map(toApiScheduleItem)));
+  } catch (err) {
+    logger.error('[getSchedule]', err);
     res.status(500).json(error('Interner Serverfehler'));
   }
 }

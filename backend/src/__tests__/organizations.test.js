@@ -118,6 +118,77 @@ describe('Verein anlegen und verwalten', () => {
   });
 });
 
+describe('Vereinsweite Termin-Übersicht (EPIC 011)', () => {
+  const addDays = (n) => {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  };
+
+  it('Admin sieht zusammengeführte, nach Datum sortierte Spiele+Trainings über alle Teams des Vereins hinweg', async () => {
+    const scheduleAdmin = await registerAndLogin('schedule-admin');
+    const orgRes = await request(app).post('/api/organizations').set('Cookie', scheduleAdmin.cookie).send({ name: 'Verein mit Sparten' });
+    const orgId = orgRes.body.data._id;
+
+    const teamA = await request(app).post('/api/teams').set('Cookie', scheduleAdmin.cookie).send({ name: '1. Herren', organizationId: orgId });
+    const teamB = await request(app).post('/api/teams').set('Cookie', scheduleAdmin.cookie).send({ name: 'U15', organizationId: orgId });
+
+    // Absichtlich in umgekehrter Datumsreihenfolge angelegt, um die
+    // Sortierung der Antwort zu belegen (nicht nur Einfüge-Reihenfolge).
+    await request(app).post('/api/trainings').set('Cookie', scheduleAdmin.cookie)
+      .send({ name: 'U15-Training', teamId: teamB.body.data._id, scheduledDate: addDays(10) });
+    await request(app).post('/api/games').set('Cookie', scheduleAdmin.cookie)
+      .send({ opponent: 'HC Musterhausen', teamId: teamA.body.data._id, playedAt: addDays(3) });
+
+    const res = await request(app).get(`/api/organizations/${orgId}/schedule`).set('Cookie', scheduleAdmin.cookie);
+    expect(res.status).toBe(200);
+    expect(res.body.data).toHaveLength(2);
+    expect(res.body.data[0]).toMatchObject({ type: 'game', title: 'HC Musterhausen', teamName: '1. Herren' });
+    expect(res.body.data[1]).toMatchObject({ type: 'training', title: 'U15-Training', teamName: 'U15' });
+  });
+
+  it('Nicht-Admin-Mitglied und Fremder bekommen 404 (kein Leak der Vereinsexistenz)', async () => {
+    const scheduleAdmin = await registerAndLogin('schedule-admin2');
+    const scheduleMember = await registerAndLogin('schedule-member');
+    const orgRes = await request(app).post('/api/organizations').set('Cookie', scheduleAdmin.cookie).send({ name: 'Verein für 404-Check' });
+    const orgId = orgRes.body.data._id;
+    await request(app).post(`/api/organizations/${orgId}/members`).set('Cookie', scheduleAdmin.cookie).send({ email: scheduleMember.email });
+
+    const asMember = await request(app).get(`/api/organizations/${orgId}/schedule`).set('Cookie', scheduleMember.cookie);
+    expect(asMember.status).toBe(404);
+
+    const asStranger = await request(app).get(`/api/organizations/${orgId}/schedule`).set('Cookie', stranger.cookie);
+    expect(asStranger.status).toBe(404);
+  });
+
+  it('Items aus einem fremden, unbeteiligten Team tauchen nicht auf; vergangene Termine werden ausgeblendet', async () => {
+    const scheduleAdmin = await registerAndLogin('schedule-admin3');
+    const orgRes = await request(app).post('/api/organizations').set('Cookie', scheduleAdmin.cookie).send({ name: 'Verein mit Vergangenem' });
+    const orgId = orgRes.body.data._id;
+    const team = await request(app).post('/api/teams').set('Cookie', scheduleAdmin.cookie).send({ name: 'Team X', organizationId: orgId });
+
+    // Vergangenes Spiel + Training auf dem Vereins-Team – dürfen nicht erscheinen.
+    await request(app).post('/api/games').set('Cookie', scheduleAdmin.cookie)
+      .send({ opponent: 'Vergangener Gegner', teamId: team.body.data._id, playedAt: addDays(-5) });
+    await request(app).post('/api/trainings').set('Cookie', scheduleAdmin.cookie)
+      .send({ name: 'Vergangenes Training', teamId: team.body.data._id, scheduledDate: addDays(-2) });
+
+    // Fremdes, unbeteiligtes Team (kein Vereinsbezug) mit einem zukünftigen Spiel.
+    const strangerTeam = await request(app).post('/api/teams').set('Cookie', stranger.cookie).send({ name: 'Fremdes Team' });
+    await request(app).post('/api/games').set('Cookie', stranger.cookie)
+      .send({ opponent: 'Fremder Gegner', teamId: strangerTeam.body.data._id, playedAt: addDays(7) });
+
+    // Ein zukünftiges Spiel auf dem eigenen Vereins-Team, damit die Liste nicht trivial leer ist.
+    await request(app).post('/api/games').set('Cookie', scheduleAdmin.cookie)
+      .send({ opponent: 'Zukünftiger Gegner', teamId: team.body.data._id, playedAt: addDays(4) });
+
+    const res = await request(app).get(`/api/organizations/${orgId}/schedule`).set('Cookie', scheduleAdmin.cookie);
+    expect(res.status).toBe(200);
+    expect(res.body.data).toHaveLength(1);
+    expect(res.body.data[0].title).toBe('Zukünftiger Gegner');
+  });
+});
+
 describe('Bugfix: Ersteller-Account-Löschung darf den Verein nicht mitreißen', () => {
   // organizations.created_by ist reine Provenienz, nicht die eigentliche
   // Berechtigung (die läuft über organization_members.role='admin').

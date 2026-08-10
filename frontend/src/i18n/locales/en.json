@@ -1073,6 +1073,8 @@
     "dateAriaLabel": "Date of the game",
     "scoreboardUs": "Us",
     "scoreboardAriaLabel": "Score: {{own}} to {{opponent}}",
+    "exportReportButton": "Export game report",
+    "exportingReport": "Exporting game report…",
     "notesAriaLabel": "Live notes for this game",
     "notePlaceholder": "Type a note… (e.g. \"Goal conceded on the counter\")",
     "noteAriaLabel": "New live note",

@@ -4,7 +4,7 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { startGifExport, startMp4Export, getExportStatus, downloadExport } from '../controllers/exportController.js';
-import { exportPdf } from '../controllers/pdfExportController.js';
+import { exportPdf, exportGameReport } from '../controllers/pdfExportController.js';
 import { createFrameShare } from '../controllers/shareController.js';
 
 const router = Router();
@@ -15,6 +15,7 @@ router.use(authenticate);
 router.post('/gif',            startGifExport);
 router.post('/mp4',            startMp4Export);
 router.post('/pdf',            exportPdf);
+router.post('/game-report',    exportGameReport);
 router.get('/status/:id',      getExportStatus);
 router.get('/download/:id',    downloadExport);
 // Einzel-Frame-Share nutzt denselben Router wie GIF/MP4, weil hier bereits

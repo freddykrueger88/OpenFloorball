@@ -20,12 +20,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Trash2, Send } from 'lucide-react';
+import { AlertTriangle, Trash2, Send, FileDown } from 'lucide-react';
 import { useGames } from '../hooks/useGames.js';
 import { useComments } from '../hooks/useComments.js';
 import { useGameEvents } from '../hooks/useGameEvents.js';
 import { useRoster } from '../hooks/useRoster.js';
 import { useLines } from '../hooks/useLines.js';
+import { usePdfExport } from '../hooks/usePdfExport.js';
 import { formatDate } from '../utils/formatDate.js';
 import useAnnounceStore from '../store/announceStore.js';
 import RsvpSection from '../components/rsvp/RsvpSection.jsx';
@@ -37,6 +38,7 @@ export default function GamePage() {
   const { t, i18n } = useTranslation();
   const { id } = useParams();
   const { fetchGame, updateGame } = useGames();
+  const { exporting: exportingReport, error: reportError, exportGameReport } = usePdfExport();
   const { comments: notes, loading: notesLoading, error: notesError, fetchComments, addComment, deleteComment } = useComments('games', id);
   const { events, loading: eventsLoading, error: eventsError, fetchEvents, addEvent, deleteEvent } = useGameEvents(id);
   // IFF-Regelwerk 2026: auch Torhüter dürfen inzwischen Tore erzielen –
@@ -113,6 +115,10 @@ export default function GamePage() {
     } catch {
       setPlayedAt(game.playedAt ?? '');
     }
+  };
+
+  const handleExportReport = () => {
+    exportGameReport({ gameId: id, language: i18n.language }).catch(() => {});
   };
 
   const handleAddNote = async (e) => {
@@ -292,8 +298,12 @@ export default function GamePage() {
         <span className={styles.scoreboardSide}>{game.opponent || t('games.noOpponent')}</span>
       </div>
 
-      {(gameError || notesError || eventsError) && (
-        <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError ?? eventsError}</div>
+      <Button variant="secondary" size="sm" className={styles.exportReportBtn} onClick={handleExportReport} disabled={exportingReport}>
+        <FileDown size={16} aria-hidden="true" /> {exportingReport ? t('games.exportingReport') : t('games.exportReportButton')}
+      </Button>
+
+      {(gameError || notesError || eventsError || reportError) && (
+        <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError ?? eventsError ?? reportError}</div>
       )}
 
       <RsvpSection resourceKind="games" resourceId={id} teamId={game.teamId} />

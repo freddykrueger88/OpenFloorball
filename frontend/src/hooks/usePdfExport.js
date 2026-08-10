@@ -11,6 +11,17 @@ function filenameFromDisposition(header, fallback) {
   return match?.[1] ?? fallback;
 }
 
+function downloadBlob(blob, filename) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 export function usePdfExport() {
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState(null);
@@ -30,16 +41,7 @@ export function usePdfExport() {
         throw new Error(body.message ?? `HTTP ${res.status}`);
       }
       const blob = await res.blob();
-      const filename = filenameFromDisposition(res.headers.get('Content-Disposition'), 'openfloorball-taktikblatt.pdf');
-
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, filenameFromDisposition(res.headers.get('Content-Disposition'), 'openfloorball-taktikblatt.pdf'));
     } catch (err) {
       setError(err.message);
       throw err;
@@ -48,5 +50,32 @@ export function usePdfExport() {
     }
   }, []);
 
-  return { exporting, error, exportPdf };
+  // Spielbericht (Roadmap-Audit, Fortsetzung Phase C) – gleiches
+  // synchrones POST+Blob-Download-Muster wie exportPdf, nur ohne
+  // Bild-Payload (der Server liest games/game_events/game_squad selbst).
+  const exportGameReport = useCallback(async ({ gameId, language }) => {
+    setExporting(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/export/game-report', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameId, language }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message ?? `HTTP ${res.status}`);
+      }
+      const blob = await res.blob();
+      downloadBlob(blob, filenameFromDisposition(res.headers.get('Content-Disposition'), 'openfloorball-spielbericht.pdf'));
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setExporting(false);
+    }
+  }, []);
+
+  return { exporting, error, exportPdf, exportGameReport };
 }

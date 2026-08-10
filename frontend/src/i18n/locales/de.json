@@ -1073,6 +1073,8 @@
     "dateAriaLabel": "Datum des Spiels",
     "scoreboardUs": "Wir",
     "scoreboardAriaLabel": "Spielstand: {{own}} zu {{opponent}}",
+    "exportReportButton": "Spielbericht exportieren",
+    "exportingReport": "Exportiere Spielbericht…",
     "notesAriaLabel": "Live-Notizen zu diesem Spiel",
     "notePlaceholder": "Notiz eingeben… (z.B. \"Gegentor durch Konter\")",
     "noteAriaLabel": "Neue Live-Notiz",

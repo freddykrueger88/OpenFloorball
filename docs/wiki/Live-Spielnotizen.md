@@ -65,6 +65,15 @@ zählt als eigenes Tor, ein Tor mit "Gegner" als Zuordnung als
 Gegentor. Löschst du ein fälschlich erfasstes Tor wieder, passt sich
 der Stand sofort an.
 
+## Spielbericht (PDF-Export)
+
+Der Button "Spielbericht exportieren" direkt neben dem Spielstand
+erzeugt eine druckfreundliche PDF-Zusammenfassung: Gegner/Datum,
+Endstand, die Ereignis-Zeitleiste (nur die strukturierten Ereignisse,
+nicht die Freitext-Notizen) und der Match-Kader-Status. Gedacht zum
+Ausdrucken oder Weitergeben an Verein/Eltern – kein Ersatz für die
+Notizen-Ansicht auf dieser Seite.
+
 ## Match-Kader
 
 Zusätzlich zur Anwesenheit (oben) zeigt jedes Spiel einen

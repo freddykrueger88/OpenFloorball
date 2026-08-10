@@ -14,6 +14,11 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Spielbericht: PDF-Export einer druckfreundlichen Zusammenfassung
+  eines Spiels (Endstand, Ereignis-Zeitleiste, Match-Kader-Status)
+  direkt auf der Spielseite, per pdfkit (gleiche Bibliothek wie der
+  bestehende Trainingsplan-PDF-Export). Letzter kleiner Baustein von
+  Phase C – nur die deutlich größere Spieluhr bleibt offen.
 - Spieler-Statistiken (`/stats`, Fortsetzung Phase C): Tore,
   Strafminuten, Matchstrafen und Einsätze pro Kader-Spieler über alle
   Spiele hinweg – rein abgeleitet aus den bereits vorhandenen

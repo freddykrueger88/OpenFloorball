@@ -183,6 +183,14 @@ export default function GamePage() {
   const squadForGame = rosterPlayers.filter((p) => (game.teamId ? p.teamId === game.teamId : !p.teamId));
   const linesForGame = lines.filter((l) => (game.teamId ? l.teamId === game.teamId : !l.teamId));
 
+  // Live-Spielstand (Phase C): rein abgeleitet aus den bereits
+  // strukturierten Tor-Ereignissen, kein eigenes Score-Feld auf `games`
+  // nötig. "Ohne Angabe" bei der Zuordnung zählt als eigenes Tor (nur
+  // "Gegner" ist explizit als isOpponent markiert, siehe PRESETS/
+  // handleSelectAttribution oben).
+  const ownGoals      = events.filter((e) => e.eventType === 'goal' && !e.isOpponent).length;
+  const opponentGoals = events.filter((e) => e.eventType === 'goal' && e.isOpponent).length;
+
   // Line-Wechsel ist kein festes IFF-Ereignis (kein Eintrag in PRESETS) –
   // bleibt bewusst eine Freitext-Notiz über comments, wie vor dem
   // Ereignisse-Umbau.
@@ -277,6 +285,12 @@ export default function GamePage() {
           />
         </label>
       </header>
+
+      <div className={styles.scoreboard} aria-label={t('games.scoreboardAriaLabel', { own: ownGoals, opponent: opponentGoals })}>
+        <span className={styles.scoreboardSide}>{t('games.scoreboardUs')}</span>
+        <span className={styles.scoreboardScore}>{ownGoals} : {opponentGoals}</span>
+        <span className={styles.scoreboardSide}>{game.opponent || t('games.noOpponent')}</span>
+      </div>
 
       {(gameError || notesError || eventsError) && (
         <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError ?? eventsError}</div>

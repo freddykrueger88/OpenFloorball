@@ -14,6 +14,10 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Live-Spielstand: automatisch aus den bereits strukturierten
+  Tor-Ereignissen berechneter Spielstand ("Wir 3 : 1 Gegner") direkt
+  auf der Spielseite, kein eigenes Eingabefeld/Datenfeld nötig
+  (Phase C, direkte Fortsetzung von "Live-Match-Ereignisse").
 - Umfragen/Polls (schließt Roadmap-Phase D "Kommunikation – minimal"
   ab): Coach/Owner stellt eine Frage mit 2–10 Optionen (Einzel- oder
   Mehrfachauswahl) an sein Team unter `/polls`, Mitglieder stimmen ab,
@@ -73,6 +77,13 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   Kader-Spieler) statt polymorph wie `rsvps`/`comments` – dadurch
   räumt `ON DELETE CASCADE` automatisch auf, kein manueller
   Cleanup-Code nötig.
+
+### Fixed
+- Logo im Header war auf dunklen Themes, deren `--color-surface` nah
+  am fest eingebrannten Navy-Ton des Logo-PNGs liegt (z. B. das "TB
+  Uphusen Vikings"-Preset), kaum noch erkennbar. Ein fester,
+  theme-unabhängiger weißer Hintergrund-Chip hinter dem Logo
+  garantiert jetzt in jedem Theme ausreichenden Kontrast.
 
 ### Changed
 - Neue Frames übernehmen Zeichnungen (Pfeile/Freihand) nicht mehr

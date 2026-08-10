@@ -38,7 +38,8 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   zeitgestempelte Notizen erfassen. Die 10 festen IFF-Presets (Tor,
   Strafen, Anstoß/Drittelende, …) sind seit "Live-Match-Ereignisse"
   strukturiert (`game_events`, Grundlage für spätere Statistiken),
-  Freitext bleibt unverändert. Details:
+  Freitext bleibt unverändert. Live-Spielstand direkt aus den
+  Tor-Ereignissen berechnet, kein eigenes Datenfeld. Details:
   [Live-Spielnotizen](./wiki/Live-Spielnotizen.md).
 - **RSVP/Anwesenheit** – Team-Mitglieder sagen für Spiele/Trainings
   zu/ab/unsicher, optional mit Absagegrund. Details:

@@ -1054,6 +1054,8 @@
     "backToList": "Zurück zur Übersicht",
     "dateLabel": "Datum",
     "dateAriaLabel": "Datum des Spiels",
+    "scoreboardUs": "Wir",
+    "scoreboardAriaLabel": "Spielstand: {{own}} zu {{opponent}}",
     "notesAriaLabel": "Live-Notizen zu diesem Spiel",
     "notePlaceholder": "Notiz eingeben… (z.B. \"Gegentor durch Konter\")",
     "noteAriaLabel": "Neue Live-Notiz",

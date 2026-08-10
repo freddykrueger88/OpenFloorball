@@ -55,6 +55,16 @@ Privat, oder freier Text). Ohne Team-Zuordnung (persönliches Spiel)
 gibt es keinen Empfängerkreis, der Bereich erscheint dann nicht. Gilt
 identisch für [Trainingseinheiten](./Trainingsplaner.md).
 
+## Live-Spielstand
+
+Direkt unter dem Spieltitel zeigt eine kleine Anzeige den aktuellen
+Spielstand ("Wir 3 : 1 Gegnername") – automatisch berechnet aus den
+bereits erfassten Tor-Ereignissen, kein eigenes Eingabefeld dafür
+nötig. Ein Tor ohne Zuordnung oder mit einem eigenen Kader-Spieler
+zählt als eigenes Tor, ein Tor mit "Gegner" als Zuordnung als
+Gegentor. Löschst du ein fälschlich erfasstes Tor wieder, passt sich
+der Stand sofort an.
+
 ## Match-Kader
 
 Zusätzlich zur Anwesenheit (oben) zeigt jedes Spiel einen

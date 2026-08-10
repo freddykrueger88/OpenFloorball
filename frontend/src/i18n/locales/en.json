@@ -1054,6 +1054,8 @@
     "backToList": "Back to overview",
     "dateLabel": "Date",
     "dateAriaLabel": "Date of the game",
+    "scoreboardUs": "Us",
+    "scoreboardAriaLabel": "Score: {{own}} to {{opponent}}",
     "notesAriaLabel": "Live notes for this game",
     "notePlaceholder": "Type a note… (e.g. \"Goal conceded on the counter\")",
     "noteAriaLabel": "New live note",

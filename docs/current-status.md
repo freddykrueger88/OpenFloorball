@@ -60,7 +60,9 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   Google Calendar/Apple Kalender/Outlook (Details:
   [docs/wiki/Kalender.md](./wiki/Kalender.md)).
 - **Team-Kader**, **Teams und Vereine** – zweistufiges Rollenmodell
-  je Ebene (Details: [docs/wiki/Teams-und-Vereine.md](./wiki/Teams-und-Vereine.md)).
+  je Ebene, Vereine mit eigenem Dashboard (Umbenennen, Mitglieder,
+  Teams des Vereins, Team-Anlage direkt im Verein). Details:
+  [docs/wiki/Teams-und-Vereine.md](./wiki/Teams-und-Vereine.md).
 - **News/Ankündigungen** (`/news`) – Coach/Owner postet kurze
   Mitteilungen an sein Team, alle Mitglieder lesen sie chronologisch,
   bewusst kein Vollchat. Details: [docs/wiki/News.md](./wiki/News.md).

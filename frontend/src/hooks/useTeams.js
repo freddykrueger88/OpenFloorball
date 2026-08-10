@@ -24,9 +24,12 @@ export function useTeams() {
     }
   }, []);
 
-  const createTeam = useCallback(async (name) => {
+  // organizationId bewusst optional: ein Team ohne Verein ist der
+  // Normalfall, die Zuordnung ist eine bewusste Coach-Entscheidung
+  // (Backend prüft dafür Admin-Rechte im jeweiligen Verein).
+  const createTeam = useCallback(async (name, organizationId = null) => {
     try {
-      const team = await apiFetch('/api/teams', { method: 'POST', body: JSON.stringify({ name }) });
+      const team = await apiFetch('/api/teams', { method: 'POST', body: JSON.stringify({ name, organizationId }) });
       setTeams((prev) => [...prev, team]);
       return team;
     } catch (err) {

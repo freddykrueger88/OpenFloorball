@@ -14,6 +14,17 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Vereinsebene ausgebaut: jeder Verein hat jetzt ein eigenes Dashboard
+  (`/organizations/:id`) statt nur ein aufklappbares Listenelement in
+  den Einstellungen zu sein – Umbenennen, Mitgliederverwaltung und ein
+  neuer Abschnitt "Teams in diesem Verein" (Org-Admins sehen alle
+  Teams ihres Vereins und können dort direkt ein neues, dem Verein
+  zugeordnetes Team anlegen; einfache Mitglieder sehen weiterhin nur
+  ihre eigenen Teams – Datensparsamkeit bleibt unverändert). Keine
+  Backend-Änderung nötig, alles existierte bereits. Dabei behoben:
+  `createTeam` schickte die gewählte Vereinszuordnung beim Anlegen
+  eines Teams nie an die API – seither war die Verein-Auswahl im
+  Anlege-Formular wirkungslos.
 - Spieluhr: laufende Uhr mit Start/Pause/Drittel-Wechsel/Zurücksetzen
   direkt auf der Spielseite – überlebt einen Seiten-Reload (Zustand
   liegt auf dem Server, fünf neue Spalten auf `games`, kein Server-Tick

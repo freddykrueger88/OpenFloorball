@@ -22,6 +22,15 @@ besteht aus mehreren Teams; Org-Admins haben lesenden Einblick in die
 Teams ihres Vereins, aber keine automatischen Bearbeitungsrechte an
 deren Inhalten.
 
+Jeder Verein hat ein eigenes Dashboard (`/organizations/:id`, verlinkt
+aus den Einstellungen → Vereine): Vereinsname umbenennen (Admin, per
+Doppelklick), Mitgliederverwaltung (einladen, Rolle ändern, entfernen)
+sowie ein Abschnitt "Teams in diesem Verein". Dort sehen Org-Admins
+alle Teams ihres Vereins und können direkt ein neues, dem Verein
+zugeordnetes Team anlegen. Einfache Mitglieder sehen in diesem
+Abschnitt bewusst nur die Teams, in denen sie selbst Mitglied sind
+(Datensparsamkeit) – nicht automatisch alle Teams des Vereins.
+
 ## Was NICHT team-gebunden ist
 
 Boards sind bewusst **kein** Teil des Team-/Vereinsmodells. Wer an

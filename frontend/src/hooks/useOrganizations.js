@@ -24,6 +24,15 @@ export function useOrganizations() {
     }
   }, []);
 
+  const fetchOrganization = useCallback(async (orgId) => {
+    try {
+      return await apiFetch(`/api/organizations/${orgId}`);
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
   const createOrganization = useCallback(async (name) => {
     try {
       const org = await apiFetch('/api/organizations', { method: 'POST', body: JSON.stringify({ name }) });
@@ -100,7 +109,7 @@ export function useOrganizations() {
 
   return {
     organizations, loading, error,
-    fetchOrganizations, createOrganization, renameOrganization, deleteOrganization,
+    fetchOrganizations, fetchOrganization, createOrganization, renameOrganization, deleteOrganization,
     fetchMembers, inviteMember, updateMemberRole, removeMember,
   };
 }

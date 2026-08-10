@@ -213,6 +213,18 @@
       }
     }
   },
+  "organization": {
+    "loading": "Loading organization…",
+    "backToSettings": "Back to settings",
+    "renameAriaLabel": "Organization name",
+    "renameTitle": "Double-click to rename",
+    "teamsHeading": "Teams in this organization",
+    "teamsHint": "Only organization admins see all teams here – a regular member only sees teams they're personally part of.",
+    "noTeamsYet": "No teams in this organization yet.",
+    "createTeamTitle": "Create team",
+    "createTeamPlaceholder": "Team name",
+    "createTeamBtn": "Create team"
+  },
   "accessibility": {
     "skipToContent": "Skip to content",
     "fieldCanvas": "Floorball field canvas",

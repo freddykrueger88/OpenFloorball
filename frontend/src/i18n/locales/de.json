@@ -213,6 +213,18 @@
       }
     }
   },
+  "organization": {
+    "loading": "Lädt Verein…",
+    "backToSettings": "Zurück zu den Einstellungen",
+    "renameAriaLabel": "Vereinsname",
+    "renameTitle": "Doppelklick zum Ändern",
+    "teamsHeading": "Teams in diesem Verein",
+    "teamsHint": "Nur Vereinsadmins sehen hier alle Teams des Vereins – ein einfaches Mitglied sieht nur Teams, in denen es selbst Mitglied ist.",
+    "noTeamsYet": "Noch keine Teams in diesem Verein.",
+    "createTeamTitle": "Team erstellen",
+    "createTeamPlaceholder": "Name des Teams",
+    "createTeamBtn": "Team erstellen"
+  },
   "accessibility": {
     "skipToContent": "Zum Inhalt springen",
     "fieldCanvas": "Floorball-Spielfeld Canvas",

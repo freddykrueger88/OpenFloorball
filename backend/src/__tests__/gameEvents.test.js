@@ -112,11 +112,19 @@ describe('POST /api/games/:id/events', () => {
     expect(res.status).toBe(404);
   });
 
-  it('lehnt einen ungültigen eventType mit 422 ab', async () => {
+  it('lehnt einen unbekannten eventType mit 400 ab (Prüfung gegen event_type_definitions, ADR-0001)', async () => {
     const res = await request(app)
       .post(`/api/games/${gameId}/events`)
       .set('Cookie', owner.cookie)
       .send({ eventType: 'red_card' });
+    expect(res.status).toBe(400);
+  });
+
+  it('lehnt einen komplett leeren eventType weiterhin mit 422 ab (Route-Validator)', async () => {
+    const res = await request(app)
+      .post(`/api/games/${gameId}/events`)
+      .set('Cookie', owner.cookie)
+      .send({ eventType: '' });
     expect(res.status).toBe(422);
   });
 
@@ -126,6 +134,88 @@ describe('POST /api/games/:id/events', () => {
       .set('Cookie', member.cookie)
       .send({ eventType: 'timeout' });
     expect(res.status).toBe(404);
+  });
+});
+
+describe('Statistik-Architektur Phase 1: erweiterte Event-Felder', () => {
+  it('speichert und liefert die neuen optionalen Felder (Zweitspieler, Outcome, Position, Video-Zeitstempel, Metadata)', async () => {
+    const scorer = await createRosterPlayer(owner.cookie, 'Torschütze', teamId);
+    const assister = await createRosterPlayer(owner.cookie, 'Assistgeber', teamId);
+
+    const res = await request(app)
+      .post(`/api/games/${gameId}/events`)
+      .set('Cookie', owner.cookie)
+      .send({
+        eventType: 'goal',
+        rosterPlayerId: scorer,
+        secondaryRosterPlayerId: assister,
+        outcome: 'goal',
+        shotType: 'wrist',
+        strengthState: 'even',
+        x: 0.8,
+        y: 0.5,
+        zone: 'slot',
+        videoTimestampSeconds: 1234.5,
+        metadata: { note: 'schöner Spielzug' },
+      });
+    expect(res.status).toBe(201);
+    expect(res.body.data.secondaryRosterPlayerId).toBe(assister);
+    expect(res.body.data.outcome).toBe('goal');
+    expect(res.body.data.shotType).toBe('wrist');
+    expect(res.body.data.strengthState).toBe('even');
+    expect(res.body.data.x).toBeCloseTo(0.8);
+    expect(res.body.data.y).toBeCloseTo(0.5);
+    expect(res.body.data.zone).toBe('slot');
+    expect(res.body.data.videoTimestampSeconds).toBeCloseTo(1234.5);
+    expect(res.body.data.metadata).toEqual({ note: 'schöner Spielzug' });
+  });
+
+  it('lehnt einen Zweitspieler aus falscher Sichtbarkeits-Gruppe mit 400 ab', async () => {
+    const foreignPlayer = await createRosterPlayer(owner.cookie, 'Fremder-Assist-Spieler');
+    const res = await request(app)
+      .post(`/api/games/${gameId}/events`)
+      .set('Cookie', owner.cookie)
+      .send({ eventType: 'goal', rosterPlayerId: p1, secondaryRosterPlayerId: foreignPlayer });
+    expect(res.status).toBe(400);
+  });
+
+  it('setzt period/clockSecondsAtEvent auf null, solange die Spieluhr nie gestartet wurde ("unbekannt ≠ 0")', async () => {
+    const freshGameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Uhr-nie-gestartet', teamId });
+    const freshGameId = freshGameRes.body.data._id;
+
+    const res = await request(app)
+      .post(`/api/games/${freshGameId}/events`)
+      .set('Cookie', owner.cookie)
+      .send({ eventType: 'timeout' });
+    expect(res.status).toBe(201);
+    expect(res.body.data.period).toBeNull();
+    expect(res.body.data.clockSecondsAtEvent).toBeNull();
+  });
+
+  it('befüllt period/clockSecondsAtEvent automatisch, sobald die Spieluhr läuft', async () => {
+    const clockGameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Uhr-laeuft', teamId });
+    const clockGameId = clockGameRes.body.data._id;
+
+    await request(app).post(`/api/games/${clockGameId}/clock/start`).set('Cookie', owner.cookie);
+
+    const res = await request(app)
+      .post(`/api/games/${clockGameId}/events`)
+      .set('Cookie', owner.cookie)
+      .send({ eventType: 'goal', rosterPlayerId: p1 });
+    expect(res.status).toBe(201);
+    expect(res.body.data.period).toBe(1);
+    expect(res.body.data.clockSecondsAtEvent).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('event_type_definitions', () => {
+  it('enthält die 10 bestehenden Event-Typen als unlöschbare Built-ins', async () => {
+    const result = await pool.query('SELECT key FROM event_type_definitions WHERE is_builtin = true ORDER BY key');
+    const keys = result.rows.map((r) => r.key);
+    expect(keys).toEqual([
+      'game_end', 'goal', 'kickoff_q1', 'kickoff_q2', 'kickoff_q3',
+      'match_penalty', 'penalty_2', 'penalty_5', 'period_end', 'timeout',
+    ]);
   });
 });
 

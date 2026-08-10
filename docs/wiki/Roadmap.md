@@ -36,6 +36,11 @@ Repository und werden dort kontinuierlich aktualisiert:
 
 ## Offene Backlog-Highlights (Auszug)
 
+**Großes Vorhaben:** Statistik- und Performance-Analytics-Plattform
+(EPIC 012) – vollständige Audit-/Gap-Analyse und Zielarchitektur unter
+[docs/planning/STATISTICS_ANALYTICS_ARCHITECTURE.md](../planning/STATISTICS_ANALYTICS_ARCHITECTURE.md).
+Phase 1 (erweiterbares Event-Modell) noch nicht umgesetzt.
+
 **Feature-Ideen:**
 - Native App-Store-Präsenz (Google Play + Apple App Store) – App ist
   schon eine installierbare PWA (vite-plugin-pwa), naheliegender Weg

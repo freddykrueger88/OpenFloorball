@@ -673,6 +673,54 @@ empfohlenen Punkte).
 
 ---
 
+# EPIC 012 – Statistik- und Performance-Analytics-Plattform
+
+Priorität:
+
+P1 (Fundament), einzelne Ausbaustufen P2-P3
+
+---
+
+## Ausgangslage
+
+Diskussion (2026-08-10): OpenFloorball soll langfristig eine
+ernstzunehmende Floorball-Statistik- und Performance-Analytics-
+Plattform werden, nicht nur Team-Management. Vollständige Audit-,
+Gap-Analyse- und Zielarchitektur liegt vor:
+
+👉 **[docs/planning/STATISTICS_ANALYTICS_ARCHITECTURE.md](./STATISTICS_ANALYTICS_ARCHITECTURE.md)**
+
+Kernprinzip: DATA FIRST, EVENTS FIRST, ANALYTICS SECOND, UI THIRD –
+zuerst ein erweiterbares Match-Event-Datenmodell, dann Statistiken
+darauf aufbauen, keine Statistik-Insel-Lösungen. Siehe ADR-0001 in
+`DECISIONS.md` für die zentrale Architekturentscheidung
+(Event-Typ-Definitionstabelle statt starres Enum).
+
+---
+
+## Phasen (Kurzfassung, Details im Architektur-Dokument)
+
+1. Erweiterbares Event-Modell + zentrale Statistics Engine (Fundament)
+2. Match-Line/Shift-Tracking (Time on Floor, Line-Statistiken)
+3. Shot Tracking + Shot Map + Torhüter-Basis-Statistiken
+4. Special Teams, Situations-Splits, Spieler-Vergleich
+5. Trainings-Analytics/Spielerentwicklung (separate Domäne)
+6. Video↔Event-Verknüpfung
+7. Custom Events/Tags, Report Builder
+8. Advanced Analytics (xG erst mit Datenbasis, Line-Chemie)
+9. KI/ML-Grundlagen (nur als nachvollziehbare Vorschläge)
+
+---
+
+## Abgrenzung
+
+* Kein erfundenes xG ohne Datenbasis (CLAUDE.md-konform).
+* Kein Ersatz für Trainer-Entscheidungen (Human First, §5.9).
+* Keine Hockey-Geometrie 1:1 übernehmen – floorball-eigene
+  Zonen-Definitionen.
+
+---
+
 # Entscheidungsregel
 
 Bei jedem neuen Issue prüfen:

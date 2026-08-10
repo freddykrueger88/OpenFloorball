@@ -887,6 +887,98 @@ export async function runMigrations() {
         FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
     `);
 
+    // ── Statistik-Architektur Phase 1 (docs/planning/STATISTICS_ANALYTICS_ARCHITECTURE.md,
+    // ADR-0001 in DECISIONS.md): event_type wird von einem starren
+    // CHECK-Constraint auf eine erweiterbare Definitionstabelle umgestellt.
+    // Neue Event-Typen (auch vereinsspezifische Custom-Events, spätere
+    // Phase) brauchen dadurch nur noch einen INSERT, keine Migration mehr.
+    // Die 10 bestehenden Typen werden unverändert als is_builtin=true
+    // übernommen – rein additiv, kein bestehendes Verhalten ändert sich.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS event_type_definitions (
+        key                       TEXT PRIMARY KEY,
+        category                  TEXT NOT NULL,
+        label_de                  TEXT NOT NULL,
+        label_en                  TEXT NOT NULL,
+        icon                      TEXT,
+        color                     TEXT,
+        requires_player           BOOLEAN NOT NULL DEFAULT false,
+        requires_secondary_player BOOLEAN NOT NULL DEFAULT false,
+        requires_position         BOOLEAN NOT NULL DEFAULT false,
+        requires_outcome          BOOLEAN NOT NULL DEFAULT false,
+        requires_strength_state   BOOLEAN NOT NULL DEFAULT false,
+        is_builtin                BOOLEAN NOT NULL DEFAULT false,
+        team_id                   UUID REFERENCES teams(id) ON DELETE CASCADE,
+        active                    BOOLEAN NOT NULL DEFAULT true,
+        created_at                TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`
+      INSERT INTO event_type_definitions (key, category, label_de, label_en, requires_player, is_builtin) VALUES
+        ('kickoff_q1',     'period',   'Anstoß Drittel 1',    'Kickoff period 1', false, true),
+        ('kickoff_q2',     'period',   'Anstoß Drittel 2',    'Kickoff period 2', false, true),
+        ('kickoff_q3',     'period',   'Anstoß Drittel 3',    'Kickoff period 3', false, true),
+        ('period_end',     'period',   'Drittelende',         'Period end',       false, true),
+        ('timeout',        'general',  'Auszeit',             'Timeout',          false, true),
+        ('goal',           'offense',  'Tor',                 'Goal',             true,  true),
+        ('penalty_2',      'penalty',  'Strafe 2 Minuten',    'Penalty 2 minutes',true,  true),
+        ('penalty_5',      'penalty',  'Strafe 5 Minuten',    'Penalty 5 minutes',true,  true),
+        ('match_penalty',  'penalty',  'Matchstrafe',         'Match penalty',    true,  true),
+        ('game_end',       'period',   'Spielende',           'Game end',         false, true)
+      ON CONFLICT (key) DO NOTHING;
+    `);
+
+    // Zusätzliche, optionale Spalten für ein detaillierteres Ereignis
+    // (alle nullable/mit unschädlichem Default – kein bestehender Insert
+    // muss angepasst werden). Siehe Abschnitt 8.2/9 des Architektur-Dokuments.
+    await client.query(`ALTER TABLE game_events ADD COLUMN IF NOT EXISTS secondary_roster_player_id UUID REFERENCES roster_players(id) ON DELETE SET NULL;`);
+    await client.query(`ALTER TABLE game_events ADD COLUMN IF NOT EXISTS period INT;`);
+    await client.query(`ALTER TABLE game_events ADD COLUMN IF NOT EXISTS clock_seconds_at_event INT;`);
+    await client.query(`ALTER TABLE game_events ADD COLUMN IF NOT EXISTS outcome TEXT;`);
+    await client.query(`ALTER TABLE game_events ADD COLUMN IF NOT EXISTS shot_type TEXT;`);
+    await client.query(`ALTER TABLE game_events ADD COLUMN IF NOT EXISTS strength_state TEXT;`);
+    await client.query(`ALTER TABLE game_events ADD COLUMN IF NOT EXISTS x REAL;`);
+    await client.query(`ALTER TABLE game_events ADD COLUMN IF NOT EXISTS y REAL;`);
+    await client.query(`ALTER TABLE game_events ADD COLUMN IF NOT EXISTS zone TEXT;`);
+    await client.query(`ALTER TABLE game_events ADD COLUMN IF NOT EXISTS video_timestamp_seconds REAL;`);
+    await client.query(`ALTER TABLE game_events ADD COLUMN IF NOT EXISTS metadata JSONB NOT NULL DEFAULT '{}';`);
+
+    // CHECK-Constraint durch FK auf event_type_definitions ersetzen – muss
+    // NACH dem Seed oben laufen, sonst würden bestehende Zeilen die neue FK
+    // verletzen.
+    await client.query(`ALTER TABLE game_events DROP CONSTRAINT IF EXISTS game_events_event_type_check;`);
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'game_events_event_type_fkey'
+        ) THEN
+          ALTER TABLE game_events
+            ADD CONSTRAINT game_events_event_type_fkey
+            FOREIGN KEY (event_type) REFERENCES event_type_definitions(key);
+        END IF;
+      END $$;
+    `);
+
+    // Lösch-Audit-Log (Anforderung §19.5/71 Auditierbarkeit): die bestehende
+    // "bei Tippfehler löschen und neu erfassen"-UX bleibt unverändert
+    // (kein Edit-Endpunkt), aber jede Löschung wird ab jetzt nachvollziehbar
+    // protokolliert – wer hat wann welches Ereignis mit welcher Attribution
+    // gelöscht.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS game_event_deletions (
+        id                   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        game_id              UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+        event_type           TEXT NOT NULL,
+        roster_player_id     UUID REFERENCES roster_players(id) ON DELETE SET NULL,
+        is_opponent          BOOLEAN NOT NULL DEFAULT false,
+        original_created_at  TIMESTAMPTZ NOT NULL,
+        deleted_by           UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        deleted_at           TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_game_event_deletions_game_id ON game_event_deletions(game_id);`);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

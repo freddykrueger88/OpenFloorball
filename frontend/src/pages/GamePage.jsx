@@ -232,7 +232,12 @@ export default function GamePage() {
   // strukturierten Tor-Ereignissen, kein eigenes Score-Feld auf `games`
   // nötig. "Ohne Angabe" bei der Zuordnung zählt als eigenes Tor (nur
   // "Gegner" ist explizit als isOpponent markiert, siehe PRESETS/
-  // handleSelectAttribution oben).
+  // handleSelectAttribution oben). Bewusst client-seitig für die
+  // optimistische Live-Anzeige nachgebaut statt einen Server-Roundtrip
+  // abzuwarten – die kanonische, identische Berechnung liegt zentral in
+  // backend/src/services/statisticsEngine.js (calculateMatchScore),
+  // z.B. für den PDF-Spielbericht (siehe ADR-0001/Statistik-Architektur-
+  // Dokument, Abschnitt 10).
   const ownGoals      = events.filter((e) => e.eventType === 'goal' && !e.isOpponent).length;
   const opponentGoals = events.filter((e) => e.eventType === 'goal' && e.isOpponent).length;
 

@@ -10,6 +10,7 @@ import PDFDocument from 'pdfkit';
 import logger from '../utils/logger.js';
 import pool from '../db/pool.js';
 import { assertGameRead } from './gamesController.js';
+import { calculateMatchScore } from '../services/statisticsEngine.js';
 
 const MAX_FRAMES = 60;
 const PAGE_SIZES = { a4: 'A4', letter: 'LETTER' };
@@ -265,8 +266,7 @@ export async function exportGameReport(req, res) {
       [gameId]
     );
 
-    const ownGoals = eventsResult.rows.filter((e) => e.event_type === 'goal' && !e.is_opponent).length;
-    const opponentGoals = eventsResult.rows.filter((e) => e.event_type === 'goal' && e.is_opponent).length;
+    const { ownGoals, opponentGoals } = calculateMatchScore(eventsResult.rows);
     const opponentName = game.opponent?.trim() || texts.noOpponent;
 
     const doc = new PDFDocument({ size: 'A4', margin: 40, bufferPages: true });

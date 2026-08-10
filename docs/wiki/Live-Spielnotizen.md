@@ -55,6 +55,28 @@ Privat, oder freier Text). Ohne Team-Zuordnung (persönliches Spiel)
 gibt es keinen Empfängerkreis, der Bereich erscheint dann nicht. Gilt
 identisch für [Trainingseinheiten](./Trainingsplaner.md).
 
+## Spieluhr
+
+Direkt unter dem Spielstand läuft eine echte Spieluhr: "Start" beginnt
+Drittel 1 (und protokolliert automatisch einen Anstoß-Eintrag in der
+Ereignis-Zeitleiste, genau wie ein manueller Tap auf den
+Anstoß-Button), "Pause" hält an, "Nächstes Drittel" protokolliert
+automatisch ein Drittelende für das auslaufende Drittel und setzt die
+Uhr fürs nächste zurück. Ein Fortsetzen nach einer Pause erzeugt
+**keinen** zweiten Anstoß-Eintrag. "Zurücksetzen" setzt nur die
+Uhr-Anzeige zurück (Drittel 0, gestoppt) – die bereits protokollierten
+Ereignisse bleiben unverändert erhalten. Die Länge eines Drittels lässt
+sich über "Min./Drittel" anpassen (z. B. für den Nachwuchs mit
+kürzeren Spielzeiten).
+
+Die Uhr überlebt einen Seiten-Reload (der Zustand liegt auf dem
+Server) und bleibt über mehrere Geräte/Tabs in Echtzeit synchron –
+schaut z. B. der Co-Trainer parallel auf dem Handy zu, sieht er
+Start/Pause/Drittel-Wechsel sofort mit. Bewusst kein automatischer
+Stopp bei 0:00 – die Anzeige bleibt bei "00:00" stehen, der Coach
+pausiert und wechselt manuell zum nächsten Drittel, sobald es real so
+weit ist.
+
 ## Live-Spielstand
 
 Direkt unter dem Spieltitel zeigt eine kleine Anzeige den aktuellen

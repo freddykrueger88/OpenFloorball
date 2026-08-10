@@ -39,9 +39,11 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   Strafen, Anstoß/Drittelende, …) sind seit "Live-Match-Ereignisse"
   strukturiert (`game_events`, Grundlage für spätere Statistiken),
   Freitext bleibt unverändert. Live-Spielstand direkt aus den
-  Tor-Ereignissen berechnet, kein eigenes Datenfeld. Spielbericht als
-  druckfreundlicher PDF-Export (Endstand, Ereignis-Zeitleiste,
-  Match-Kader). Details:
+  Tor-Ereignissen berechnet, kein eigenes Datenfeld. Spieluhr
+  (Start/Pause/Drittel-Wechsel, server-persistiert, Echtzeit-Sync über
+  mehrere Geräte via WebSocket, verknüpft mit Anstoß-/Drittelende-
+  Ereignissen). Spielbericht als druckfreundlicher PDF-Export
+  (Endstand, Ereignis-Zeitleiste, Match-Kader). Details:
   [Live-Spielnotizen](./wiki/Live-Spielnotizen.md).
 - **RSVP/Anwesenheit** – Team-Mitglieder sagen für Spiele/Trainings
   zu/ab/unsicher, optional mit Absagegrund. Details:

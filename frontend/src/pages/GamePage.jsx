@@ -20,13 +20,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Trash2, Send, FileDown } from 'lucide-react';
+import { AlertTriangle, Trash2, Send, FileDown, Play, Pause, SkipForward, RotateCcw } from 'lucide-react';
 import { useGames } from '../hooks/useGames.js';
 import { useComments } from '../hooks/useComments.js';
 import { useGameEvents } from '../hooks/useGameEvents.js';
 import { useRoster } from '../hooks/useRoster.js';
 import { useLines } from '../hooks/useLines.js';
 import { usePdfExport } from '../hooks/usePdfExport.js';
+import { useGameClock } from '../hooks/useGameClock.js';
+import { useGameClockSync } from '../hooks/useGameClockSync.js';
 import { formatDate } from '../utils/formatDate.js';
 import useAnnounceStore from '../store/announceStore.js';
 import RsvpSection from '../components/rsvp/RsvpSection.jsx';
@@ -41,6 +43,7 @@ export default function GamePage() {
   const { exporting: exportingReport, error: reportError, exportGameReport } = usePdfExport();
   const { comments: notes, loading: notesLoading, error: notesError, fetchComments, addComment, deleteComment } = useComments('games', id);
   const { events, loading: eventsLoading, error: eventsError, fetchEvents, addEvent, deleteEvent } = useGameEvents(id);
+  const { error: clockError, start: startClock, pause: pauseClock, nextPeriod: nextClockPeriod, reset: resetClock } = useGameClock();
   // IFF-Regelwerk 2026: auch Torhüter dürfen inzwischen Tore erzielen –
   // die Zuordnungs-Auswahl (Tor/Strafzeiten/Matchstrafe) filtert Rollen
   // deshalb bewusst NICHT (TW erscheint wie jeder andere Kader-Spieler).
@@ -64,10 +67,24 @@ export default function GamePage() {
   // ausgewählt werden kann – null, wenn keine Auswahl offen ist. Immer
   // nur eine Auswahl gleichzeitig offen, statt eines Booleans pro Preset.
   const [openAttributionPreset, setOpenAttributionPreset] = useState(null);
+  // Spieluhr (Roadmap-Audit): tickt nur zur Anzeige, während die Uhr
+  // läuft – der Server kennt nur Start-/Pausepunkte, die Restzeit wird
+  // rein clientseitig aus clockElapsedSeconds/clockStartedAt berechnet.
+  const [now, setNow] = useState(() => Date.now());
   const opponentInputRef = useRef(null);
+
+  const { pingClockUpdate } = useGameClockSync(id, {
+    onClockUpdate: (clockState) => setGame((prev) => prev ? { ...prev, ...clockState } : prev),
+  });
 
   useEffect(() => { fetchRoster().catch(() => {}); }, [fetchRoster]);
   useEffect(() => { fetchLines().catch(() => {}); }, [fetchLines]);
+
+  useEffect(() => {
+    if (game?.clockStatus !== 'running') return undefined;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [game?.clockStatus]);
 
   const load = useCallback(async () => {
     setGameLoading(true);
@@ -119,6 +136,28 @@ export default function GamePage() {
 
   const handleExportReport = () => {
     exportGameReport({ gameId: id, language: i18n.language }).catch(() => {});
+  };
+
+  const commitPeriodMinutes = async (value) => {
+    const minutes = Number(value);
+    if (!Number.isInteger(minutes) || minutes < 1 || minutes > 60) return;
+    try {
+      const updated = await updateGame(id, { periodMinutes: minutes });
+      setGame(updated);
+    } catch { /* error via hook */ }
+  };
+
+  // Nach jeder eigenen Aktion: eigenen State direkt aus der REST-Antwort
+  // aktualisieren (Server bleibt Autorität), bei einem neu protokollierten
+  // Anstoß-/Drittelende-Event die Zeitleiste neu laden, und andere offene
+  // Geräte/Tabs per WS-Ping informieren (siehe useGameClockSync.js).
+  const handleClockAction = async (action) => {
+    try {
+      const result = await action(id);
+      setGame((prev) => prev ? { ...prev, ...result } : prev);
+      if (result.createdEvent) fetchEvents().catch(() => {});
+      pingClockUpdate();
+    } catch { /* error via hook */ }
   };
 
   const handleAddNote = async (e) => {
@@ -196,6 +235,17 @@ export default function GamePage() {
   // handleSelectAttribution oben).
   const ownGoals      = events.filter((e) => e.eventType === 'goal' && !e.isOpponent).length;
   const opponentGoals = events.filter((e) => e.eventType === 'goal' && e.isOpponent).length;
+
+  // Spieluhr: Restzeit rein clientseitig berechnet (Pause-Resume-Modell
+  // ohne Server-Tick, siehe gameClockController.js). Kein Auto-Stopp bei
+  // 0:00 – auf 0 geclampt statt negativ, der Coach pausiert manuell.
+  const periodSeconds = (game.clockPeriodMinutes ?? 20) * 60;
+  const runningSeconds = game.clockStatus === 'running' && game.clockStartedAt
+    ? Math.floor((now - new Date(game.clockStartedAt).getTime()) / 1000)
+    : 0;
+  const remainingSeconds = Math.max(0, periodSeconds - (game.clockElapsedSeconds ?? 0) - runningSeconds);
+  const clockMM = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+  const clockSS = String(remainingSeconds % 60).padStart(2, '0');
 
   // Line-Wechsel ist kein festes IFF-Ereignis (kein Eintrag in PRESETS) –
   // bleibt bewusst eine Freitext-Notiz über comments, wie vor dem
@@ -298,12 +348,47 @@ export default function GamePage() {
         <span className={styles.scoreboardSide}>{game.opponent || t('games.noOpponent')}</span>
       </div>
 
+      <div className={styles.clockPanel} aria-label={t('games.clockAriaLabel', { period: game.clockPeriod, time: `${clockMM}:${clockSS}` })}>
+        <span className={styles.clockPeriod}>
+          {game.clockPeriod > 0 ? t('games.clockPeriodLabel', { period: game.clockPeriod }) : t('games.clockNotStarted')}
+        </span>
+        <span className={styles.clockTime}>{clockMM}:{clockSS}</span>
+        <div className={styles.clockActions}>
+          {game.clockStatus === 'running' ? (
+            <Button variant="secondary" size="sm" onClick={() => handleClockAction(pauseClock)}>
+              <Pause size={16} aria-hidden="true" /> {t('games.clockPause')}
+            </Button>
+          ) : (
+            <Button variant="primary" size="sm" onClick={() => handleClockAction(startClock)}>
+              <Play size={16} aria-hidden="true" /> {t('games.clockStart')}
+            </Button>
+          )}
+          <Button variant="secondary" size="sm" onClick={() => handleClockAction(nextClockPeriod)}>
+            <SkipForward size={16} aria-hidden="true" /> {t('games.clockNextPeriod')}
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => handleClockAction(resetClock)}>
+            <RotateCcw size={16} aria-hidden="true" /> {t('games.clockReset')}
+          </Button>
+          <label className={styles.clockPeriodMinutes}>
+            {t('games.clockPeriodMinutesLabel')}
+            <input
+              type="number"
+              min={1}
+              max={60}
+              defaultValue={game.clockPeriodMinutes}
+              onBlur={(e) => commitPeriodMinutes(e.target.value)}
+              aria-label={t('games.clockPeriodMinutesAriaLabel')}
+            />
+          </label>
+        </div>
+      </div>
+
       <Button variant="secondary" size="sm" className={styles.exportReportBtn} onClick={handleExportReport} disabled={exportingReport}>
         <FileDown size={16} aria-hidden="true" /> {exportingReport ? t('games.exportingReport') : t('games.exportReportButton')}
       </Button>
 
-      {(gameError || notesError || eventsError || reportError) && (
-        <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError ?? eventsError ?? reportError}</div>
+      {(gameError || notesError || eventsError || reportError || clockError) && (
+        <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError ?? eventsError ?? reportError ?? clockError}</div>
       )}
 
       <RsvpSection resourceKind="games" resourceId={id} teamId={game.teamId} />

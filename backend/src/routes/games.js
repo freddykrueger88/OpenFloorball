@@ -27,6 +27,7 @@ router.put   ('/:id', [
   body('opponent').optional().trim().isLength({ max: 100 }).withMessage('Gegner max. 100 Zeichen'),
   body('playedAt').optional({ nullable: true }).isISO8601().withMessage('Ungültiges Datum').bail().isLength({ max: 10 }),
   body('notes').optional().isLength({ max: 2000 }).withMessage('Notizen max. 2000 Zeichen'),
+  body('periodMinutes').optional().isInt({ min: 1, max: 60 }).withMessage('Periodenlänge muss zwischen 1 und 60 Minuten liegen'),
   validate,
 ], updateGame);
 router.delete('/:id', [idParam, validate], deleteGame);

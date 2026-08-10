@@ -258,3 +258,48 @@ describe('WS /api/ws/presence – Cursor + Live-Merge Relay', () => {
     wsViewer.close();
   });
 });
+
+describe('WS /api/ws/presence – Spieluhr (gameId)', () => {
+  let teamId;
+  let gameId;
+
+  beforeAll(async () => {
+    const teamRes = await request(app).post('/api/teams').set('Cookie', owner.cookie).send({ name: 'Presence-Clock-Test-Team' });
+    teamId = teamRes.body.data._id;
+    await request(app).post(`/api/teams/${teamId}/members`).set('Cookie', owner.cookie).send({ email: viewer.email, role: 'member' });
+
+    const gameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Presence-Clock-Test-Gegner', teamId });
+    gameId = gameRes.body.data._id;
+  });
+
+  it('lehnt eine Verbindung ohne Spiel-Zugriff ab', async () => {
+    const ws = connect(stranger.cookie, `?gameId=${gameId}`);
+    await expect(waitForError(ws)).resolves.toBeDefined();
+  });
+
+  it('relayt einen clock-Ping mit dem aktuellen DB-Stand an andere im selben Spiel-Room, nicht an den Sender selbst', async () => {
+    const wsOwner = connect(owner.cookie, `?gameId=${gameId}`);
+    await waitForOpen(wsOwner);
+    await nextMessage(wsOwner); // initiale presence
+
+    const viewerJoined = nextMessage(wsOwner);
+    const wsViewer = connect(viewer.cookie, `?gameId=${gameId}`);
+    await waitForOpen(wsViewer);
+    await nextMessage(wsViewer); // initiale presence
+    await viewerJoined;
+
+    await request(app).post(`/api/games/${gameId}/clock/start`).set('Cookie', owner.cookie);
+
+    const received = nextMessage(wsViewer);
+    wsOwner.send(JSON.stringify({ type: 'clock' }));
+    const clockMsg = await received;
+    expect(clockMsg).toMatchObject({ type: 'clock', clockPeriod: 1, clockStatus: 'running' });
+
+    // Sender selbst bekommt den eigenen Ping nicht zurück
+    await sleep(100);
+    expect(wsOwner.messageQueue).toHaveLength(0);
+
+    wsOwner.close();
+    wsViewer.close();
+  });
+});

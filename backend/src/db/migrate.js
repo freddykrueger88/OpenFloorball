@@ -793,6 +793,18 @@ export async function runMigrations() {
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_games_user_id ON games(user_id);`);
 
+    // ── Spieluhr (Roadmap-Audit: letzter, größerer Baustein Phase C) ────────
+    // 1:1 mit games, daher direkte Spalten statt einer eigenen Tabelle.
+    // Pause-Resume-Modell ohne Server-Tick: clock_elapsed_seconds ist die
+    // bereits "eingesammelte" Zeit dieser Periode, clock_started_at (nur bei
+    // status='running' gesetzt) + (NOW() - clock_started_at) ergibt die
+    // zusätzliche laufende Zeit – Restzeit wird rein clientseitig berechnet.
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS clock_period INT NOT NULL DEFAULT 0;`);
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS clock_status TEXT NOT NULL DEFAULT 'stopped' CHECK (clock_status IN ('stopped', 'running'));`);
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS clock_elapsed_seconds INT NOT NULL DEFAULT 0;`);
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS clock_started_at TIMESTAMPTZ;`);
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS clock_period_minutes INT NOT NULL DEFAULT 20;`);
+
     // ── game_squad (Roadmap-Audit: Match-Kader für ein konkretes Spiel) ─────
     // Anders als rsvps/comments KEINE polymorphe Tabelle, sondern eine echte
     // Junction wie line_players – direkte FKs auf beide Seiten, dadurch

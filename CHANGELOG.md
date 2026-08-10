@@ -14,6 +14,15 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Spieluhr: laufende Uhr mit Start/Pause/Drittel-Wechsel/Zurücksetzen
+  direkt auf der Spielseite – überlebt einen Seiten-Reload (Zustand
+  liegt auf dem Server, fünf neue Spalten auf `games`, kein Server-Tick
+  nötig) und bleibt über mehrere Geräte/Tabs in Echtzeit synchron (über
+  die bestehende, jetzt ressourcen-generische Presence-WebSocket-
+  Infrastruktur, bisher nur für Boards). Bewusst mit den bestehenden
+  Ereignis-Presets verknüpft: Start protokolliert automatisch einen
+  Anstoß, ein Drittel-Wechsel automatisch ein Drittelende, als normale
+  `game_events`-Zeile. Letzter, größerer Baustein von Phase C.
 - Spielbericht: PDF-Export einer druckfreundlichen Zusammenfassung
   eines Spiels (Endstand, Ereignis-Zeitleiste, Match-Kader-Status)
   direkt auf der Spielseite, per pdfkit (gleiche Bibliothek wie der

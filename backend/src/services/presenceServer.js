@@ -25,13 +25,20 @@ import pool from '../db/pool.js';
 import redisClient from '../db/redis.js';
 import logger from '../utils/logger.js';
 import { assertBoardAccess } from '../utils/boardAccess.js';
+import { assertGameRead, assertGameWrite } from '../controllers/gamesController.js';
 
 const HEARTBEAT_INTERVAL_MS = 30_000;
 // Grobe Obergrenze gegen Missbrauch (z.B. riesige Freihand-Elemente) –
 // eine einzelne Op-Nachricht sollte dafür nie annähernd in die Nähe kommen.
 const MAX_MESSAGE_BYTES = 64 * 1024;
 
-// boardId -> Map<ws, { userId, displayName, canWrite }>
+// Roadmap-Audit "Spieluhr": zweiter Ressourcentyp neben Boards (Echtzeit-
+// Sync des Spieluhr-Zustands über mehrere Geräte/Tabs). Die Room-Mechanik
+// selbst war schon immer ressourcen-generisch (reine string-keyed Map) –
+// der Schlüssel wird auf "board:<id>" / "game:<id>" umgestellt, um jede
+// theoretische Kollision zwischen Board- und Spiel-UUIDs auszuschließen
+// und Räume in Logs eindeutig unterscheidbar zu machen.
+// roomKey ("board:<id>" | "game:<id>") -> Map<ws, { userId, displayName, canWrite, resourceType, resourceId }>
 const rooms = new Map();
 
 function parseCookieHeader(header = '') {
@@ -66,11 +73,11 @@ async function authenticateUpgrade(req) {
   }
 }
 
-function broadcastPresence(boardId) {
-  const room = rooms.get(boardId);
+function broadcastPresence(roomKey) {
+  const room = rooms.get(roomKey);
   if (!room) return;
-  // Ein User kann (Tab-Duplikat, mehrere Geräte) mehrfach im selben Board-
-  // Room sein – für die Anzeige nach userId deduplizieren.
+  // Ein User kann (Tab-Duplikat, mehrere Geräte) mehrfach im selben Room
+  // sein – für die Anzeige nach userId deduplizieren.
   const seen = new Map();
   for (const { userId, displayName } of room.values()) {
     seen.set(userId, displayName);
@@ -85,8 +92,8 @@ function broadcastPresence(boardId) {
 // Relayt eine Nachricht an alle ANDEREN Nutzer (nach userId, nicht nach
 // Verbindung – ein Tab-Duplikat desselben Nutzers bekommt seine eigene
 // Cursor-/Op-Nachricht also auch nicht noch einmal zurück) im selben Room.
-function relayToOthers(boardId, excludeUserId, payload) {
-  const room = rooms.get(boardId);
+function relayToOthers(roomKey, excludeUserId, payload) {
+  const room = rooms.get(roomKey);
   if (!room) return;
   const msg = JSON.stringify(payload);
   for (const [ws, info] of room) {
@@ -95,11 +102,11 @@ function relayToOthers(boardId, excludeUserId, payload) {
   }
 }
 
-function handleClientMessage(boardId, ws, raw) {
+async function handleClientMessage(roomKey, ws, raw) {
   const text = raw.toString('utf8');
   if (text.length > MAX_MESSAGE_BYTES) return;
 
-  const room = rooms.get(boardId);
+  const room = rooms.get(roomKey);
   const senderInfo = room?.get(ws);
   if (!senderInfo) return;
 
@@ -111,13 +118,13 @@ function handleClientMessage(boardId, ws, raw) {
   }
 
   if (msg.type === 'cursor' && typeof msg.x === 'number' && typeof msg.y === 'number') {
-    relayToOthers(boardId, senderInfo.userId, {
+    relayToOthers(roomKey, senderInfo.userId, {
       type: 'cursor', userId: senderInfo.userId, displayName: senderInfo.displayName, x: msg.x, y: msg.y,
     });
     return;
   }
   if (msg.type === 'cursorLeave') {
-    relayToOthers(boardId, senderInfo.userId, { type: 'cursorLeave', userId: senderInfo.userId });
+    relayToOthers(roomKey, senderInfo.userId, { type: 'cursorLeave', userId: senderInfo.userId });
     return;
   }
   // Live-Merge (ROADMAP-Backlog "Konflikt-Auflösung"): read-only-
@@ -126,8 +133,29 @@ function handleClientMessage(boardId, ws, raw) {
   // pro Nachricht nötig) und wird hier serverseitig zusätzlich
   // durchgesetzt, falls jemand die WS-Nachricht direkt fälscht.
   if (msg.type === 'op' && senderInfo.canWrite && typeof msg.frameId === 'string' && msg.op && typeof msg.op === 'object') {
-    relayToOthers(boardId, senderInfo.userId, {
+    relayToOthers(roomKey, senderInfo.userId, {
       type: 'op', userId: senderInfo.userId, frameId: msg.frameId, op: msg.op,
+    });
+    return;
+  }
+  // Spieluhr (Roadmap-Audit): leerer Ping ohne Payload – Client-Zustand
+  // wird nie vertraut, der Server liest den aktuellen Stand frisch aus
+  // der DB (Autorität bleibt Postgres) und relayt NUR das, an alle
+  // anderen im selben Spiel-Room. Keine canWrite-Prüfung nötig, das ist
+  // reines "aktuellen Stand nachfragen", keine Mutation.
+  if (msg.type === 'clock' && senderInfo.resourceType === 'game') {
+    const result = await pool.query(
+      'SELECT clock_period, clock_status, clock_elapsed_seconds, clock_started_at FROM games WHERE id = $1',
+      [senderInfo.resourceId]
+    );
+    const row = result.rows[0];
+    if (!row) return;
+    relayToOthers(roomKey, senderInfo.userId, {
+      type: 'clock',
+      clockPeriod: row.clock_period,
+      clockStatus: row.clock_status,
+      clockElapsedSeconds: row.clock_elapsed_seconds,
+      clockStartedAt: row.clock_started_at,
     });
   }
 }
@@ -147,15 +175,25 @@ export function attachPresenceServer(server) {
 
     (async () => {
       const boardId = url.searchParams.get('boardId');
-      const user = boardId ? await authenticateUpgrade(req) : null;
-      if (!user || !(await assertBoardAccess(boardId, user.id, 'read'))) {
+      const gameId = url.searchParams.get('gameId');
+      const resourceType = boardId ? 'board' : gameId ? 'game' : null;
+      const resourceId = boardId || gameId;
+
+      const user = resourceType ? await authenticateUpgrade(req) : null;
+      const canRead = user && (resourceType === 'board'
+        ? await assertBoardAccess(resourceId, user.id, 'read')
+        : await assertGameRead(resourceId, user.id));
+      if (!resourceType || !user || !canRead) {
         socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
         socket.destroy();
         return;
       }
-      const canWrite = await assertBoardAccess(boardId, user.id, 'write');
+      const canWrite = resourceType === 'board'
+        ? await assertBoardAccess(resourceId, user.id, 'write')
+        : await assertGameWrite(resourceId, user.id);
+      const roomKey = `${resourceType}:${resourceId}`;
       wss.handleUpgrade(req, socket, head, (ws) => {
-        wss.emit('connection', ws, { user, boardId, canWrite });
+        wss.emit('connection', ws, { user, roomKey, resourceType, resourceId, canWrite });
       });
     })().catch((err) => {
       logger.error('[presenceServer] upgrade error', err);
@@ -163,24 +201,24 @@ export function attachPresenceServer(server) {
     });
   });
 
-  wss.on('connection', (ws, { user, boardId, canWrite }) => {
+  wss.on('connection', (ws, { user, roomKey, resourceType, resourceId, canWrite }) => {
     ws.isAlive = true;
     ws.on('pong', () => { ws.isAlive = true; });
 
-    if (!rooms.has(boardId)) rooms.set(boardId, new Map());
-    rooms.get(boardId).set(ws, { userId: user.id, displayName: user.displayName, canWrite });
-    broadcastPresence(boardId);
+    if (!rooms.has(roomKey)) rooms.set(roomKey, new Map());
+    rooms.get(roomKey).set(ws, { userId: user.id, displayName: user.displayName, canWrite, resourceType, resourceId });
+    broadcastPresence(roomKey);
 
-    ws.on('message', (raw) => handleClientMessage(boardId, ws, raw));
+    ws.on('message', (raw) => { handleClientMessage(roomKey, ws, raw).catch((err) => logger.error('[presenceServer] message error', err)); });
 
     ws.on('close', () => {
-      const room = rooms.get(boardId);
+      const room = rooms.get(roomKey);
       if (!room) return;
       room.delete(ws);
-      if (room.size === 0) rooms.delete(boardId);
+      if (room.size === 0) rooms.delete(roomKey);
       else {
-        broadcastPresence(boardId);
-        relayToOthers(boardId, user.id, { type: 'cursorLeave', userId: user.id });
+        broadcastPresence(roomKey);
+        relayToOthers(roomKey, user.id, { type: 'cursorLeave', userId: user.id });
       }
     });
     ws.on('error', () => {});

@@ -32,6 +32,7 @@ import { createCommentRoutes } from './comments.js';
 import { createRsvpRoutes } from './rsvps.js';
 import gameSquadRoutes from './gameSquad.js';
 import gameEventsRoutes from './gameEvents.js';
+import gameClockRoutes from './gameClock.js';
 import { assertBoardAccess } from '../utils/boardAccess.js';
 import { assertSessionRead, assertSessionWrite } from '../controllers/trainingSessionsController.js';
 import { assertGameRead, assertGameWrite } from '../controllers/gamesController.js';
@@ -67,6 +68,7 @@ router.use('/trainings/:id/rsvps', sessionRsvpRoutes);
 router.use('/games/:id/rsvps', gameRsvpRoutes);
 router.use('/games/:id/squad', gameSquadRoutes);
 router.use('/games/:id/events', gameEventsRoutes);
+router.use('/games/:id/clock', gameClockRoutes);
 // GIF-Export braucht großes JSON-Limit (Base64-PNGs) – nur auf diesem Sub-Router
 router.use('/export', express.json({ limit: '50mb' }), exportRoutes);
 // Öffentliche Share-Link-Ansicht – bewusst NICHT hinter authenticate (Issue #16)

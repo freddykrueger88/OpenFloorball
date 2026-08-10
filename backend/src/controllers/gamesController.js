@@ -41,6 +41,11 @@ function toApiGame(row) {
     teamId:    row.team_id,
     playedAt:  toDateString(row.played_at),
     notes:     row.notes,
+    clockPeriod:          row.clock_period,
+    clockStatus:          row.clock_status,
+    clockElapsedSeconds:  row.clock_elapsed_seconds,
+    clockStartedAt:       row.clock_started_at,
+    clockPeriodMinutes:   row.clock_period_minutes,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -141,6 +146,7 @@ export async function updateGame(req, res) {
     if (req.body.opponent !== undefined) { sets.push(`opponent = $${i}`); values.push(req.body.opponent); i += 1; }
     if (req.body.playedAt !== undefined) { sets.push(`played_at = $${i}`); values.push(req.body.playedAt); i += 1; }
     if (req.body.notes !== undefined)    { sets.push(`notes = $${i}`);     values.push(req.body.notes);    i += 1; }
+    if (req.body.periodMinutes !== undefined) { sets.push(`clock_period_minutes = $${i}`); values.push(req.body.periodMinutes); i += 1; }
 
     if (sets.length === 0) {
       return res.status(400).json(error('Keine gültigen Felder zum Aktualisieren'));

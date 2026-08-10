@@ -16,6 +16,7 @@
     "lines": "Lines",
     "games": "Games",
     "calendar": "Calendar",
+    "stats": "Stats",
     "news": "News",
     "polls": "Polls",
     "library": "Exercise Library",
@@ -360,6 +361,22 @@
       "urlAriaLabel": "Calendar feed URL",
       "error": "Error: {{error}}"
     }
+  },
+  "stats": {
+    "title": "Stats",
+    "count_one": "{{count}} roster player",
+    "count_other": "{{count}} roster players",
+    "noPlayersYet": "No roster players yet",
+    "loading": "Loading stats…",
+    "emptyStateDesc": "No roster players yet. Stats appear here once goals, penalties, or appearances have been recorded for players.",
+    "colName": "Name",
+    "colNumber": "No.",
+    "colTeam": "Team",
+    "colGoals": "Goals",
+    "colPenaltyMinutes": "Pen. min.",
+    "colMatchPenalties": "Match penalties",
+    "colAppearances": "Appearances",
+    "personal": "Personal"
   },
   "news": {
     "title": "News",

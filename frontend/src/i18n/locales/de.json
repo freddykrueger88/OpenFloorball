@@ -16,6 +16,7 @@
     "lines": "Lines",
     "games": "Spiele",
     "calendar": "Kalender",
+    "stats": "Statistik",
     "news": "News",
     "polls": "Umfragen",
     "library": "Übungsbibliothek",
@@ -360,6 +361,22 @@
       "urlAriaLabel": "Kalender-Feed-URL",
       "error": "Fehler: {{error}}"
     }
+  },
+  "stats": {
+    "title": "Statistik",
+    "count_one": "{{count}} Kader-Spieler",
+    "count_other": "{{count}} Kader-Spieler",
+    "noPlayersYet": "Noch keine Kader-Spieler",
+    "loading": "Lädt Statistik…",
+    "emptyStateDesc": "Noch keine Kader-Spieler angelegt. Statistiken erscheinen hier, sobald Tore, Strafen oder Einsätze für Spieler erfasst wurden.",
+    "colName": "Name",
+    "colNumber": "Nr.",
+    "colTeam": "Team",
+    "colGoals": "Tore",
+    "colPenaltyMinutes": "Strafmin.",
+    "colMatchPenalties": "Matchstrafen",
+    "colAppearances": "Einsätze",
+    "personal": "Persönlich"
   },
   "news": {
     "title": "News",

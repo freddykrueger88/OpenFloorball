@@ -14,6 +14,12 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Spieler-Statistiken (`/stats`, Fortsetzung Phase C): Tore,
+  Strafminuten, Matchstrafen und Einsätze pro Kader-Spieler über alle
+  Spiele hinweg – rein abgeleitet aus den bereits vorhandenen
+  `game_events`/`game_squad`-Daten, keine neue Migration, keine
+  zusätzliche Eingabe. Ein Tor ohne Zuordnung zählt fürs
+  Team-Live-Ergebnis, aber für keinen einzelnen Spieler.
 - Live-Spielstand: automatisch aus den bereits strukturierten
   Tor-Ereignissen berechneter Spielstand ("Wir 3 : 1 Gegner") direkt
   auf der Spielseite, kein eigenes Eingabefeld/Datenfeld nötig

@@ -34,6 +34,7 @@ const TrainingSessionPage = lazy(() => import('./pages/TrainingSessionPage.jsx')
 const RosterPage          = lazy(() => import('./pages/RosterPage.jsx'));
 const GamesPage           = lazy(() => import('./pages/GamesPage.jsx'));
 const GamePage            = lazy(() => import('./pages/GamePage.jsx'));
+const StatsPage           = lazy(() => import('./pages/StatsPage.jsx'));
 const CalendarPage        = lazy(() => import('./pages/CalendarPage.jsx'));
 const NewsPage            = lazy(() => import('./pages/NewsPage.jsx'));
 const PollsPage           = lazy(() => import('./pages/PollsPage.jsx'));
@@ -136,6 +137,7 @@ export default function App() {
             <Route path="/trainings/:id" element={<PrivateRoute><TrainingSessionPage /></PrivateRoute>} />
             <Route path="/games" element={<PrivateRoute><GamesPage /></PrivateRoute>} />
             <Route path="/games/:id" element={<PrivateRoute><GamePage /></PrivateRoute>} />
+            <Route path="/stats" element={<PrivateRoute><StatsPage /></PrivateRoute>} />
             <Route path="/calendar" element={<PrivateRoute><CalendarPage /></PrivateRoute>} />
             <Route path="/news" element={<PrivateRoute><NewsPage /></PrivateRoute>} />
             <Route path="/polls" element={<PrivateRoute><PollsPage /></PrivateRoute>} />

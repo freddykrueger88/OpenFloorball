@@ -51,6 +51,7 @@ als GIF/MP4/PDF/Link, Docker-basiert und IFF-konform.
 - [Formationen-Vorlagen](./Formationen.md)
 - [Trainingsplaner](./Trainingsplaner.md)
 - [Kader](./Kader.md)
+- [Statistiken](./Statistiken.md)
 - [Lines & Sturmreihen](./Lines.md)
 - [Live-Spielnotizen](./Live-Spielnotizen.md)
 - [Kalender](./Kalender.md)

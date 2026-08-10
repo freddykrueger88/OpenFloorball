@@ -47,6 +47,10 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 - **Match-Kader** – pro Kader-Spieler spielt/Ersatz/verletzt/fehlt für
   ein konkretes Spiel festlegen, getrennt von Lines und RSVP. Details:
   [Live-Spielnotizen](./wiki/Live-Spielnotizen.md#match-kader).
+- **Spieler-Statistiken** (`/stats`) – Tore, Strafminuten,
+  Matchstrafen, Einsätze pro Kader-Spieler, abgeleitet aus
+  game_events/game_squad. Details:
+  [docs/wiki/Statistiken.md](./wiki/Statistiken.md).
 - **Kalenderansicht** (`/calendar`) – Monatsraster zeigt Spiele und
   Trainingseinheiten gemeinsam an. Inkl. ICS-Kalender-Abo für
   Google Calendar/Apple Kalender/Outlook (Details:

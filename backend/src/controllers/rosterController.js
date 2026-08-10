@@ -29,6 +29,16 @@ function toApiRosterPlayer(row) {
   };
 }
 
+function toApiRosterStats(row) {
+  return {
+    ...toApiRosterPlayer(row),
+    goals:          Number(row.goals ?? 0),
+    penaltyMinutes: Number(row.penalty_minutes ?? 0),
+    matchPenalties: Number(row.match_penalties ?? 0),
+    appearances:    Number(row.appearances ?? 0),
+  };
+}
+
 // Darf der Nutzer diesen Datensatz anlegen/bearbeiten/löschen? Eigene
 // (team_id NULL) Datensätze: immer. Team-geteilte: nur owner/coach.
 async function assertResourceWrite(row, userId) {
@@ -61,6 +71,54 @@ export async function getRosterPlayers(req, res) {
     res.json(success(result.rows.map(toApiRosterPlayer)));
   } catch (err) {
     logger.error('[getRosterPlayers]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// GET /api/roster/stats – Spieler-Statistiken (Roadmap-Audit,
+// Fortsetzung von Phase C), rein abgeleitet aus bestehenden Tabellen,
+// keine neue Migration. Tore/Strafen (game_events) und Einsätze
+// (game_squad) sind zwei unabhängige 1:n-Beziehungen zu roster_players
+// – als vorab aggregierte Subqueries angehängt statt in einem
+// gemeinsamen LEFT JOIN + GROUP BY, sonst würde das Kreuzprodukt
+// beider Tabellen die Summen verfälschen (beide sind nur über
+// roster_player_id verknüpft, nicht über dieselbe Zeile).
+// Ein Tor ohne Spieler-Zuordnung (roster_player_id NULL) zählt zwar
+// fürs Team-Live-Ergebnis (siehe GamePage.jsx ownGoals), kann aber per
+// Definition keinem einzelnen Spieler persönlich angerechnet werden –
+// WHERE roster_player_id IS NOT NULL blendet solche Zeilen hier bewusst aus.
+export async function getRosterStats(req, res) {
+  try {
+    const teamIds = await getUserTeamIds(req.user.id);
+    const result = await pool.query(
+      `SELECT rp.*,
+              COALESCE(g.goals, 0)::int           AS goals,
+              COALESCE(g.penalty_minutes, 0)::int AS penalty_minutes,
+              COALESCE(g.match_penalties, 0)::int AS match_penalties,
+              COALESCE(s.appearances, 0)::int      AS appearances
+       FROM roster_players rp
+       LEFT JOIN (
+         SELECT roster_player_id,
+                SUM(CASE WHEN event_type = 'goal' AND NOT is_opponent THEN 1 ELSE 0 END) AS goals,
+                SUM(CASE WHEN event_type = 'penalty_2' THEN 2 WHEN event_type = 'penalty_5' THEN 5 ELSE 0 END) AS penalty_minutes,
+                SUM(CASE WHEN event_type = 'match_penalty' THEN 1 ELSE 0 END) AS match_penalties
+         FROM game_events
+         WHERE roster_player_id IS NOT NULL
+         GROUP BY roster_player_id
+       ) g ON g.roster_player_id = rp.id
+       LEFT JOIN (
+         SELECT roster_player_id, COUNT(*) AS appearances
+         FROM game_squad
+         WHERE status = 'playing'
+         GROUP BY roster_player_id
+       ) s ON s.roster_player_id = rp.id
+       WHERE rp.user_id = $1 OR rp.team_id = ANY($2::uuid[])
+       ORDER BY goals DESC, rp.jersey_number ASC NULLS LAST, rp.name ASC`,
+      [req.user.id, teamIds]
+    );
+    res.json(success(result.rows.map(toApiRosterStats)));
+  } catch (err) {
+    logger.error('[getRosterStats]', err);
     res.status(500).json(error('Interner Serverfehler'));
   }
 }

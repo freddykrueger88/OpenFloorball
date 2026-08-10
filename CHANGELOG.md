@@ -14,6 +14,17 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Live-Match-Ereignisse (Start Roadmap-Phase C "Match-Erlebnis"): die
+  10 festen IFF-Preset-Buttons auf der Spielseite (Anstoß Drittel 1–3,
+  Drittelende, Auszeit, Tor, Strafe 2/5 Min., Matchstrafe, Spielende)
+  schreiben jetzt strukturierte Zeilen in eine neue `game_events`-
+  Tabelle (Ereignistyp + Zuordnung auf Kader-Spieler/Gegner/keine
+  Angabe) statt fertig zusammengesetzten Freitext in `comments` –
+  Grundlage für spätere Statistiken (Tore/Spieler, Strafminuten).
+  Freitext-Notizen bleiben unverändert über `comments` laufen, beide
+  Quellen erscheinen gemeinsam in einer chronologisch sortierten
+  Liste. Für den Trainer ändert sich an der Bedienung nichts. Bewusst
+  noch ohne Live-Spielstand, Spieluhr oder Auswertung (folgt später).
 - Serientermine für Trainingseinheiten: aus einer datierten
   Trainingseinheit heraus lassen sich Folgetermine (täglich/
   wöchentlich/alle 2 Wochen bis zu einem Enddatum, max. 52 pro

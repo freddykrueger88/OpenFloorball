@@ -35,7 +35,11 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   Serien-Tracking). Details: [Trainingsplaner](./wiki/Trainingsplaner.md).
 - **Live-Spielnotizen** – Spiele anlegen (Gegner/Datum, optional
   team-geteilt), während des laufenden Spiels schnelle,
-  zeitgestempelte Notizen erfassen. Details: [Live-Spielnotizen](./wiki/Live-Spielnotizen.md).
+  zeitgestempelte Notizen erfassen. Die 10 festen IFF-Presets (Tor,
+  Strafen, Anstoß/Drittelende, …) sind seit "Live-Match-Ereignisse"
+  strukturiert (`game_events`, Grundlage für spätere Statistiken),
+  Freitext bleibt unverändert. Details:
+  [Live-Spielnotizen](./wiki/Live-Spielnotizen.md).
 - **RSVP/Anwesenheit** – Team-Mitglieder sagen für Spiele/Trainings
   zu/ab/unsicher, optional mit Absagegrund. Details:
   [Live-Spielnotizen](./wiki/Live-Spielnotizen.md#anwesenheit-rsvp).

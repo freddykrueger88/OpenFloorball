@@ -765,6 +765,35 @@ export async function runMigrations() {
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_game_squad_game_id ON game_squad(game_id);`);
 
+    // ── game_events (Roadmap-Audit: Live-Match-Ereignisse, Start Phase C) ───
+    // Strukturierte Speicherung der 10 festen IFF-Presets aus GamePage.jsx
+    // (Anstoß Drittel 1-3, Drittelende, Auszeit, Tor, Strafe 2/5 Min.,
+    // Matchstrafe, Spielende) – bisher wurden diese als fertig
+    // zusammengesetzter Freitext in comments abgelegt (z.B. "Tor – #9
+    // Müller"), was spätere Auswertung (Tore/Spieler, Strafminuten) ohne
+    // Text-Parsing unmöglich macht. Freitext-Notizen bleiben bewusst
+    // weiterhin über comments laufen – nur das feste Ereignis-Vokabular
+    // wird hier strukturiert. Echte Junction wie game_squad (nicht
+    // polymorph wie comments/rsvps) – automatisches Aufräumen per CASCADE.
+    // Kein period-/penalty_minutes-Feld (redundant zu event_type), keine
+    // Bearbeitung (updated_at) – bei Tippfehler löschen und neu erfassen,
+    // exakt wie bei den heutigen Notizen dokumentiert.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS game_events (
+        id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        game_id          UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+        event_type       TEXT NOT NULL CHECK (event_type IN (
+          'kickoff_q1', 'kickoff_q2', 'kickoff_q3', 'period_end', 'timeout',
+          'goal', 'penalty_2', 'penalty_5', 'match_penalty', 'game_end'
+        )),
+        roster_player_id UUID REFERENCES roster_players(id) ON DELETE SET NULL,
+        is_opponent      BOOLEAN NOT NULL DEFAULT false,
+        created_by       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_game_events_game_id ON game_events(game_id);`);
+
     await client.query(`ALTER TABLE comments DROP CONSTRAINT IF EXISTS comments_resource_type_check;`);
     await client.query(`
       ALTER TABLE comments ADD CONSTRAINT comments_resource_type_check

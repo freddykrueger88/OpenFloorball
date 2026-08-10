@@ -5,10 +5,17 @@
  * schnelle Eingabe während des laufenden Spiels zugeschnittene
  * Notizen-Liste.
  *
- * Die Notizen selbst sind KEINE eigene Ressource – sie laufen über
- * die bestehende comments-Tabelle (resource_type='game', siehe
- * gamesController.js) und damit über den bereits vorhandenen,
- * generischen useComments-Hook (kein neuer Notizen-Hook nötig).
+ * Roadmap-Audit "Live-Match-Ereignisse" (Start Phase C): die 10 festen
+ * IFF-Presets (Anstoß Q1-3, Drittelende, Auszeit, Tor, Strafen,
+ * Spielende) laufen jetzt über die strukturierte game_events-Tabelle
+ * (useGameEvents.js) statt über Freitext-Kommentare – macht spätere
+ * Auswertung (Tore/Spieler, Strafminuten) möglich, ohne Text zu
+ * parsen. Freitext-Notizen und die Line-Wechsel-Notiz gehören NICHT
+ * zum festen Ereignis-Vokabular und laufen weiterhin über die
+ * bestehende comments-Tabelle (resource_type='game', siehe
+ * gamesController.js) via useComments.js. Beide Quellen werden für
+ * die Anzeige zu einer einzigen, chronologisch sortierten Zeitleiste
+ * zusammengeführt (siehe timelineItems unten).
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router';
@@ -16,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Trash2, Send } from 'lucide-react';
 import { useGames } from '../hooks/useGames.js';
 import { useComments } from '../hooks/useComments.js';
+import { useGameEvents } from '../hooks/useGameEvents.js';
 import { useRoster } from '../hooks/useRoster.js';
 import { useLines } from '../hooks/useLines.js';
 import { formatDate } from '../utils/formatDate.js';
@@ -30,6 +38,7 @@ export default function GamePage() {
   const { id } = useParams();
   const { fetchGame, updateGame } = useGames();
   const { comments: notes, loading: notesLoading, error: notesError, fetchComments, addComment, deleteComment } = useComments('games', id);
+  const { events, loading: eventsLoading, error: eventsError, fetchEvents, addEvent, deleteEvent } = useGameEvents(id);
   // IFF-Regelwerk 2026: auch Torhüter dürfen inzwischen Tore erzielen –
   // die Zuordnungs-Auswahl (Tor/Strafzeiten/Matchstrafe) filtert Rollen
   // deshalb bewusst NICHT (TW erscheint wie jeder andere Kader-Spieler).
@@ -74,6 +83,7 @@ export default function GamePage() {
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { fetchComments().catch(() => {}); }, [fetchComments]);
+  useEffect(() => { fetchEvents().catch(() => {}); }, [fetchEvents]);
 
   useEffect(() => {
     if (editingOpponent) opponentInputRef.current?.select();
@@ -132,24 +142,24 @@ export default function GamePage() {
   // trotzdem Teil derselben, alphabetisch sortierten Liste (sprachabhängig,
   // daher localeCompare statt fester Reihenfolge).
   const PRESETS = [
-    { text: t('games.presetKickoffQ1') },
-    { text: t('games.presetKickoffQ2') },
-    { text: t('games.presetKickoffQ3') },
-    { text: t('games.presetPeriodEnd') },
-    { text: t('games.presetTimeout') },
-    { text: t('games.presetGoal'), needsAttribution: true },
-    { text: t('games.presetPenalty2'), needsAttribution: true },
-    { text: t('games.presetPenalty5'), needsAttribution: true },
-    { text: t('games.presetMatchPenalty'), needsAttribution: true },
-    { text: t('games.presetGameEnd') },
+    { type: 'kickoff_q1',    text: t('games.presetKickoffQ1') },
+    { type: 'kickoff_q2',    text: t('games.presetKickoffQ2') },
+    { type: 'kickoff_q3',    text: t('games.presetKickoffQ3') },
+    { type: 'period_end',    text: t('games.presetPeriodEnd') },
+    { type: 'timeout',       text: t('games.presetTimeout') },
+    { type: 'goal',          text: t('games.presetGoal'), needsAttribution: true },
+    { type: 'penalty_2',     text: t('games.presetPenalty2'), needsAttribution: true },
+    { type: 'penalty_5',     text: t('games.presetPenalty5'), needsAttribution: true },
+    { type: 'match_penalty', text: t('games.presetMatchPenalty'), needsAttribution: true },
+    { type: 'game_end',      text: t('games.presetGameEnd') },
   ].sort((a, b) => a.text.localeCompare(b.text, i18n.language));
 
-  const handleAddPreset = async (text) => {
+  const handleAddPreset = async (eventType, attribution = {}) => {
     try {
-      await addComment(text);
+      await addEvent({ eventType, ...attribution });
       useAnnounceStore.getState().announce(t('games.noteAddedAnnouncement'));
     } catch {
-      // Fehler über notesError – Ereignis einfach erneut antippen.
+      // Fehler über eventsError – Ereignis einfach erneut antippen.
     }
   };
 
@@ -173,27 +183,59 @@ export default function GamePage() {
   const squadForGame = rosterPlayers.filter((p) => (game.teamId ? p.teamId === game.teamId : !p.teamId));
   const linesForGame = lines.filter((l) => (game.teamId ? l.teamId === game.teamId : !l.teamId));
 
+  // Line-Wechsel ist kein festes IFF-Ereignis (kein Eintrag in PRESETS) –
+  // bleibt bewusst eine Freitext-Notiz über comments, wie vor dem
+  // Ereignisse-Umbau.
   const handleActivateLine = async (line) => {
     try {
       await setLineActive(line._id, true);
-      await handleAddPreset(t('games.lineSwitchNote', { name: line.name }));
+      await addComment(t('games.lineSwitchNote', { name: line.name }));
+      useAnnounceStore.getState().announce(t('games.noteAddedAnnouncement'));
     } catch { /* error via hook */ }
   };
 
   const handleSelectAttribution = (choice) => {
-    const base = openAttributionPreset;
-    let text = base;
+    const eventType = openAttributionPreset;
     if (choice === 'opponent') {
-      text = `${base} – ${t('games.attributionOpponent')}`;
+      handleAddPreset(eventType, { isOpponent: true });
     } else if (choice) {
-      const label = choice.jerseyNumber != null ? `#${choice.jerseyNumber} ${choice.name}` : choice.name;
-      text = `${base} – ${label}`;
+      handleAddPreset(eventType, { rosterPlayerId: choice._id });
+    } else {
+      handleAddPreset(eventType, {});
     }
-    handleAddPreset(text);
     setOpenAttributionPreset(null);
   };
 
-  const notesNewestFirst = [...notes].reverse();
+  // Rekonstruiert das Anzeige-Label eines Ereignisses zur Anzeigezeit aus
+  // eventType + Zuordnung, statt es (wie früher) als fertigen String zu
+  // speichern – dadurch zeigt ein vor einem Sprachwechsel erfasstes
+  // Ereignis danach automatisch das neue Sprachlabel.
+  const eventLabel = (evt) => {
+    const preset = PRESETS.find((p) => p.type === evt.eventType);
+    const base = preset?.text ?? evt.eventType;
+    if (evt.isOpponent) return `${base} – ${t('games.attributionOpponent')}`;
+    if (evt.rosterPlayerId) {
+      const player = squadForGame.find((p) => p._id === evt.rosterPlayerId);
+      if (player) {
+        const label = player.jerseyNumber != null ? `#${player.jerseyNumber} ${player.name}` : player.name;
+        return `${base} – ${label}`;
+      }
+    }
+    return base;
+  };
+
+  // Events (strukturiert) und Notes (Freitext + Line-Wechsel) zu einer
+  // gemeinsamen, chronologisch sortierten Zeitleiste zusammengeführt –
+  // Anzeige bleibt für den Trainer wie zuvor eine einzige Liste.
+  const timelineItems = [
+    ...events.map((e) => ({ kind: 'event', id: e._id, createdAt: e.createdAt, email: e.email, label: eventLabel(e) })),
+    ...notes.map((n) => ({ kind: 'note', id: n._id, createdAt: n.createdAt, email: n.email, label: n.text })),
+  ].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  const timelineNewestFirst = [...timelineItems].reverse();
+
+  const handleDeleteTimelineItem = (item) => (
+    item.kind === 'event' ? deleteEvent(item.id) : deleteComment(item.id)
+  );
 
   return (
     <main className={styles.page} id="main-content">
@@ -236,8 +278,8 @@ export default function GamePage() {
         </label>
       </header>
 
-      {(gameError || notesError) && (
-        <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError}</div>
+      {(gameError || notesError || eventsError) && (
+        <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError ?? eventsError}</div>
       )}
 
       <RsvpSection resourceKind="games" resourceId={id} teamId={game.teamId} />
@@ -267,14 +309,14 @@ export default function GamePage() {
         <div className={styles.presetsRow} role="group" aria-label={t('games.presetsAriaLabel')}>
           {PRESETS.map((preset) => (
             <Button
-              key={preset.text}
+              key={preset.type}
               type="button"
               variant="secondary"
               size="sm"
-              aria-expanded={preset.needsAttribution ? openAttributionPreset === preset.text : undefined}
+              aria-expanded={preset.needsAttribution ? openAttributionPreset === preset.type : undefined}
               onClick={() => (preset.needsAttribution
-                ? setOpenAttributionPreset((current) => (current === preset.text ? null : preset.text))
-                : handleAddPreset(preset.text))}
+                ? setOpenAttributionPreset((current) => (current === preset.type ? null : preset.type))
+                : handleAddPreset(preset.type))}
             >
               {preset.text}
             </Button>
@@ -282,7 +324,7 @@ export default function GamePage() {
         </div>
 
         {openAttributionPreset && (
-          <div className={styles.attributionPicker} role="group" aria-label={t('games.attributionAriaLabel', { event: openAttributionPreset })}>
+          <div className={styles.attributionPicker} role="group" aria-label={t('games.attributionAriaLabel', { event: PRESETS.find((p) => p.type === openAttributionPreset)?.text })}>
             {squadForGame.map((player) => (
               <Button
                 key={player._id}
@@ -322,25 +364,25 @@ export default function GamePage() {
           </Button>
         </form>
 
-        {notesLoading && notes.length === 0 ? (
+        {(notesLoading || eventsLoading) && timelineItems.length === 0 ? (
           <p className={styles.hint}>{t('games.loadingNotes')}</p>
-        ) : notesNewestFirst.length === 0 ? (
+        ) : timelineNewestFirst.length === 0 ? (
           <p className={styles.hint}>{t('games.noNotesYet')}</p>
         ) : (
           <ul className={styles.notesList} role="list">
-            {notesNewestFirst.map((note) => (
-              <li key={note._id} className={styles.noteItem}>
+            {timelineNewestFirst.map((item) => (
+              <li key={`${item.kind}-${item.id}`} className={styles.noteItem}>
                 <span className={styles.noteTime}>
-                  {formatDate(note.createdAt, { hour: '2-digit', minute: '2-digit' })}
+                  {formatDate(item.createdAt, { hour: '2-digit', minute: '2-digit' })}
                 </span>
-                <span className={styles.noteText}>{note.text}</span>
-                {game.teamId && <span className={styles.noteAuthor}>{note.email}</span>}
+                <span className={styles.noteText}>{item.label}</span>
+                {game.teamId && <span className={styles.noteAuthor}>{item.email}</span>}
                 <Button
                   variant="danger"
                   size="sm"
                   iconOnly
                   className={styles.noteDeleteBtn}
-                  onClick={() => deleteComment(note._id)}
+                  onClick={() => handleDeleteTimelineItem(item)}
                   aria-label={t('games.deleteNoteAriaLabel')}
                 >
                   <Trash2 size={16} aria-hidden="true" />

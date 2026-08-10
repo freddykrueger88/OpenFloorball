@@ -70,10 +70,20 @@ keine Line.
 
 ## Technischer Hinweis
 
-Notizen sind keine eigene Datenbanktabelle, sondern nutzen dieselbe
-Kommentar-Infrastruktur wie Boards und Trainingseinheiten – die
-Oberfläche ist aber bewusst eine eigene, auf Geschwindigkeit
-ausgelegte Ansicht statt der allgemeinen Kommentar-Ansicht.
+Die 10 festen Ereignis-Buttons (Anstoß Drittel 1–3, Drittelende,
+Auszeit, Tor, Strafe 2/5 Min., Matchstrafe, Spielende) werden seit
+dem Roadmap-Punkt "Live-Match-Ereignisse" **strukturiert** gespeichert
+(Ereignistyp + Zuordnung als eigene Datenbank-Felder statt fertigem
+Text) – das ist die Grundlage für spätere Statistiken (Tore je
+Spieler, Strafminuten, Stand je Drittel). Das freie Eingabefeld und
+die Notiz beim Line-Wechsel bleiben unverändert Freitext und nutzen
+weiterhin dieselbe Kommentar-Infrastruktur wie Boards und
+Trainingseinheiten. Beide Quellen erscheinen gemeinsam in einer
+Liste, sortiert nach Zeitpunkt – für den Trainer ändert sich an der
+Bedienung nichts.
+
+Bereits vor diesem Umbau erfasste Ereignisse bleiben als eingefrorener
+Text sichtbar (keine rückwirkende Umwandlung).
 
 ## Verwandt
 

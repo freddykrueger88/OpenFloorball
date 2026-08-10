@@ -251,6 +251,19 @@ describe('Spiele/Live-Notizen (games + comments) – Team-Sharing', () => {
     expect(res.status).toBe(404);
   });
 
+  it('coach darf ein Live-Match-Ereignis für das Team-Spiel anlegen', async () => {
+    const res = await request(app).post(`/api/games/${gameId}/events`).set('Cookie', coach.cookie).send({ eventType: 'timeout' });
+    expect(res.status).toBe(201);
+  });
+
+  it('member darf Live-Match-Ereignisse NICHT anlegen (404), aber lesen', async () => {
+    const eventsRes = await request(app).get(`/api/games/${gameId}/events`).set('Cookie', member.cookie);
+    expect(eventsRes.status).toBe(200);
+
+    const res = await request(app).post(`/api/games/${gameId}/events`).set('Cookie', member.cookie).send({ eventType: 'timeout' });
+    expect(res.status).toBe(404);
+  });
+
   it('member darf das Spiel NICHT löschen (404)', async () => {
     const res = await request(app).delete(`/api/games/${gameId}`).set('Cookie', member.cookie);
     expect(res.status).toBe(404);

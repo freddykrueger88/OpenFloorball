@@ -14,6 +14,14 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Umfragen/Polls (schließt Roadmap-Phase D "Kommunikation – minimal"
+  ab): Coach/Owner stellt eine Frage mit 2–10 Optionen (Einzel- oder
+  Mehrfachauswahl) an sein Team unter `/polls`, Mitglieder stimmen ab,
+  Ergebnisse sind sofort für alle sichtbar. Ein Klick auf die eigene
+  Auswahl entfernt die Stimme wieder. Coach/Owner kann eine Umfrage
+  schließen (verhindert weitere Stimmen). Neue `polls`/`poll_options`/
+  `poll_votes`-Tabellen, gleiche `team_id NOT NULL`-Architektur wie
+  `announcements`.
 - News/Ankündigungen (Roadmap-Phase D "Kommunikation – minimal"):
   einfaches Team-Ankündigungsboard unter `/news` – Coach/Owner postet
   kurze Mitteilungen, alle Team-Mitglieder lesen sie chronologisch.

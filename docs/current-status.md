@@ -55,6 +55,10 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 - **News/Ankündigungen** (`/news`) – Coach/Owner postet kurze
   Mitteilungen an sein Team, alle Mitglieder lesen sie chronologisch,
   bewusst kein Vollchat. Details: [docs/wiki/News.md](./wiki/News.md).
+- **Umfragen/Polls** (`/polls`) – Coach/Owner erstellt Abstimmungen
+  (Einzel- oder Mehrfachauswahl) für sein Team, Ergebnisse sofort für
+  alle sichtbar, optional schließbar. Details:
+  [docs/wiki/Umfragen.md](./wiki/Umfragen.md).
 - **Board-Sharing** – Kollaboratoren (nur Owner verwaltet),
   E-Mail-Einladungen auch für noch nicht registrierte Adressen,
   öffentliche Share-Links (ganzes Board oder einzelnes Frame).

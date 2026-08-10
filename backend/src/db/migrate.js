@@ -428,6 +428,44 @@ export async function runMigrations() {
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_announcements_team_id ON announcements(team_id);`);
 
+    // ── polls/poll_options/poll_votes (Roadmap-Audit: Umfragen, Phase D) ────
+    // Wie announcements: team_id NOT NULL + ON DELETE CASCADE (kein
+    // persönlicher Fall, eine Umfrage ohne Team hat kein Publikum). Kein
+    // Bearbeiten von Frage/Optionen nach dem Anlegen – bei Fehler löschen
+    // und neu erstellen. Ergebnisse sind für alle Team-Mitglieder immer
+    // sichtbar (kein "erst nach Schließen sichtbar"-Zustand).
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS polls (
+        id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        team_id         UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+        user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        question        TEXT NOT NULL,
+        multiple_choice BOOLEAN NOT NULL DEFAULT false,
+        closed_at       TIMESTAMPTZ,
+        created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_polls_team_id ON polls(team_id);`);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS poll_options (
+        id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        poll_id     UUID NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
+        text        TEXT NOT NULL,
+        order_index INT NOT NULL
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_poll_options_poll_id ON poll_options(poll_id);`);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS poll_votes (
+        id             UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        poll_option_id UUID NOT NULL REFERENCES poll_options(id) ON DELETE CASCADE,
+        user_id        UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (poll_option_id, user_id)
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_poll_votes_option_id ON poll_votes(poll_option_id);`);
+
     // ── Team-Fähigkeit der vier teilbaren Ressourcen (additiv, nullable) ───
     // team_id IS NULL → weiterhin rein persönlich (unverändertes Verhalten).
     await client.query(`ALTER TABLE roster_players ADD COLUMN IF NOT EXISTS team_id UUID REFERENCES teams(id) ON DELETE SET NULL;`);

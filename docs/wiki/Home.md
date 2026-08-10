@@ -22,7 +22,7 @@ als GIF/MP4/PDF/Link, Docker-basiert und IFF-konform.
 - Formationen-Vorlagen, Playbooks
 - Zentraler Team-Kader, Lines (Sturm-/Defensivreihen aus echten
   Kader-Spielern), Live-Spielnotizen, Trainingsplaner, Teams & Vereine,
-  News/Ankündigungen
+  News/Ankündigungen, Umfragen
 - Video-Integration (Upload, Zeichnen-Überlagerung, Trimmen,
   Szenen-Marken)
 - Echtzeit-Zusammenarbeit (Präsenzanzeige, Live-Cursor)
@@ -55,6 +55,7 @@ als GIF/MP4/PDF/Link, Docker-basiert und IFF-konform.
 - [Live-Spielnotizen](./Live-Spielnotizen.md)
 - [Kalender](./Kalender.md)
 - [News](./News.md)
+- [Umfragen](./Umfragen.md)
 - [Teams und Vereine](./Teams-und-Vereine.md)
 - [Video-Integration](./Video-Integration.md)
 - [Echtzeit-Zusammenarbeit](./Echtzeit-Zusammenarbeit.md)

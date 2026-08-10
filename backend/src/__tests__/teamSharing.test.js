@@ -395,6 +395,26 @@ describe('Ankündigungen (announcements) – Team-Sharing', () => {
   });
 });
 
+describe('Umfragen (polls) – Team-Sharing', () => {
+  let pollId;
+  let optionId;
+
+  it('coach darf eine Umfrage anlegen, member darf abstimmen', async () => {
+    const createRes = await request(app).post('/api/polls').set('Cookie', coach.cookie).send({ teamId, question: 'Team-Umfrage?', options: ['Ja', 'Nein'] });
+    expect(createRes.status).toBe(201);
+    pollId = createRes.body.data._id;
+    optionId = createRes.body.data.options[0]._id;
+
+    const voteRes = await request(app).post(`/api/polls/${pollId}/vote`).set('Cookie', member.cookie).send({ optionId });
+    expect(voteRes.status).toBe(200);
+  });
+
+  it('member darf die Umfrage NICHT schließen (404)', async () => {
+    const res = await request(app).put(`/api/polls/${pollId}/close`).set('Cookie', member.cookie);
+    expect(res.status).toBe(404);
+  });
+});
+
 describe('Team löschen – geteilte Ressourcen werden wieder persönlich', () => {
   let cleanupTeamId;
   let playerId;

@@ -17,6 +17,7 @@
     "games": "Spiele",
     "calendar": "Kalender",
     "news": "News",
+    "polls": "Umfragen",
     "library": "Übungsbibliothek",
     "knowledge": "Wissen"
   },
@@ -373,6 +374,30 @@
     "loading": "Lädt Ankündigungen…",
     "emptyStateDesc": "Noch keine Ankündigungen in deinen Teams. Als Coach oder Vereinsleiter kannst du hier kurze Mitteilungen an dein Team posten.",
     "deleteAriaLabel": "Ankündigung löschen",
+    "deleteTitle": "Löschen"
+  },
+  "polls": {
+    "title": "Umfragen",
+    "count_one": "{{count}} Umfrage",
+    "count_other": "{{count}} Umfragen",
+    "noPollsYet": "Noch keine Umfragen",
+    "noTeamHint": "Umfragen gehören immer zu einem Team – tritt einem Team bei oder erstelle eines, um Umfragen zu sehen oder zu erstellen.",
+    "teamAriaLabel": "Team, an das die Umfrage geht",
+    "questionPlaceholder": "Frage stellen…",
+    "questionAriaLabel": "Frage der Umfrage",
+    "optionPlaceholder": "Option {{number}}",
+    "optionAriaLabel": "Option {{number}}",
+    "removeOptionAriaLabel": "Option entfernen",
+    "addOption": "Option hinzufügen",
+    "multipleChoiceLabel": "Mehrfachauswahl erlauben",
+    "submit": "Umfrage erstellen",
+    "loading": "Lädt Umfragen…",
+    "emptyStateDesc": "Noch keine Umfragen in deinen Teams. Als Coach oder Vereinsleiter kannst du hier Abstimmungen erstellen, z. B. zur Terminfindung.",
+    "voteCount_one": "{{count}} Stimme",
+    "voteCount_other": "{{count}} Stimmen",
+    "closedBadge": "Geschlossen",
+    "closeAction": "Schließen",
+    "deleteAriaLabel": "Umfrage löschen",
     "deleteTitle": "Löschen"
   },
   "versions": {

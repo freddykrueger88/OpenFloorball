@@ -17,6 +17,7 @@
     "games": "Games",
     "calendar": "Calendar",
     "news": "News",
+    "polls": "Polls",
     "library": "Exercise Library",
     "knowledge": "Knowledge"
   },
@@ -373,6 +374,30 @@
     "loading": "Loading announcements…",
     "emptyStateDesc": "No announcements in your teams yet. As a coach or club admin you can post short messages to your team here.",
     "deleteAriaLabel": "Delete announcement",
+    "deleteTitle": "Delete"
+  },
+  "polls": {
+    "title": "Polls",
+    "count_one": "{{count}} poll",
+    "count_other": "{{count}} polls",
+    "noPollsYet": "No polls yet",
+    "noTeamHint": "Polls always belong to a team – join or create a team to see or create polls.",
+    "teamAriaLabel": "Team this poll goes to",
+    "questionPlaceholder": "Ask a question…",
+    "questionAriaLabel": "Poll question",
+    "optionPlaceholder": "Option {{number}}",
+    "optionAriaLabel": "Option {{number}}",
+    "removeOptionAriaLabel": "Remove option",
+    "addOption": "Add option",
+    "multipleChoiceLabel": "Allow multiple choices",
+    "submit": "Create poll",
+    "loading": "Loading polls…",
+    "emptyStateDesc": "No polls in your teams yet. As a coach or club admin you can create votes here, e.g. to find a date.",
+    "voteCount_one": "{{count}} vote",
+    "voteCount_other": "{{count}} votes",
+    "closedBadge": "Closed",
+    "closeAction": "Close",
+    "deleteAriaLabel": "Delete poll",
     "deleteTitle": "Delete"
   },
   "versions": {

@@ -14,6 +14,12 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- News/Ankündigungen (Roadmap-Phase D "Kommunikation – minimal"):
+  einfaches Team-Ankündigungsboard unter `/news` – Coach/Owner postet
+  kurze Mitteilungen, alle Team-Mitglieder lesen sie chronologisch.
+  Bewusst kein Vollchat (kein Kommentieren/Antworten). Neue,
+  eigenständige `announcements`-Tabelle (`team_id NOT NULL`, kein
+  persönlicher Fall – eine Ankündigung ohne Team hat kein Publikum).
 - Live-Match-Ereignisse (Start Roadmap-Phase C "Match-Erlebnis"): die
   10 festen IFF-Preset-Buttons auf der Spielseite (Anstoß Drittel 1–3,
   Drittelende, Auszeit, Tor, Strafe 2/5 Min., Matchstrafe, Spielende)

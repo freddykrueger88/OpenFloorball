@@ -410,6 +410,24 @@ export async function runMigrations() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_team_members_team_id ON team_members(team_id);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON team_members(user_id);`);
 
+    // ── announcements (Roadmap-Audit: News/Ankündigungen, Phase D) ──────────
+    // Anders als games/training_sessions gibt es KEINEN persönlichen Fall –
+    // eine Ankündigung ohne Team hat kein Publikum, daher team_id NOT NULL
+    // und ON DELETE CASCADE statt SET NULL (exakt wie beim einzigen anderen
+    // nicht-nullbaren team_id-Fall, team_members oben). Kein updated_at/
+    // Bearbeiten – bei Tippfehler löschen und neu erfassen, wie bei
+    // Notizen/Kommentaren üblich. Kein Titel-Feld (ein Satz reicht).
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS announcements (
+        id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        team_id    UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+        user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        text       TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_announcements_team_id ON announcements(team_id);`);
+
     // ── Team-Fähigkeit der vier teilbaren Ressourcen (additiv, nullable) ───
     // team_id IS NULL → weiterhin rein persönlich (unverändertes Verhalten).
     await client.query(`ALTER TABLE roster_players ADD COLUMN IF NOT EXISTS team_id UUID REFERENCES teams(id) ON DELETE SET NULL;`);

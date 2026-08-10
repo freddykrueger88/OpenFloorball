@@ -379,6 +379,22 @@ describe('Formationsvorlagen (formation_templates) – Team-Sharing', () => {
   });
 });
 
+describe('Ankündigungen (announcements) – Team-Sharing', () => {
+  it('coach darf eine Ankündigung anlegen, member sieht sie nur lesend', async () => {
+    const createRes = await request(app).post('/api/announcements').set('Cookie', coach.cookie).send({ teamId, text: 'Team-Ankündigung' });
+    expect(createRes.status).toBe(201);
+
+    const listRes = await request(app).get('/api/announcements').set('Cookie', member.cookie);
+    expect(listRes.status).toBe(200);
+    expect(listRes.body.data.some((a) => a._id === createRes.body.data._id)).toBe(true);
+  });
+
+  it('member darf keine Ankündigung anlegen (404)', async () => {
+    const res = await request(app).post('/api/announcements').set('Cookie', member.cookie).send({ teamId, text: 'Sollte fehlschlagen' });
+    expect(res.status).toBe(404);
+  });
+});
+
 describe('Team löschen – geteilte Ressourcen werden wieder persönlich', () => {
   let cleanupTeamId;
   let playerId;

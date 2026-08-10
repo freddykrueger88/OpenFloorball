@@ -16,6 +16,7 @@
     "lines": "Lines",
     "games": "Spiele",
     "calendar": "Kalender",
+    "news": "News",
     "library": "Übungsbibliothek",
     "knowledge": "Wissen"
   },
@@ -358,6 +359,21 @@
       "urlAriaLabel": "Kalender-Feed-URL",
       "error": "Fehler: {{error}}"
     }
+  },
+  "news": {
+    "title": "News",
+    "count_one": "{{count}} Ankündigung",
+    "count_other": "{{count}} Ankündigungen",
+    "noAnnouncementsYet": "Noch keine Ankündigungen",
+    "noTeamHint": "News gehören immer zu einem Team – tritt einem Team bei oder erstelle eines, um Ankündigungen zu sehen oder zu posten.",
+    "teamAriaLabel": "Team, an das die Ankündigung geht",
+    "textPlaceholder": "Ankündigung schreiben…",
+    "textAriaLabel": "Text der Ankündigung",
+    "submit": "Posten",
+    "loading": "Lädt Ankündigungen…",
+    "emptyStateDesc": "Noch keine Ankündigungen in deinen Teams. Als Coach oder Vereinsleiter kannst du hier kurze Mitteilungen an dein Team posten.",
+    "deleteAriaLabel": "Ankündigung löschen",
+    "deleteTitle": "Löschen"
   },
   "versions": {
     "title": "Verlauf",

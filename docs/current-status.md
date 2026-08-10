@@ -52,6 +52,9 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   [docs/wiki/Kalender.md](./wiki/Kalender.md)).
 - **Team-Kader**, **Teams und Vereine** – zweistufiges Rollenmodell
   je Ebene (Details: [docs/wiki/Teams-und-Vereine.md](./wiki/Teams-und-Vereine.md)).
+- **News/Ankündigungen** (`/news`) – Coach/Owner postet kurze
+  Mitteilungen an sein Team, alle Mitglieder lesen sie chronologisch,
+  bewusst kein Vollchat. Details: [docs/wiki/News.md](./wiki/News.md).
 - **Board-Sharing** – Kollaboratoren (nur Owner verwaltet),
   E-Mail-Einladungen auch für noch nicht registrierte Adressen,
   öffentliche Share-Links (ganzes Board oder einzelnes Frame).

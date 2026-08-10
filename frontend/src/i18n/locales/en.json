@@ -16,6 +16,7 @@
     "lines": "Lines",
     "games": "Games",
     "calendar": "Calendar",
+    "news": "News",
     "library": "Exercise Library",
     "knowledge": "Knowledge"
   },
@@ -358,6 +359,21 @@
       "urlAriaLabel": "Calendar feed URL",
       "error": "Error: {{error}}"
     }
+  },
+  "news": {
+    "title": "News",
+    "count_one": "{{count}} announcement",
+    "count_other": "{{count}} announcements",
+    "noAnnouncementsYet": "No announcements yet",
+    "noTeamHint": "News always belongs to a team – join or create a team to see or post announcements.",
+    "teamAriaLabel": "Team this announcement goes to",
+    "textPlaceholder": "Write an announcement…",
+    "textAriaLabel": "Announcement text",
+    "submit": "Post",
+    "loading": "Loading announcements…",
+    "emptyStateDesc": "No announcements in your teams yet. As a coach or club admin you can post short messages to your team here.",
+    "deleteAriaLabel": "Delete announcement",
+    "deleteTitle": "Delete"
   },
   "versions": {
     "title": "History",

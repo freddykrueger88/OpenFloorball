@@ -13,8 +13,10 @@ gesetztes Datum (Gegner-Datum bzw. geplantes Trainingsdatum). Ohne
 Datum erscheint ein Termin nicht im Kalender, bleibt aber ganz normal
 in der jeweiligen Listenansicht (`/games`, `/trainings`) sichtbar.
 
-Aktuell nur Monatsansicht (keine Wochenansicht), keine
-Serientermine – das sind eigene, größere Backlog-Punkte.
+Aktuell nur Monatsansicht (keine Wochenansicht) – das ist ein eigener,
+größerer Backlog-Punkt. Serientermine für Trainings gibt es bereits
+(siehe [Trainingsplaner](./Trainingsplaner.md#serientermine)) – erzeugte
+Folgetermine erscheinen automatisch auch hier im Kalender.
 
 ## Kalender-Abo (ICS-Export)
 

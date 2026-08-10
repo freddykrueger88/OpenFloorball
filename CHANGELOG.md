@@ -14,6 +14,14 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Serientermine für Trainingseinheiten: aus einer datierten
+  Trainingseinheit heraus lassen sich Folgetermine (täglich/
+  wöchentlich/alle 2 Wochen bis zu einem Enddatum, max. 52 pro
+  Durchlauf) erzeugen. Jeder erzeugte Termin ist danach unabhängig
+  editier-/löschbar (kein Serien-Tracking, keine Ausnahme-Verwaltung
+  – bewusst einfacher gehalten als ein RFC-5545-RRULE-Modell). Das
+  Anti-Abuse-Kontingent für Trainingseinheiten pro Nutzer wurde dafür
+  von 20 auf 200 angehoben.
 - ICS-Kalender-Abo (`/calendar`): persönlicher, wiederholt abrufbarer
   Kalender-Feed für Google Calendar/Apple Kalender/Outlook, gespeist
   aus datierten Spielen und Trainingseinheiten. Klartext-Token

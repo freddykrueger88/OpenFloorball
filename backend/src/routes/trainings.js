@@ -8,7 +8,7 @@ import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
   getSessions, createSession, getSession, updateSession, deleteSession,
-  addItem, updateItem, deleteItem, reorderItems,
+  addItem, updateItem, deleteItem, reorderItems, repeatSession,
 } from '../controllers/trainingSessionsController.js';
 
 const router = Router();
@@ -42,6 +42,13 @@ router.put   ('/:id',  [
   validate,
 ], updateSession);
 router.delete('/:id',  [idParam, validate], deleteSession);
+
+router.post  ('/:id/repeat', [
+  idParam,
+  body('repeat').isIn(['daily', 'weekly', 'biweekly']).withMessage('Ungültiges Wiederholungsmuster'),
+  body('until').isISO8601().withMessage('Ungültiges Datum').bail().isLength({ max: 10 }),
+  validate,
+], repeatSession);
 
 router.post  ('/:id/items', [
   idParam,

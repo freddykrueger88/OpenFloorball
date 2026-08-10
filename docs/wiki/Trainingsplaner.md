@@ -25,6 +25,27 @@ kopieren. Änderungen an einem Board wirken sich also auch auf jeden
 Trainingsplan aus, der dieses Board enthält. Wird ein Board gelöscht,
 verschwindet die entsprechende Übung auch aus allen Trainingsplänen.
 
+## Serientermine
+
+Sobald eine Trainingseinheit ein Datum hat, erscheint darunter der
+Button "Serie erstellen". Damit lassen sich Folgetermine anlegen –
+täglich, wöchentlich oder alle 2 Wochen, bis zu einem gewählten
+Enddatum (maximal 52 neue Termine pro Durchlauf).
+
+Jeder erzeugte Termin ist danach ein ganz normaler, eigenständiger
+Trainingsplan (Name, Ziel und Notiz werden vom Ausgangstermin
+übernommen) – es gibt **keine** fortlaufende Verknüpfung zur Serie.
+Das heißt:
+
+- Ein einzelner Termin lässt sich jederzeit verschieben, umbenennen
+  oder löschen, ohne die anderen zu beeinflussen (z. B. wenn ein
+  Training an einem Feiertag ausfällt).
+- Übungen (Board-Referenzen) werden **nicht** mitkopiert – die Serie
+  legt nur das Datums-Grundgerüst an, jede Einheit wird inhaltlich
+  einzeln geplant.
+- Das Gesamt-Kontingent an Trainingseinheiten pro Nutzer liegt bei
+  200 (auch für Serien).
+
 ## Anwesenheit (RSVP)
 
 Bei einer team-geteilten Trainingseinheit erscheint über den

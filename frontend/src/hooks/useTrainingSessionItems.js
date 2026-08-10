@@ -44,6 +44,14 @@ export function useTrainingSessionItems() {
       return updated;
     }), [request]);
 
+  // Roadmap-Audit "Serientermine": erzeugt unabhängige Folge-Termine
+  // (kein Serien-Tracking) – betrifft weder `session` noch `items`
+  // dieses Hooks, die neuen Termine sind eigenständige Entitäten und
+  // erscheinen in der Trainings-/Kalenderübersicht.
+  const repeatSession = useCallback((sessionId, { repeat, until }) =>
+    request(() => apiFetch(`${BASE}/${sessionId}/repeat`, { method: 'POST', body: JSON.stringify({ repeat, until }) })),
+    [request]);
+
   const addItem = useCallback((sessionId, { boardId, durationMinutes, note }) =>
     request(async () => {
       const newItem = await apiFetch(`${BASE}/${sessionId}/items`, {
@@ -92,7 +100,7 @@ export function useTrainingSessionItems() {
 
   return {
     session, items, loading, error,
-    fetchSession, updateSession, addItem, updateItem, removeItem, reorderItems, moveItem,
+    fetchSession, updateSession, repeatSession, addItem, updateItem, removeItem, reorderItems, moveItem,
     canAddItem: items.length < MAX_ITEMS,
   };
 }

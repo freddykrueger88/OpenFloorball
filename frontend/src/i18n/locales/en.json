@@ -973,7 +973,20 @@
     "moveDown": "Move down",
     "removeItemAriaLabel": "Remove drill",
     "removeItemTitle": "Remove",
-    "addItem": "Add drill"
+    "addItem": "Add drill",
+    "series": {
+      "openButton": "Create series",
+      "needsDateHint": "Set a date first to create a series.",
+      "repeatLabel": "Repeat",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "biweekly": "Every 2 weeks",
+      "untilLabel": "Until",
+      "untilAriaLabel": "End date of the series",
+      "submit": "Create series",
+      "success_one": "{{count}} more session created",
+      "success_other": "{{count}} more sessions created"
+    }
   },
   "games": {
     "count_one": "{{count}} game",

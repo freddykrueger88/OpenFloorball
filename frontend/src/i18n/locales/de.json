@@ -973,7 +973,20 @@
     "moveDown": "Nach unten verschieben",
     "removeItemAriaLabel": "Übung entfernen",
     "removeItemTitle": "Entfernen",
-    "addItem": "Übung hinzufügen"
+    "addItem": "Übung hinzufügen",
+    "series": {
+      "openButton": "Serie erstellen",
+      "needsDateHint": "Setze zuerst ein Datum, um eine Serie zu erstellen.",
+      "repeatLabel": "Wiederholung",
+      "daily": "Täglich",
+      "weekly": "Wöchentlich",
+      "biweekly": "Alle 2 Wochen",
+      "untilLabel": "Bis",
+      "untilAriaLabel": "Enddatum der Serie",
+      "submit": "Serie erstellen",
+      "success_one": "{{count}} weiterer Termin erstellt",
+      "success_other": "{{count}} weitere Termine erstellt"
+    }
   },
   "games": {
     "count_one": "{{count}} Spiel",

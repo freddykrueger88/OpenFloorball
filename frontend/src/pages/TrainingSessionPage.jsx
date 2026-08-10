@@ -27,7 +27,7 @@ export default function TrainingSessionPage() {
   const { id } = useParams();
   const {
     session, items, loading, error,
-    fetchSession, updateSession, addItem, updateItem, removeItem, moveItem, canAddItem,
+    fetchSession, updateSession, repeatSession, addItem, updateItem, removeItem, moveItem, canAddItem,
   } = useTrainingSessionItems();
   const { fetchBoard } = useBoardsApi();
   const { exporting, error: exportError, exportPdf } = usePdfExport();
@@ -40,6 +40,11 @@ export default function TrainingSessionPage() {
   const [showPicker,    setShowPicker   ] = useState(false);
   const [adding,        setAdding       ] = useState(false);
   const [pdfError,      setPdfError     ] = useState(null);
+  // Roadmap-Audit "Serientermine"
+  const [seriesOpen,         setSeriesOpen        ] = useState(false);
+  const [seriesRepeat,       setSeriesRepeat      ] = useState('weekly');
+  const [seriesUntil,        setSeriesUntil       ] = useState('');
+  const [seriesSuccessCount, setSeriesSuccessCount] = useState(null);
   const nameInputRef = useRef(null);
 
   const load = useCallback(async () => {
@@ -87,6 +92,17 @@ export default function TrainingSessionPage() {
     if (goal !== (session?.goal ?? '')) {
       try { await updateSession(id, { goal }); } catch { /* error via hook */ }
     }
+  };
+
+  const handleCreateSeries = async (e) => {
+    e.preventDefault();
+    try {
+      const createdSessions = await repeatSession(id, { repeat: seriesRepeat, until: seriesUntil });
+      setSeriesOpen(false);
+      setSeriesUntil('');
+      setSeriesSuccessCount(createdSessions.length);
+      setTimeout(() => setSeriesSuccessCount(null), 4000);
+    } catch { /* error via hook */ }
   };
 
   const handleAddBoard = async (boardId) => {
@@ -207,6 +223,55 @@ export default function TrainingSessionPage() {
           maxLength={200}
           aria-label={t('trainings.goalAriaLabel')}
         />
+      </div>
+
+      <div className={styles.seriesSection}>
+        {scheduledDate ? (
+          seriesOpen ? (
+            <form className={styles.seriesForm} onSubmit={handleCreateSeries}>
+              <label className={styles.metaField}>
+                {t('trainings.series.repeatLabel')}
+                <select
+                  className={styles.dateInput}
+                  value={seriesRepeat}
+                  onChange={(e) => setSeriesRepeat(e.target.value)}
+                  aria-label={t('trainings.series.repeatLabel')}
+                >
+                  <option value="daily">{t('trainings.series.daily')}</option>
+                  <option value="weekly">{t('trainings.series.weekly')}</option>
+                  <option value="biweekly">{t('trainings.series.biweekly')}</option>
+                </select>
+              </label>
+              <label className={styles.metaField}>
+                {t('trainings.series.untilLabel')}
+                <input
+                  type="date"
+                  className={styles.dateInput}
+                  value={seriesUntil}
+                  min={scheduledDate}
+                  onChange={(e) => setSeriesUntil(e.target.value)}
+                  required
+                  aria-label={t('trainings.series.untilAriaLabel')}
+                />
+              </label>
+              <Button type="submit" variant="primary" size="sm" disabled={loading || !seriesUntil}>
+                {t('trainings.series.submit')}
+              </Button>
+              <Button type="button" variant="secondary" size="sm" onClick={() => setSeriesOpen(false)}>
+                {t('trainings.cancelCreate')}
+              </Button>
+            </form>
+          ) : (
+            <Button variant="secondary" size="sm" onClick={() => setSeriesOpen(true)}>
+              {t('trainings.series.openButton')}
+            </Button>
+          )
+        ) : (
+          <p className={styles.seriesHint}>{t('trainings.series.needsDateHint')}</p>
+        )}
+        {seriesSuccessCount !== null && (
+          <p className={styles.seriesSuccess} role="status">{t('trainings.series.success', { count: seriesSuccessCount })}</p>
+        )}
       </div>
 
       <textarea

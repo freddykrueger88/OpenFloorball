@@ -6,7 +6,11 @@ import { useState, useCallback } from 'react';
 import { apiFetch } from '../utils/apiFetch.js';
 
 const BASE = '/api/trainings';
-const MAX_SESSIONS = 20;
+// Roadmap-Audit "Serientermine": Backend hat den Anti-Abuse-Cap von
+// 20 auf 200 angehoben (eine Saison an Serien-Terminen sprengt 20
+// sofort) – dieser Wert hier ist nur die UX-Vorabprüfung, Backend
+// bleibt die Autorität (siehe trainingSessionsController.js).
+const MAX_SESSIONS = 200;
 
 export function useTrainingSessions() {
   const [sessions, setSessions] = useState([]);

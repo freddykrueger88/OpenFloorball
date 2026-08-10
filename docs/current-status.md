@@ -30,7 +30,9 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   Details: [Lines](./wiki/Lines.md). **Formationsvorlagen, Playbooks**
   – wiederverwendbare Aufstellungen, Board-Sammlungen.
 - **Trainingsplaner** – Trainingseinheiten mit Übungen, referenziert
-  Boards live per Fremdschlüssel statt Kopie.
+  Boards live per Fremdschlüssel statt Kopie. Inkl. Serientermine
+  (täglich/wöchentlich/alle 2 Wochen, unabhängige Folgetermine ohne
+  Serien-Tracking). Details: [Trainingsplaner](./wiki/Trainingsplaner.md).
 - **Live-Spielnotizen** – Spiele anlegen (Gegner/Datum, optional
   team-geteilt), während des laufenden Spiels schnelle,
   zeitgestempelte Notizen erfassen. Details: [Live-Spielnotizen](./wiki/Live-Spielnotizen.md).

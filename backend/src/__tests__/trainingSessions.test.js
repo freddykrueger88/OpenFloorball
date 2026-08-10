@@ -68,13 +68,18 @@ describe('GET/POST /api/trainings', () => {
     expect(res.status).toBe(422);
   });
 
-  it('lehnt eine 21. Trainingseinheit mit 400 ab (Maximal 20)', async () => {
-    for (let i = 0; i < 19; i++) {
-      const res = await request(app)
-        .post('/api/trainings')
-        .set('Cookie', owner.cookie)
-        .send({ name: `Session ${i}` });
-      expect(res.status).toBe(201);
+  it('lehnt eine zusätzliche Trainingseinheit ab, wenn das Kontingent (200) ausgeschöpft ist', async () => {
+    // Roadmap-Audit "Serientermine" hat MAX_SESSIONS von 20 auf 200
+    // angehoben (Serien über eine Saison brauchen mehr Spielraum) –
+    // 199 weitere Sessions per HTTP anzulegen wäre unnötig langsam,
+    // daher direkter Bulk-Insert bis kurz vor das Kontingent, nur der
+    // eigentliche Grenzfall läuft über den echten Endpunkt.
+    const userResult = await pool.query('SELECT id FROM users WHERE email = $1', [owner.email]);
+    const ownerId = userResult.rows[0].id;
+    const countResult = await pool.query('SELECT COUNT(*)::int AS count FROM training_sessions WHERE user_id = $1', [ownerId]);
+    const remaining = 200 - countResult.rows[0].count;
+    for (let i = 0; i < remaining; i++) {
+      await pool.query('INSERT INTO training_sessions (user_id, name) VALUES ($1, $2)', [ownerId, `Filler ${i}`]);
     }
     const overLimit = await request(app)
       .post('/api/trainings')

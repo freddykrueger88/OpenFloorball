@@ -16,11 +16,23 @@ import logger from '../utils/logger.js';
 import { success, created, error } from '../utils/apiResponse.js';
 import { getUserTeamIds, assertTeamAccess } from '../utils/teamAccess.js';
 import { assertBoardAccess } from '../utils/boardAccess.js';
+import { addDays } from '../utils/dateMath.js';
 import { deleteCommentsForResource } from './commentsController.js';
 import { deleteRsvpsForResource } from './rsvpsController.js';
 
-const MAX_SESSIONS = 20;
+// Roadmap-Audit "Serientermine": eine Serie über eine Saison (z.B.
+// 2×/Woche, mehrere Teams) sprengt den ursprünglichen Anti-Abuse-Cap
+// von 20 sofort – daher auf 200 angehoben (weiterhin begrenzt, aber
+// realistisch für Serien-Nutzung). Gespiegelt in
+// frontend/src/hooks/useTrainingSessions.js (nur UX-Vorabprüfung,
+// dieser Wert hier bleibt die Autorität).
+const MAX_SESSIONS = 200;
 const MAX_ITEMS_PER_SESSION = 30;
+// Serientermine: pro Serien-Request maximal neu erzeugte Termine
+// (unabhängig vom MAX_SESSIONS-Gesamtkontingent), damit ein einzelner
+// Request nicht unbegrenzt viele Zeilen einfügt.
+const MAX_SERIES_OCCURRENCES = 52;
+const SERIES_STEP_DAYS = { daily: 1, weekly: 7, biweekly: 14 };
 
 // node-postgres liefert DATE-Spalten als Date-Objekt in der lokalen
 // Zeitzone des Prozesses – über die lokalen Getter statt toISOString()
@@ -227,6 +239,74 @@ export async function deleteSession(req, res) {
     res.json(success({ message: 'Trainingseinheit gelöscht' }));
   } catch (err) {
     logger.error('[deleteSession]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// POST /api/trainings/:id/repeat   Body: { repeat: 'daily'|'weekly'|'biweekly', until: 'YYYY-MM-DD' }
+// Roadmap-Audit "Serientermine" – erzeugt unabhängige Folge-Termine
+// (kein Serien-Tracking, jeder ist danach normal editierbar/löschbar).
+// Übernimmt name/team_id/goal/notes vom Ausgangstermin, NICHT die Items
+// (Board-Übungen) – die Serie liefert nur das Datums-Grundgerüst.
+export async function repeatSession(req, res) {
+  try {
+    if (!(await assertSessionWrite(req.params.id, req.user.id))) {
+      return res.status(404).json(error('Trainingseinheit nicht gefunden'));
+    }
+
+    const sourceResult = await pool.query('SELECT * FROM training_sessions WHERE id = $1', [req.params.id]);
+    const source = sourceResult.rows[0];
+    if (!source.scheduled_date) {
+      return res.status(400).json(error('Für eine Serie muss der Ausgangstermin ein Datum haben'));
+    }
+
+    const scheduledDate = toDateString(source.scheduled_date);
+    const { repeat, until } = req.body;
+    if (until <= scheduledDate) {
+      return res.status(400).json(error('Enddatum muss nach dem Ausgangstermin liegen'));
+    }
+
+    const step = SERIES_STEP_DAYS[repeat];
+    const occurrenceDates = [];
+    let cursor = addDays(scheduledDate, step);
+    while (cursor <= until) {
+      occurrenceDates.push(cursor);
+      if (occurrenceDates.length > MAX_SERIES_OCCURRENCES) {
+        return res.status(400).json(error(`Serie erzeugt zu viele Termine (max. ${MAX_SERIES_OCCURRENCES}) – wähle ein früheres Enddatum`));
+      }
+      cursor = addDays(cursor, step);
+    }
+
+    const countResult = await pool.query(
+      'SELECT COUNT(*)::int AS count FROM training_sessions WHERE user_id = $1',
+      [req.user.id]
+    );
+    if (countResult.rows[0].count + occurrenceDates.length > MAX_SESSIONS) {
+      return res.status(400).json(error(`Serie würde das Kontingent von ${MAX_SESSIONS} Trainingseinheiten überschreiten`));
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const rows = [];
+      for (const date of occurrenceDates) {
+        const insertResult = await client.query(
+          `INSERT INTO training_sessions (user_id, name, team_id, scheduled_date, goal, notes)
+           VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+          [req.user.id, source.name, source.team_id, date, source.goal, source.notes]
+        );
+        rows.push(insertResult.rows[0]);
+      }
+      await client.query('COMMIT');
+      res.status(201).json(success(rows.map((row) => toApiSession({ ...row, item_count: 0, total_minutes: 0 }))));
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    logger.error('[repeatSession]', err);
     res.status(500).json(error('Interner Serverfehler'));
   }
 }

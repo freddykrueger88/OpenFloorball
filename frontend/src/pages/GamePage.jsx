@@ -35,6 +35,10 @@ import useAnnounceStore from '../store/announceStore.js';
 import RsvpSection from '../components/rsvp/RsvpSection.jsx';
 import MatchSquadSection from '../components/matchSquad/MatchSquadSection.jsx';
 import LineStatsSection from '../components/lineStats/LineStatsSection.jsx';
+import { SHOT_OUTCOMES } from '../constants/shotOptions.js';
+import ShotEntryPanel from '../components/shotTracking/ShotEntryPanel.jsx';
+import ShotStatsSection from '../components/shotTracking/ShotStatsSection.jsx';
+import GoalkeeperStatsSection from '../components/shotTracking/GoalkeeperStatsSection.jsx';
 import Button from '../components/common/Button.jsx';
 import styles from './GamePage.module.css';
 
@@ -74,6 +78,11 @@ export default function GamePage() {
   // ausgewählt werden kann – null, wenn keine Auswahl offen ist. Immer
   // nur eine Auswahl gleichzeitig offen, statt eines Booleans pro Preset.
   const [openAttributionPreset, setOpenAttributionPreset] = useState(null);
+  // Statistik-Architektur Phase 3: Schuss-Tracking ist additiv zum
+  // bestehenden "Tor"-Preset – eigenes Panel statt Teil der
+  // Attribution-Auswahl, da es zusätzliche Felder (Position/Schusstyp/
+  // Ergebnis) braucht.
+  const [shotEntryOpen, setShotEntryOpen] = useState(false);
   // Spieluhr (Roadmap-Audit): tickt nur zur Anzeige, während die Uhr
   // läuft – der Server kennt nur Start-/Pausepunkte, die Restzeit wird
   // rein clientseitig aus clockElapsedSeconds/clockStartedAt berechnet.
@@ -293,8 +302,18 @@ export default function GamePage() {
   // speichern – dadurch zeigt ein vor einem Sprachwechsel erfasstes
   // Ereignis danach automatisch das neue Sprachlabel.
   const eventLabel = (evt) => {
-    const preset = PRESETS.find((p) => p.type === evt.eventType);
-    const base = preset?.text ?? evt.eventType;
+    // Schuss-Ereignisse (Phase 3) sind kein PRESETS-Eintrag – Basis-Label
+    // wird aus Ereignistyp + Ergebnis zusammengesetzt (Tor/Gehalten/
+    // Verfehlt/Geblockt).
+    let base;
+    if (evt.eventType === 'shot') {
+      const outcome = SHOT_OUTCOMES.find((o) => o.key === evt.outcome);
+      const outcomeLabel = outcome ? (i18n.language === 'en' ? outcome.labelEn : outcome.labelDe) : evt.outcome;
+      base = `${t('games.shotEntryTitle')} (${outcomeLabel})`;
+    } else {
+      const preset = PRESETS.find((p) => p.type === evt.eventType);
+      base = preset?.text ?? evt.eventType;
+    }
     if (evt.isOpponent) return `${base} – ${t('games.attributionOpponent')}`;
     if (evt.rosterPlayerId) {
       const player = squadForGame.find((p) => p._id === evt.rosterPlayerId);
@@ -306,11 +325,21 @@ export default function GamePage() {
     return base;
   };
 
+  // Companion-Goal-Events (Phase 3, ADR-0002) aus der Zeitleiste
+  // herausfiltern – das zugehörige shot-Ereignis zeigt das Tor bereits
+  // (inkl. Ergebnis-Label), eine zusätzliche bare "Tor"-Zeile wäre eine
+  // sichtbare Dopplung.
+  const companionGoalIds = new Set(
+    events
+      .filter((e) => e.eventType === 'shot' && e.metadata?.companionGoalEventId)
+      .map((e) => e.metadata.companionGoalEventId)
+  );
+
   // Events (strukturiert) und Notes (Freitext + Line-Wechsel) zu einer
   // gemeinsamen, chronologisch sortierten Zeitleiste zusammengeführt –
   // Anzeige bleibt für den Trainer wie zuvor eine einzige Liste.
   const timelineItems = [
-    ...events.map((e) => ({ kind: 'event', id: e._id, createdAt: e.createdAt, email: e.email, label: eventLabel(e) })),
+    ...events.filter((e) => !companionGoalIds.has(e._id)).map((e) => ({ kind: 'event', id: e._id, createdAt: e.createdAt, email: e.email, label: eventLabel(e) })),
     ...notes.map((n) => ({ kind: 'note', id: n._id, createdAt: n.createdAt, email: n.email, label: n.text })),
   ].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   const timelineNewestFirst = [...timelineItems].reverse();
@@ -437,6 +466,24 @@ export default function GamePage() {
         events={events}
         activeLineId={linesForGame.find((l) => l.isActive)?._id ?? null}
       />
+
+      <ShotStatsSection gameId={id} events={events} />
+      <GoalkeeperStatsSection gameId={id} events={events} squadForGame={squadForGame} />
+
+      {/* Statistik-Architektur Phase 3: Schuss-Tracking ist additiv zum
+          bestehenden "Tor"-Preset unten (bleibt unverändert als schnelle
+          Alternative erhalten) – eigener Umschalt-Button statt Teil der
+          PRESETS-Liste, da das Panel zusätzliche Felder braucht. */}
+      <Button variant="secondary" size="sm" className={styles.exportReportBtn} onClick={() => setShotEntryOpen((v) => !v)} aria-expanded={shotEntryOpen}>
+        {t('games.shotEntryButton')}
+      </Button>
+      {shotEntryOpen && (
+        <ShotEntryPanel
+          squadForGame={squadForGame}
+          addEvent={addEvent}
+          onSubmitted={() => setShotEntryOpen(false)}
+        />
+      )}
 
       <section className={styles.notesSection} aria-label={t('games.notesAriaLabel')}>
         <div className={styles.presetsRow} role="group" aria-label={t('games.presetsAriaLabel')}>

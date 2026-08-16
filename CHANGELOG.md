@@ -14,6 +14,19 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Statistik-Architektur Phase 3 (EPIC 012): Schuss-Tracking, Shot Map
+  und einfache Torhüter-Statistiken. Ein neuer "Schuss erfassen"-Button
+  auf der Spielseite öffnet ein Panel mit Zuordnung, Position (eigenes,
+  floorball-eigenes Zonen-Diagramm statt Eishockey-Geometrie),
+  Schusstyp und Ergebnis (Tor/Gehalten/Verfehlt/Geblockt). Ein Schuss
+  mit Ergebnis "Tor" erzeugt automatisch ein verknüpftes Tor-Ereignis,
+  sodass Live-Spielstand und bestehende Statistiken unverändert
+  funktionieren (kein doppelter Erfassungsschritt). Neue
+  "Schuss-Statistiken"-Sektion (inkl. Shot Map) und
+  "Torhüter-Statistiken"-Sektion auf der Spielseite, neue Spalten
+  (Schüsse/Schuss-%/Gegentore/Fangquote) auf der Saison-Statistikseite.
+  Das bestehende einfache "Tor"-Preset bleibt unverändert als schnelle
+  Alternative erhalten – additiv, kein Ersatz.
 - Statistik-Architektur Phase 2 (EPIC 012): strukturiertes
   Match-Line/Shift-Tracking – jeder Line-Wechsel während eines Spiels
   legt jetzt zusätzlich zur bestehenden Freitext-Notiz eine

@@ -4,13 +4,14 @@
 
 ## Statistik- und Performance-Analytics: Bestandsaufnahme, Gap-Analyse, Zielarchitektur
 
-> Status: Analyse abgeschlossen (2026-08-10). Phase 1 (Commit `f5f2ef6`)
-> und Phase 2 (Match-Line/Shift-Tracking) umgesetzt. Alle weiteren
-> Abschnitte noch NICHT implementiert außer explizit als "umgesetzt"
-> markiert. Dieses Dokument ist die kanonische Quelle für die
-> Statistik-/Analytics-Domäne und wird mit jeder Phase fortgeschrieben
-> (siehe `docs/planning/DECISIONS.md`
-> ADR-0001 für die zentrale Architekturentscheidung).
+> Status: Analyse abgeschlossen (2026-08-10). Phase 1 (Commit `f5f2ef6`),
+> Phase 2 (Match-Line/Shift-Tracking) und Phase 3 (Schuss-Tracking,
+> Shot Map, Zonen-Taxonomie, Torhüter-Statistiken) umgesetzt. Alle
+> weiteren Abschnitte noch NICHT implementiert außer explizit als
+> "umgesetzt" markiert. Dieses Dokument ist die kanonische Quelle für
+> die Statistik-/Analytics-Domäne und wird mit jeder Phase
+> fortgeschrieben (siehe `docs/planning/DECISIONS.md` ADR-0001 für die
+> zentrale Architekturentscheidung, ADR-0002/0003 für Phase 3).
 
 ---
 
@@ -304,6 +305,10 @@ Migration weiterhin grün sein).
 
 ## 8.1 `event_type_definitions` (NEU)
 
+> ✅ Umgesetzt (Phase 1, Commit `f5f2ef6`). Zusätzlich in Phase 3: ein
+> 11. Eintrag `shot` (siehe §9) – neue Typen brauchen weiterhin nur
+> einen `INSERT`, keine Migration.
+
 ```sql
 CREATE TABLE event_type_definitions (
   key                      TEXT PRIMARY KEY,
@@ -414,6 +419,47 @@ von Live-Spielen erhalten).
   ein vollständiges Diff-basiertes Korrektursystem zu bauen, das der
   bestehenden UX-Entscheidung widersprechen würde.
 
+## 8.5 Zonen-Taxonomie (Phase 3)
+
+> ✅ Umgesetzt. Details/Formel siehe `docs/statistics.md`
+> ("Zonen-Taxonomie").
+
+5 Zonen (Nahzone Zentrum/Links/Rechts, Halbdistanz, Distanz), bewusst
+NICHT aus dem Eishockey übernommen (kein "Slot"/"Point"/"blaue
+Linie"). `deriveZone(x, y)` ist bewusst dupliziert in
+`backend/src/services/statisticsEngine.js` UND
+`frontend/src/constants/shotZones.js` (kein Shared-Package, gleiche
+Toleranz wie z.B. `toDateString`) – der Server befüllt `zone`
+automatisch, falls der Client nur `x`/`y` schickt.
+
+## 8.6 `shot`-Ereignis + Companion-Goal-Event (Phase 3, ADR-0002/0003)
+
+> ✅ Umgesetzt.
+
+Ein neuer, einziger `shot`-Event-Typ (statt vier Typen, siehe
+Abschnitt 9) trägt `outcome ∈ {goal, save, miss, block}`,
+`shot_type`, `x`/`y`/`zone`. Bei `outcome='goal'` erzeugt der Server
+zusätzlich, in derselben Transaktion, ein schlankes Companion-
+`goal`-Event (nur `roster_player_id`/`is_opponent`/`period`/
+`clock_seconds_at_event`/`created_by` kopiert, KEIN Schuss-Detail) –
+verknüpft über `metadata.companionGoalEventId` (bestehende JSONB-
+Spalte, keine neue). Grund: bestehende, bereits getestete Konsumenten
+(`calculateMatchScore`, `getRosterStats`, PDF-Export,
+`GamePage.jsx`-Scoreboard) bleiben dadurch komplett unverändert.
+`addEvent`/`deleteEvent` sind seither transaktional
+(`pool.connect()`/`BEGIN`/`COMMIT`/`ROLLBACK`); Löschen eines Schusses
+löscht sein Companion-Event mit (sonst verwaister Score-Zähler),
+beide werden im Audit-Log (`game_event_deletions`) protokolliert.
+
+Torhüter-Zuordnung bei einem Gegner-Schuss (`is_opponent=true`) läuft
+über `secondary_roster_player_id`, NICHT `roster_player_id` – Letzteres
+ist durch die bestehende Regel "`rosterPlayerId` und `isOpponent` nie
+gleichzeitig" blockiert (ADR-0003).
+
+Das bestehende einfache "Tor"-Preset (kein Schuss-Detail) bleibt
+unverändert als schnelle Alternative bestehen – Schuss-Tracking ist
+additiv, kein Ersatz.
+
 ---
 
 # 9. EVENT MODEL
@@ -451,10 +497,10 @@ berechnet werden?") gilt:
 
 | Vorschlag | Entscheidung | Begründung |
 |---|---|---|
-| GOAL, SHOT_ON_GOAL, SHOT_MISSED, SHOT_BLOCKED | Neue eigene Typen (`shot`, mit `outcome` differenziert statt 4 Typen) | Ein `shot`-Event mit `outcome ∈ {goal, save, miss, block}` ist ein Feld, nicht vier Event-Typen – konsistent mit Abschnitt 13 der Anforderung selbst |
-| ASSIST, SECONDARY_ASSIST | **Kein eigener Event-Typ** – `secondaryRosterPlayerId`-Feld auf dem `goal`/`shot`-Event | Ein Assist ist kein eigenständiges Ereignis, sondern eine Attribution am Tor-Ereignis |
-| SAVE, GOAL_CONCEDED | Abgeleitet aus `shot.outcome` bzw. `is_opponent` | Kein separates Event nötig |
-| TURNOVER, TAKEAWAY, INTERCEPTION, BLOCK, CLEARANCE | Neue, optionale Typen – **aber erst Phase 3+**, nicht Phase 1 | Wertvoll für Floorball, aber ohne UI-Erfassungsweg nutzlos; erst mit Shot-Tracking-UI einführen |
+| GOAL, SHOT_ON_GOAL, SHOT_MISSED, SHOT_BLOCKED | ✅ Umgesetzt (Phase 3): EIN Typ `shot`, mit `outcome` differenziert statt 4 Typen | Ein `shot`-Event mit `outcome ∈ {goal, save, miss, block}` ist ein Feld, nicht vier Event-Typen – konsistent mit Abschnitt 13 der Anforderung selbst. Bei `outcome='goal'` wird zusätzlich ein schlankes Companion-`goal`-Event erzeugt (ADR-0002), damit bestehende Konsumenten unverändert bleiben. |
+| ASSIST, SECONDARY_ASSIST | **Kein eigener Event-Typ** – `secondaryRosterPlayerId`-Feld auf dem `goal`/`shot`-Event. Für `shot` mit `is_opponent=true` wird dasselbe Feld seit Phase 3 stattdessen für "unser Torhüter" verwendet (ADR-0003) – Assist bei `is_opponent=false` bleibt noch ungenutzt. | Ein Assist ist kein eigenständiges Ereignis, sondern eine Attribution am Tor-Ereignis |
+| SAVE, GOAL_CONCEDED | ✅ Umgesetzt (Phase 3): abgeleitet aus `shot.outcome` bzw. `is_opponent` | Kein separates Event nötig |
+| TURNOVER, TAKEAWAY, INTERCEPTION, BLOCK, CLEARANCE | Weiterhin nicht gebaut – mögliche spätere, optionale Typen | Wertvoll für Floorball, aber ohne eigenen UI-Erfassungsweg nutzlos; `block` existiert bereits als `shot`-`outcome`, nicht als eigener Event-Typ |
 | FACE_OFF/-_WIN/-_LOSS | **Nicht als Built-in-Typ** | Kein etabliertes Floorball-Kernkonzept (anders als Eishockey-Bully); als optionaler Custom-Typ (Phase 7) möglich, falls ein Verein es will |
 | LINE_CHANGE, SHIFT_START, SHIFT_END | **Kein Event-Typ** – abgebildet über `match_lines`-Tabelle (Abschnitt 8.3) | Strukturierter als ein Event-Strom, siehe Abschnitt 4 |
 | POWERPLAY_START/END, PENALTY_KILL_START/END | **Kein eigener Event-Typ** – abgeleitet aus bestehenden `penalty_2`/`penalty_5`/`match_penalty`-Events + Spieluhr-Dauer | Aus Anforderung §88 selbst: nicht speichern, wenn berechenbar |
@@ -462,12 +508,12 @@ berechnet werden?") gilt:
 | SUBSTITUTION | Bereits abgedeckt über `game_squad`-Status-Änderungen | Kein neues Event nötig |
 | CUSTOM_EVENT | Umgesetzt als generisches Konzept: **jede** Zeile in `event_type_definitions` mit `is_builtin=false` ist ein Custom Event | Kein Sonderfall-Typ namens "CUSTOM_EVENT", sondern das ganze System ist custom-fähig |
 
-Ergebnis: Statt 30 starrer Typen entstehen **~12 durchdachte
-Built-in-Typen** (die bestehenden 10 plus `shot` und ggf. `turnover`/
-`takeaway` in Phase 3) plus ein echtes Erweiterungsmechanismus für
-alles Weitere – schlanker und played-for-floorball statt
-hockey-transplantiert, wie in Abschnitt 65 der Anforderung explizit
-gefordert.
+Ergebnis: Statt 30 starrer Typen entstehen **11 durchdachte
+Built-in-Typen** (die bestehenden 10 aus Phase 1 plus `shot` aus
+Phase 3) plus ein echtes Erweiterungsmechanismus für alles Weitere –
+schlanker und floorball-eigen statt hockey-transplantiert, wie in
+Abschnitt 65 der Anforderung explizit gefordert. `turnover`/`takeaway`
+bleiben mögliche spätere Ergänzungen, nicht Teil von Phase 3.
 
 ---
 
@@ -480,11 +526,13 @@ Isoliert unit-testbar ohne Testdatenbank.
 
 ```
 statisticsEngine.js
-├── calculateMatchScore(events)              → { ownGoals, opponentGoals }
+├── calculateMatchScore(events)              → { ownGoals, opponentGoals }        ✅ Phase 1
 ├── calculatePlayerMatchStats(events, squad, rosterPlayerId)
 ├── calculateTeamSeasonStats(gamesWithEvents)
-├── calculateLineStats(matchLines, events)        [Phase 2]
-├── calculateShotStats(events)                    [Phase 3]
+├── calculateLineStats(matchLines, events)                                        ✅ Phase 2
+├── deriveZone(x, y) / SHOT_ZONES                                                 ✅ Phase 3
+├── calculateShotStats(events)                                                    ✅ Phase 3
+├── calculateGoalkeeperStats(events)                                              ✅ Phase 3
 ├── calculateSpecialTeamsStats(events)            [Phase 4]
 ```
 
@@ -525,7 +573,7 @@ für alle künftigen Kennzahlen):
 | **0** | Dieses Dokument (Audit, Gap-Analyse, Architektur) | – ✅ umgesetzt |
 | **1** | `event_type_definitions`, erweiterte `game_events`-Spalten, Statistics Engine (Score-Zentralisierung), `docs/statistics.md`, Tests | Phase 0 – ✅ umgesetzt (Commit `f5f2ef6`) |
 | **2** | `match_lines`, Time-on-Floor/Shift-Zahlen, Line-Statistiken (Goals For/Against, Zeit zusammen) | Phase 1 – ✅ umgesetzt |
-| **3** | Shot Tracking (UI + `shot`-Events mit x/y/outcome/shotType), Shot Map, floorball-eigene Zonen-Definition, einfache Torhüter-Statistiken | Phase 1 |
+| **3** | Shot Tracking (UI + `shot`-Events mit x/y/outcome/shotType), Shot Map, floorball-eigene Zonen-Definition, einfache Torhüter-Statistiken | Phase 1 – ✅ umgesetzt |
 | **4** | Special Teams (PP/PK, aus Strafen+Uhr abgeleitet), Situations-Splits (Score-State, Periode), Spieler-Vergleich, Trends | Phase 1–3 |
 | **5** | Trainings-Analytics/Spielerentwicklung (eigene Domäne, niedrigere Priorität für dieses Dokument) | – |
 | **6** | Video-Integration: `game_id` an `board_videos` bzw. neue Verknüpfungstabelle, Event→Video-Sprung über `videoTimestampSeconds` | Phase 1 |

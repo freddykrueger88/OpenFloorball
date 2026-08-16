@@ -98,3 +98,113 @@ export function calculateLineStats(matchLineRows, eventRows, { now = null } = {}
     };
   });
 }
+
+// SHOT_ZONES/deriveZone – floorball-eigene Zonen-Taxonomie (Statistik-
+// Architektur Phase 3, Abschnitt 8.5/9 des Architektur-Dokuments): bewusst
+// NICHT aus dem Eishockey übernommen (kein "Slot"/"Point"/"blaue Linie"),
+// sondern eine einfache, dokumentierte Schema-Näherung. x∈[0,1] = Nähe
+// zum beschossenen Tor (1 = am Tor), y∈[0,1] = quer zur Torbreite
+// (0=links, 1=rechts aus Schützensicht). Die Schwellwerte 0.72/0.40
+// orientieren sich grob am IFF-Torraum (5 m Tiefe) relativ zu einem
+// Diagramm, das ungefähr das letzte Angriffsdrittel abbildet – eine
+// Schema-Näherung, keine exakte Feldvermessung.
+//
+// Bewusste kleine Duplikation: dieselbe Logik liegt zusätzlich in
+// frontend/src/constants/shotZones.js (kein Shared-Package zwischen
+// Backend/Frontend vorhanden – gleiche Toleranz wie z.B. toDateString,
+// das mehrfach pro Controller dupliziert ist). Bei Änderung der
+// Schwellwerte beide Dateien synchron halten.
+export const SHOT_ZONES = [
+  { key: 'nahzone_zentrum', labelDe: 'Nahzone Zentrum', labelEn: 'Close range – central' },
+  { key: 'nahzone_links',   labelDe: 'Nahzone Links',    labelEn: 'Close range – left' },
+  { key: 'nahzone_rechts',  labelDe: 'Nahzone Rechts',   labelEn: 'Close range – right' },
+  { key: 'halbdistanz',     labelDe: 'Halbdistanz',      labelEn: 'Mid range' },
+  { key: 'distanz',         labelDe: 'Distanz',          labelEn: 'Long range' },
+];
+
+const ZONE_CLOSE_X = 0.72;
+const ZONE_MID_X = 0.40;
+const ZONE_Y_LEFT = 0.35;
+const ZONE_Y_RIGHT = 0.65;
+
+export function deriveZone(x, y) {
+  if (x == null || y == null) return null;
+  const cx = Math.min(1, Math.max(0, x));
+  const cy = Math.min(1, Math.max(0, y));
+  if (cx >= ZONE_CLOSE_X) {
+    if (cy < ZONE_Y_LEFT) return 'nahzone_links';
+    if (cy > ZONE_Y_RIGHT) return 'nahzone_rechts';
+    return 'nahzone_zentrum';
+  }
+  return cx >= ZONE_MID_X ? 'halbdistanz' : 'distanz';
+}
+
+// calculateShotStats – aus `shot`-Ereignissen (event_type='shot',
+// eventRows = ALLE game_events-Zeilen eines Spiels, wie bei
+// calculateMatchScore/calculateLineStats). Shot-% = goals / shotsOnGoal
+// (goal+save-Outcomes), NICHT durch alle Schüsse – Standard-Konvention:
+// "Shots on Goal" umfasst nur Würfe, die ohne Torhüter-Eingreifen ein Tor
+// gewesen wären; miss/block hätten nie eine echte Torchance dargestellt
+// und würden die Kennzahl sonst mit reiner Zielgenauigkeit vermengen.
+// "unbekannt ≠ 0": ohne Schüsse aufs Tor bleibt shotPercentage null.
+export function calculateShotStats(eventRows) {
+  const shots = eventRows.filter((e) => e.event_type === 'shot');
+  const goals = shots.filter((s) => s.outcome === 'goal').length;
+  const saves = shots.filter((s) => s.outcome === 'save').length;
+  const misses = shots.filter((s) => s.outcome === 'miss').length;
+  const blocks = shots.filter((s) => s.outcome === 'block').length;
+  const shotsOnGoal = goals + saves;
+
+  const zoneMap = new Map();
+  for (const s of shots) {
+    const zone = s.zone ?? deriveZone(s.x, s.y);
+    const key = zone ?? 'unbekannt';
+    if (!zoneMap.has(key)) zoneMap.set(key, { zone, shots: 0, goals: 0 });
+    const bucket = zoneMap.get(key);
+    bucket.shots += 1;
+    if (s.outcome === 'goal') bucket.goals += 1;
+  }
+  const byZone = Array.from(zoneMap.values()).map((b) => ({
+    ...b,
+    shotPercentage: b.shots > 0 ? Math.round((b.goals / b.shots) * 1000) / 10 : null,
+  }));
+
+  return {
+    shots: shots.length,
+    shotsOnGoal,
+    goals,
+    saves,
+    misses,
+    blocks,
+    shotPercentage: shotsOnGoal > 0 ? Math.round((goals / shotsOnGoal) * 1000) / 10 : null,
+    byZone,
+  };
+}
+
+// calculateGoalkeeperStats – Gegner-Schüsse (event_type='shot' AND
+// is_opponent=true), gruppiert nach secondary_roster_player_id (NICHT
+// roster_player_id – addEvent verbietet rosterPlayerId+isOpponent
+// gleichzeitig, siehe ADR-0003 in DECISIONS.md). Ein Schuss ohne
+// zugeordneten Torhüter fließt in calculateShotStats/den Live-
+// Spielstand ein, aber in KEINE Einzel-Torhüter-Zeile hier – analog
+// getRosterStats' WHERE roster_player_id IS NOT NULL.
+export function calculateGoalkeeperStats(eventRows) {
+  const opponentShots = eventRows.filter(
+    (e) => e.event_type === 'shot' && e.is_opponent && e.secondary_roster_player_id
+  );
+  const groups = new Map();
+  for (const s of opponentShots) {
+    const id = s.secondary_roster_player_id;
+    if (!groups.has(id)) {
+      groups.set(id, { rosterPlayerId: id, shotsAgainst: 0, shotsOnGoalAgainst: 0, saves: 0, goalsAgainst: 0 });
+    }
+    const g = groups.get(id);
+    g.shotsAgainst += 1;
+    if (s.outcome === 'save') { g.shotsOnGoalAgainst += 1; g.saves += 1; }
+    if (s.outcome === 'goal') { g.shotsOnGoalAgainst += 1; g.goalsAgainst += 1; }
+  }
+  return Array.from(groups.values()).map((g) => ({
+    ...g,
+    savePercentage: g.shotsOnGoalAgainst > 0 ? Math.round((g.saves / g.shotsOnGoalAgainst) * 1000) / 10 : null,
+  }));
+}

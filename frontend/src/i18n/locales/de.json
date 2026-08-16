@@ -361,6 +361,34 @@
     "ariaLabel": "Line-Statistiken für dieses Spiel",
     "timeUnknown": "unbekannt"
   },
+  "shotZones": {
+    "nahzone_zentrum": "Nahzone Zentrum",
+    "nahzone_links": "Nahzone Links",
+    "nahzone_rechts": "Nahzone Rechts",
+    "halbdistanz": "Halbdistanz",
+    "distanz": "Distanz",
+    "unknown": "unbekannt",
+    "diagramAriaLabel": "Zonen-Diagramm Floorballfeld"
+  },
+  "shotStats": {
+    "title": "Schuss-Statistiken",
+    "ariaLabel": "Schuss-Statistiken für dieses Spiel",
+    "shots": "Schüsse",
+    "shotsOnGoal": "Schüsse aufs Tor",
+    "goals": "Tore",
+    "shotPercentage": "Schuss-%",
+    "percentageUnknown": "unbekannt",
+    "byZoneTitle": "Nach Zone"
+  },
+  "goalkeeperStats": {
+    "title": "Torhüter-Statistiken",
+    "ariaLabel": "Torhüter-Statistiken für dieses Spiel",
+    "shotsAgainst": "Schüsse aufs Tor",
+    "saves": "Paraden",
+    "goalsAgainst": "Gegentore",
+    "savePercentage": "Fangquote",
+    "unknownPlayer": "Unbekannter Spieler"
+  },
   "calendar": {
     "title": "Kalender",
     "navAriaLabel": "Monatsnavigation",
@@ -400,6 +428,10 @@
     "colPenaltyMinutes": "Strafmin.",
     "colMatchPenalties": "Matchstrafen",
     "colAppearances": "Einsätze",
+    "colShots": "Schüsse",
+    "colShotPercentage": "Schuss-%",
+    "colGoalsAgainst": "Gegentore",
+    "colSavePercentage": "Fangquote",
     "personal": "Persönlich"
   },
   "news": {
@@ -1134,7 +1166,16 @@
     "linesAriaLabel": "Lines für dieses Spiel – schneller Wechsel",
     "lineActive": "{{name}} (aktiv)",
     "manageLines": "Lines verwalten",
-    "lineSwitchNote": "Linienwechsel – {{name}}"
+    "lineSwitchNote": "Linienwechsel – {{name}}",
+    "shotEntryButton": "Schuss erfassen",
+    "shotEntryTitle": "Schuss erfassen",
+    "shotAttributionLabel": "Zuordnung",
+    "shotAttributionGoalkeeperLabel": "Unser Torhüter",
+    "shotAttributionGoalkeeperNone": "Keine Angabe",
+    "shotPositionLabel": "Position auf dem Feld",
+    "shotTypeLabel": "Schusstyp",
+    "shotOutcomeLabel": "Ergebnis",
+    "shotSubmit": "Schuss speichern"
   },
   "roster": {
     "title": "Kader",

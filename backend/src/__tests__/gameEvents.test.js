@@ -209,12 +209,12 @@ describe('Statistik-Architektur Phase 1: erweiterte Event-Felder', () => {
 });
 
 describe('event_type_definitions', () => {
-  it('enthält die 10 bestehenden Event-Typen als unlöschbare Built-ins', async () => {
+  it('enthält die 11 bestehenden Event-Typen (10 aus Phase 1 + shot aus Phase 3) als unlöschbare Built-ins', async () => {
     const result = await pool.query('SELECT key FROM event_type_definitions WHERE is_builtin = true ORDER BY key');
     const keys = result.rows.map((r) => r.key);
     expect(keys).toEqual([
       'game_end', 'goal', 'kickoff_q1', 'kickoff_q2', 'kickoff_q3',
-      'match_penalty', 'penalty_2', 'penalty_5', 'period_end', 'timeout',
+      'match_penalty', 'penalty_2', 'penalty_5', 'period_end', 'shot', 'timeout',
     ]);
   });
 });

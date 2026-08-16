@@ -174,24 +174,90 @@ Tore während einer noch offenen Zeile nicht gezählt.
 
 ---
 
-## Ab Phase 1 möglich, noch nicht auf einer Statistikseite ausgewertet
-
-Diese Formeln sind mit den in Phase 1 ergänzten `game_events`-Spalten
-bereits berechenbar, sobald die entsprechende Erfassung (UI) und
-Auswertung gebaut wird (Roadmap Phase 3+):
-
 ### Schuss-% (Shot %)
 
-**Formel:** `goals / shots_on_goal_or_more` – benötigt `event_type='shot'`
-mit `outcome IN ('goal','save','miss','block')`, gruppiert je nach
-gewünschtem Nenner (z.B. nur `goal`+`save` für "Shots on Goal %").
+**Definition:** Anteil der Schüsse aufs Tor, die zu einem Treffer
+wurden – bewusst NICHT bezogen auf alle Schüsse (siehe Formel).
 
-**Benötigte Daten:** `game_events.outcome`, `game_events.shot_type`
-(Phase 1 Spalten) – **noch keine Erfassungs-UI**, daher heute keine
-Zeilen mit `event_type='shot'` vorhanden.
+**Formel:** `goals / shotsOnGoal`, wobei `shotsOnGoal = COUNT(shot
+WHERE outcome IN ('goal','save'))`. `miss`/`block`-Schüsse hätten nie
+eine echte Torchance für den Torhüter dargestellt und würden die
+Kennzahl sonst mit reiner Zielgenauigkeit vermengen – Standard-
+Konvention (Eishockey wie Floorball).
 
-**Einschränkungen:** Erst sinnvoll interpretierbar mit ausreichender
-Fallzahl (Sample Size) – siehe Abschnitt "Konventionen" unten.
+**Benötigte Daten:** `game_events` mit `event_type='shot'`.
+
+**Einschränkungen:** "unbekannt ≠ 0" – ohne Schüsse aufs Tor bleibt
+`shotPercentage: null`, nie `0`. Erst sinnvoll interpretierbar mit
+ausreichender Fallzahl (Sample Size, siehe Konventionen unten).
+
+**Implementierung:** `statisticsEngine.js` (`calculateShotStats`),
+`GET /api/games/:id/events/shot-stats`, Saison-Aggregat in
+`rosterController.getRosterStats`, angezeigt in `GamePage.jsx`
+(`ShotStatsSection`) und `StatsPage.jsx`.
+
+---
+
+### Zonen-Taxonomie (floorball-eigen)
+
+**Definition:** 5 Zonen, aus denen ein Schuss abgegeben wurde –
+bewusst NICHT aus dem Eishockey übernommen (kein "Slot"/"Point"/
+"blaue Linie"), sondern eine einfache, dokumentierte
+Schema-Näherung für Floorball. `x∈[0,1]` = Nähe zum beschossenen Tor
+(1=am Tor), `y∈[0,1]` = quer zur Torbreite.
+
+| Zone | Bedingung |
+|---|---|
+| Nahzone Zentrum | `x≥0.72 AND 0.35≤y≤0.65` |
+| Nahzone Links | `x≥0.72 AND y<0.35` |
+| Nahzone Rechts | `x≥0.72 AND y>0.65` |
+| Halbdistanz | `0.40≤x<0.72` |
+| Distanz | `x<0.40` |
+
+`0.72`/`0.40` orientieren sich grob am IFF-Torraum (5 m Tiefe)
+relativ zu einem Diagramm, das ungefähr das letzte Angriffsdrittel
+abbildet – eine Schema-Näherung, keine exakte Feldvermessung.
+
+**Implementierung:** `deriveZone(x, y)` – bewusst dupliziert in
+`backend/src/services/statisticsEngine.js` UND
+`frontend/src/constants/shotZones.js` (kein Shared-Package zwischen
+Backend/Frontend, gleiche Toleranz wie z.B. `toDateString`). Der
+Server befüllt `zone` automatisch aus `x`/`y`, falls der Client keine
+mitschickt; eine explizit vom Client gesetzte `zone` hat Vorrang.
+
+---
+
+### Torhüter-Fangquote (Save %)
+
+**Definition:** Anteil der Gegner-Schüsse aufs Tor, die ein
+bestimmter Torhüter gehalten hat.
+
+**Formel:** `saves / shotsOnGoalAgainst`, wobei `shotsOnGoalAgainst =
+COUNT(shot WHERE is_opponent=true AND outcome IN ('goal','save'))`,
+gruppiert nach `secondary_roster_player_id`.
+
+**Benötigte Daten:** `game_events` mit `event_type='shot' AND
+is_opponent=true`. **Wichtiger Hinweis zur Feldwahl:** die
+Torhüter-Zuordnung läuft über `secondary_roster_player_id`, NICHT
+`roster_player_id` – Letzteres ist durch die bestehende Regel
+"`rosterPlayerId` und `isOpponent` nie gleichzeitig" blockiert (siehe
+ADR-0003 in `docs/planning/DECISIONS.md`).
+
+**Einschränkungen:** "unbekannt ≠ 0" – ohne Schüsse aufs Tor bleibt
+`savePercentage: null`. Ein Gegner-Schuss ohne zugeordneten Torhüter
+zählt für den Live-Spielstand/die Team-Schuss-Statistik, aber in
+keine Einzel-Torhüter-Zeile. Saison-Aggregat (`StatsPage.jsx`) zeigt
+Torhüter-Spalten nur für Spieler mit `role='TW'` – eine versehentliche
+Zuordnung bei einem Nicht-Torhüter erzeugt daher keine irreführende
+Fangquote.
+
+**Implementierung:** `statisticsEngine.js`
+(`calculateGoalkeeperStats`), `GET /api/games/:id/events/goalkeeper-stats`,
+`GamePage.jsx` (`GoalkeeperStatsSection`), `StatsPage.jsx`.
+
+---
+
+## Ab Phase 1 möglich, noch nicht auf einer Statistikseite ausgewertet
 
 ### Assists
 
@@ -199,7 +265,12 @@ Fallzahl (Sample Size) – siehe Abschnitt "Konventionen" unten.
 
 **Benötigte Daten:** `game_events.secondary_roster_player_id`
 (Phase 1 Spalte) – noch keine UI, um beim Tor-Erfassen einen
-Zweitspieler auszuwählen.
+Zweitspieler auszuwählen. **Hinweis (seit Phase 3):**
+`secondary_roster_player_id` hat inzwischen zwei Bedeutungen je nach
+`is_opponent` – bei `is_opponent=false` künftig "Assist" (hier
+beschrieben, noch ungenutzt), bei `is_opponent=true` bereits
+umgesetzt "unser Torhüter" (siehe Torhüter-Fangquote unten). Keine
+Kollision, da ein Ereignis nie beides gleichzeitig sein kann.
 
 ### Punkte (Points)
 

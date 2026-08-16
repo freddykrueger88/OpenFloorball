@@ -29,9 +29,15 @@ export function useGameEvents(gameId) {
     }
   }, [basePath, gameId]);
 
-  const addEvent = useCallback(async ({ eventType, rosterPlayerId = null, isOpponent = false }) => {
+  // Verallgemeinert (Statistik-Architektur Phase 3, Schuss-Tracking):
+  // nimmt ein beliebiges Body-Objekt statt fixer 3 Felder entgegen, damit
+  // auch die neuen optionalen Schuss-Felder (x/y/outcome/shotType/
+  // secondaryRosterPlayerId/…) durchgereicht werden können – bestehende
+  // Aufrufer (z.B. handleAddPreset in GamePage.jsx) bleiben unverändert
+  // kompatibel, da sie bereits ein Objekt übergeben.
+  const addEvent = useCallback(async (body) => {
     try {
-      const event = await apiFetch(basePath, { method: 'POST', body: JSON.stringify({ eventType, rosterPlayerId, isOpponent }) });
+      const event = await apiFetch(basePath, { method: 'POST', body: JSON.stringify(body) });
       setEvents((prev) => [...prev, event]);
       return event;
     } catch (err) {

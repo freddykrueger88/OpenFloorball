@@ -324,6 +324,167 @@ Nachteile:
 
 ---
 
+# ADR-0002: Companion-Goal-Event statt Consumer-Erweiterung bei `shot`+`outcome='goal'`
+
+## Datum
+
+2026-08-16
+
+---
+
+## Status
+
+Akzeptiert
+
+---
+
+## Kontext
+
+Phase 3 (Schuss-Tracking) führt einen `shot`-Event-Typ mit `outcome ∈
+{goal, save, miss, block}` ein (statt vier separater Typen, siehe
+Architektur-Dokument Abschnitt 9). Ein Schuss mit `outcome='goal'`
+ist fachlich ein Tor – aber `calculateMatchScore`,
+`getRosterStats`, der PDF-Spielbericht und `GamePage.jsx`s
+Live-Scoreboard sind alle bereits gebaut und getestet gegen
+`event_type='goal'`.
+
+---
+
+## Entscheidung
+
+Bei `eventType='shot' AND outcome='goal'` erzeugt der Server
+zusätzlich, in derselben Transaktion, ein schlankes Companion-
+`goal`-Event (nur Attribution/Zeitpunkt kopiert, kein Schuss-Detail).
+Verknüpfung über `metadata.companionGoalEventId` (bestehende JSONB-
+Spalte). `deleteEvent` löscht ein verknüpftes Companion-Event mit.
+
+---
+
+## Alternativen
+
+### Bestehende Konsumenten auf `shot`+`outcome='goal'` erweitern
+
+Vorteile: keine doppelte Zeile in `game_events`.
+
+Nachteile: vier bereits verifizierte, produktiv laufende Code-Stellen
+müssten geändert werden (`calculateMatchScore`, `getRosterStats`,
+`pdfExportController.js`, `GamePage.jsx`) – höheres Regressionsrisiko
+für eine Phase, die additiv bleiben soll.
+
+---
+
+## Begründung
+
+Ein neuer, isolierter Insert-Pfad ist risikoärmer als vier
+Änderungen an bereits getesteten, produktiven Stellen. Der
+`shot`-Datensatz bleibt der einzige detaillierte Datenpunkt (Companion
+bewusst ohne `x`/`y`/`zone`/`shot_type`), damit eine spätere naive
+Zonen-Auswertung über ALLE `event_type='goal'`-Zeilen nicht doppelt
+zählt.
+
+---
+
+## Konsequenzen
+
+Vorteile:
+
+* Bestehende Score-/Statistik-Logik bleibt unverändert und
+  unwissend vom neuen `shot`-Typ.
+* Löschung bleibt konsistent (Companion wird mitgelöscht, beide im
+  Audit-Log).
+
+Nachteile:
+
+* `addEvent`/`deleteEvent` mussten transaktional umgebaut werden
+  (`pool.connect()`/`BEGIN`/`COMMIT`/`ROLLBACK`).
+* Ein per Schuss-Tracking erfasstes Tor erzeugt zwei Zeilen in
+  `game_events` statt einer – muss in der Zeitleisten-Anzeige gefiltert
+  werden (siehe `GamePage.jsx`/`pdfExportController.js`).
+
+---
+
+# ADR-0003: `secondary_roster_player_id` für Torhüter-Zuordnung bei Gegner-Schüssen
+
+## Datum
+
+2026-08-16
+
+---
+
+## Status
+
+Akzeptiert
+
+---
+
+## Kontext
+
+Phase 3 braucht eine Möglichkeit, bei einem Gegner-Schuss
+(`is_opponent=true`) optional festzuhalten, welcher unserer
+Torhüter den Schuss gehalten/kassiert hat – Grundlage für einfache
+Torhüter-Statistiken (Save %).
+
+---
+
+## Entscheidung
+
+Verwendung des bestehenden, bereits vorhandenen Feldes
+`secondary_roster_player_id` (Phase 1) statt `roster_player_id` oder
+einer neuen Spalte. Bedeutung je `is_opponent`: bei `false` künftig
+"Assist" (noch ungenutzt), bei `true` "unser Torhüter".
+
+---
+
+## Alternativen
+
+### `roster_player_id` verwenden
+
+Nachteile: **technisch nicht möglich** – die bestehende, seit Phase 1
+unveränderte Regel in `addEvent` lehnt `rosterPlayerId && isOpponent`
+mit 400 ab (ein Ereignis kann nicht gleichzeitig einem eigenen
+Kader-Spieler und dem Gegner zugeordnet sein). Diese Regel zu
+lockern hätte die bestehende, semantisch klare Bedeutung von
+`roster_player_id` ("unser Spieler, der diese Aktion ausgeführt hat")
+aufgeweicht.
+
+### Neue Spalte `goalkeeper_roster_player_id`
+
+Vorteile: explizit benannt, keine Doppelbedeutung.
+
+Nachteile: neue Migration für ein Feld, dessen Bedeutung sich exakt
+mit dem bereits vorhandenen "Zweitbeteiligter"-Konzept deckt – eine
+zusätzliche Spalte für denselben fachlichen Zweck (jemand zweites,
+der an diesem Ereignis beteiligt war) wäre Redundanz.
+
+---
+
+## Begründung
+
+`secondary_roster_player_id` ist bereits nullable, bereits
+scope-geprüft, und "Zweitbeteiligter" ist fachlich exakt zutreffend
+für beide Bedeutungen (Assist bei eigenem Tor, Torhüter bei
+Gegnertor) – keine Kollision, da ein Ereignis nie beides gleichzeitig
+sein kann (`is_opponent` entscheidet eindeutig).
+
+---
+
+## Konsequenzen
+
+Vorteile:
+
+* Keine neue Migration/Spalte nötig.
+* `calculateGoalkeeperStats` gruppiert einfach nach diesem Feld,
+  gefiltert auf `is_opponent=true`.
+
+Nachteile:
+
+* Die Doppelbedeutung des Feldes muss an jeder Verwendungsstelle
+  dokumentiert bleiben (siehe Code-Kommentare in
+  `gameEventsController.js`, `docs/statistics.md`), sonst ist sie nicht
+  selbsterklärend.
+
+---
+
 # Regel
 
 Architekturentscheidungen werden nicht vergessen.

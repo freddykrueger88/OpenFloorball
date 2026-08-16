@@ -1,0 +1,59 @@
+.diagram {
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1 / 1;
+  background: var(--color-surface-offset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.interactive {
+  cursor: crosshair;
+}
+
+.zoneRect {
+  fill: var(--color-surface);
+  stroke: var(--color-border);
+  stroke-width: 0.3;
+}
+
+.zoneLabel {
+  font-size: 3.2px;
+  fill: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.goal {
+  fill: var(--color-text-muted);
+}
+
+.captureLayer {
+  fill: transparent;
+}
+
+.marker {
+  stroke-width: 0.8;
+}
+
+.markerGoal {
+  fill: var(--color-success);
+  stroke: var(--color-success);
+}
+
+.markerSave {
+  stroke: var(--color-primary);
+}
+
+.markerMiss {
+  stroke: var(--color-text-faint);
+}
+
+.markerBlock {
+  fill: var(--color-warning);
+}
+
+.selectedPoint {
+  fill: var(--color-primary);
+  stroke: var(--color-surface);
+  stroke-width: 0.6;
+}

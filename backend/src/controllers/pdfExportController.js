@@ -178,8 +178,9 @@ const REPORT_TEXT = {
       kickoff_q1: 'Anstoß 1. Drittel', kickoff_q2: 'Anstoß 2. Drittel', kickoff_q3: 'Anstoß 3. Drittel',
       period_end: 'Drittelende', timeout: 'Auszeit', goal: 'Tor',
       penalty_2: 'Strafzeit 2 Min.', penalty_5: 'Strafzeit 5 Min.',
-      match_penalty: 'Matchstrafe', game_end: 'Spielende',
+      match_penalty: 'Matchstrafe', game_end: 'Spielende', shot: 'Schuss',
     },
+    outcomeLabels: { goal: 'Tor', save: 'Gehalten', miss: 'Verfehlt', block: 'Geblockt' },
     statusLabels: { playing: 'Spielt', reserve: 'Ersatz', injured: 'Verletzt', absent: 'Fehlt' },
   },
   en: {
@@ -201,8 +202,9 @@ const REPORT_TEXT = {
       kickoff_q1: 'Kickoff 1st period', kickoff_q2: 'Kickoff 2nd period', kickoff_q3: 'Kickoff 3rd period',
       period_end: 'End of period', timeout: 'Timeout', goal: 'Goal',
       penalty_2: '2-minute penalty', penalty_5: '5-minute penalty',
-      match_penalty: 'Match penalty', game_end: 'End of game',
+      match_penalty: 'Match penalty', game_end: 'End of game', shot: 'Shot',
     },
+    outcomeLabels: { goal: 'Goal', save: 'Save', miss: 'Miss', block: 'Block' },
     statusLabels: { playing: 'Playing', reserve: 'Reserve', injured: 'Injured', absent: 'Absent' },
   },
 };
@@ -214,7 +216,10 @@ const STATUS_PRIORITY_SQL = `CASE gs.status
 // exakt dieselbe Logik wie eventLabel() in GamePage.jsx – nur serverseitig,
 // da die PDF-Erzeugung serverseitig läuft.
 function reportEventLabel(row, texts) {
-  const base = texts.eventLabels[row.event_type] ?? row.event_type;
+  let base = texts.eventLabels[row.event_type] ?? row.event_type;
+  if (row.event_type === 'shot' && row.outcome) {
+    base = `${base} (${texts.outcomeLabels[row.outcome] ?? row.outcome})`;
+  }
   if (row.is_opponent) return `${base} – ${texts.attributionOpponent}`;
   if (row.roster_player_id) {
     const label = row.jersey_number != null ? `#${row.jersey_number} ${row.name}` : row.name;
@@ -250,13 +255,25 @@ export async function exportGameReport(req, res) {
     const game = gameResult.rows[0];
 
     const eventsResult = await pool.query(
-      `SELECT ge.event_type, ge.roster_player_id, ge.is_opponent, ge.created_at, rp.name, rp.jersey_number
+      `SELECT ge.id, ge.event_type, ge.roster_player_id, ge.is_opponent, ge.created_at, ge.metadata, ge.outcome, rp.name, rp.jersey_number
        FROM game_events ge
        LEFT JOIN roster_players rp ON rp.id = ge.roster_player_id
        WHERE ge.game_id = $1
        ORDER BY ge.created_at ASC`,
       [gameId]
     );
+    // Companion-Goal-Events (Phase 3 Schuss-Tracking, ADR-0002) aus der
+    // GEDRUCKTEN Zeitleiste herausfiltern – sonst erscheint ein per
+    // "Schuss erfassen" markiertes Tor doppelt (einmal als Schuss-Zeile,
+    // einmal als eigenständige Tor-Zeile). Die Spielstand-Berechnung
+    // unten läuft bewusst weiterhin über ALLE Zeilen (inkl. Companion-
+    // Events) – nur die Anzeige wird gefiltert, nicht die Zählung.
+    const companionGoalIds = new Set(
+      eventsResult.rows
+        .filter((e) => e.event_type === 'shot' && e.metadata?.companionGoalEventId)
+        .map((e) => e.metadata.companionGoalEventId)
+    );
+    const printedEvents = eventsResult.rows.filter((e) => !companionGoalIds.has(e.id));
     const squadResult = await pool.query(
       `SELECT gs.status, rp.name, rp.jersey_number
        FROM game_squad gs
@@ -298,10 +315,10 @@ export async function exportGameReport(req, res) {
     doc.font('Helvetica-Bold').fontSize(13).fillColor('#111827').text(texts.eventsHeading);
     doc.moveTo(doc.x, doc.y + 2).lineTo(doc.page.width - doc.page.margins.right, doc.y + 2).strokeColor('#d1d5db').stroke();
     doc.moveDown(0.5);
-    if (eventsResult.rows.length === 0) {
+    if (printedEvents.length === 0) {
       doc.font('Helvetica-Oblique').fontSize(10).fillColor('#6b7280').text(texts.noEvents);
     } else {
-      for (const row of eventsResult.rows) {
+      for (const row of printedEvents) {
         doc.font('Helvetica').fontSize(10).fillColor('#374151')
           .text(`${formatReportTime(row.created_at, lang)}   ${reportEventLabel(row, texts)}`);
       }

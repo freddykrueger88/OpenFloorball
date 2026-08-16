@@ -122,6 +122,32 @@ Line auf dem Feld war. Steht "unbekannt" bei der Zeit, gibt es noch
 keine abgeschlossene Phase dieser Line in diesem Spiel. Rein
 informativ – ändert nichts an der Taktik-Vorlage selbst.
 
+## Schuss-Tracking
+
+Zusätzlich zum einfachen "Tor"-Preset (weiterhin unverändert die
+schnellste Option) gibt es den Button "Schuss erfassen" für eine
+detailliertere Aufzeichnung: Zuordnung (Kader-Spieler, Gegner oder
+ohne Angabe – bei einem Gegner-Schuss zusätzlich optional "unser
+Torhüter"), Position auf einem einfachen, floorball-eigenen
+Zonen-Diagramm (Nahzone Zentrum/Links/Rechts, Halbdistanz, Distanz –
+bewusst kein Eishockey-Feld), Schusstyp (Handgelenkschuss,
+Schlagschuss, Direktschuss, Rückhand) und Ergebnis (Tor, Gehalten,
+Verfehlt, Geblockt).
+
+Ein Schuss mit Ergebnis "Tor" aktualisiert automatisch den
+Live-Spielstand – kein zusätzlicher, separater Eintrag nötig. In der
+Zeitleiste erscheint dafür eine einzige Zeile ("Schuss (Tor) – ...").
+
+Direkt darunter zeigen zwei weitere Sektionen:
+
+- **Schuss-Statistiken**: Anzahl Schüsse, Schüsse aufs Tor, Tore,
+  Schuss-%, Aufschlüsselung nach Zone, sowie eine Shot Map (dieselbe
+  Zonen-Grafik, jetzt mit einem Punkt je Schuss – gefüllter Kreis =
+  Tor, Ring = gehalten, Kreuz = verfehlt, Quadrat = geblockt).
+- **Torhüter-Statistiken**: erscheint nur, wenn mindestens ein
+  Gegner-Schuss einem Torhüter zugeordnet wurde – zeigt Schüsse aufs
+  Tor, Paraden, Gegentore und Fangquote je Torhüter.
+
 ## Technischer Hinweis
 
 Die 10 festen Ereignis-Buttons (Anstoß Drittel 1–3, Drittelende,
@@ -131,7 +157,11 @@ dem Roadmap-Punkt "Live-Match-Ereignisse" **strukturiert** gespeichert
 Text) – das ist die Grundlage für spätere Statistiken (Tore je
 Spieler, Strafminuten, Stand je Drittel). Line-Wechsel werden
 zusätzlich in einer eigenen `match_lines`-Tabelle festgehalten (Basis
-für die Line-Statistiken oben). Das freie Eingabefeld und die Notiz
+für die Line-Statistiken oben). Ein per "Schuss erfassen" erfasstes
+Tor legt intern zwei verknüpfte Datensätze an (den detaillierten
+Schuss + ein schlankes Tor-Ereignis für den Spielstand) – für den
+Trainer unsichtbar, in der Zeitleiste erscheint dafür nur eine Zeile.
+Das freie Eingabefeld und die Notiz
 beim Line-Wechsel bleiben unverändert Freitext und nutzen weiterhin
 dieselbe Kommentar-Infrastruktur wie Boards und Trainingseinheiten.
 Beide Quellen erscheinen gemeinsam in einer Liste, sortiert nach

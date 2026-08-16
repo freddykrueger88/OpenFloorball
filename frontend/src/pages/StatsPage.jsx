@@ -57,6 +57,10 @@ export default function StatsPage() {
                 <th>{t('stats.colPenaltyMinutes')}</th>
                 <th>{t('stats.colMatchPenalties')}</th>
                 <th>{t('stats.colAppearances')}</th>
+                <th>{t('stats.colShots')}</th>
+                <th>{t('stats.colShotPercentage')}</th>
+                <th>{t('stats.colGoalsAgainst')}</th>
+                <th>{t('stats.colSavePercentage')}</th>
               </tr>
             </thead>
             <tbody>
@@ -69,6 +73,10 @@ export default function StatsPage() {
                   <td>{player.penaltyMinutes}</td>
                   <td>{player.matchPenalties}</td>
                   <td>{player.appearances}</td>
+                  <td>{player.shots}</td>
+                  <td>{player.shotPercentage ?? '–'}</td>
+                  <td>{player.goalsAgainst ?? '–'}</td>
+                  <td>{player.savePercentage ?? '–'}</td>
                 </tr>
               ))}
             </tbody>

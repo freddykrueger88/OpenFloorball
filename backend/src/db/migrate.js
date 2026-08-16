@@ -1011,6 +1011,23 @@ export async function runMigrations() {
         ON match_lines(game_id) WHERE ended_at IS NULL;
     `);
 
+    // ── Statistik-Architektur Phase 3 (Schuss-Tracking) ──────────────────
+    // Abschnitt 9 des Architektur-Dokuments: GOAL/SHOT_ON_GOAL/SHOT_MISSED/
+    // SHOT_BLOCKED werden NICHT als 4 Event-Typen umgesetzt, sondern als
+    // EIN `shot`-Typ mit `outcome ∈ {goal, save, miss, block}`. Keine neue
+    // Tabelle/Spalte nötig – Phase 1 hat outcome/shot_type/x/y/zone/
+    // secondary_roster_player_id bereits auf game_events ergänzt.
+    // requires_player/requires_position/requires_outcome sind aktuell rein
+    // dekorativ (kein Controller liest sie) – Durchsetzung bleibt
+    // client-seitig (Submit-Button disabled bis Position+Outcome gesetzt).
+    await client.query(`
+      INSERT INTO event_type_definitions
+        (key, category, label_de, label_en, requires_player, requires_secondary_player, requires_position, requires_outcome, is_builtin)
+      VALUES
+        ('shot', 'offense', 'Schuss', 'Shot', false, false, true, true, true)
+      ON CONFLICT (key) DO NOTHING;
+    `);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

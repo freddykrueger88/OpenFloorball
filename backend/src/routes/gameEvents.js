@@ -6,7 +6,7 @@ import { Router } from 'express';
 import { body, param } from 'express-validator';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { getEvents, addEvent, deleteEvent } from '../controllers/gameEventsController.js';
+import { getEvents, addEvent, deleteEvent, getShotStats, getGoalkeeperStats } from '../controllers/gameEventsController.js';
 
 const router = Router({ mergeParams: true });
 
@@ -16,6 +16,8 @@ const validateGameId  = param('id').isUUID().withMessage('Ungültige Spiel-ID');
 const validateEventId = param('eventId').isUUID().withMessage('Ungültige Ereignis-ID');
 
 router.get   ('/', [validateGameId, validate], getEvents);
+router.get   ('/shot-stats',       [validateGameId, validate], getShotStats);
+router.get   ('/goalkeeper-stats', [validateGameId, validate], getGoalkeeperStats);
 router.post  ('/', [
   validateGameId,
   // eventType wird bewusst NICHT mehr gegen ein festes Array geprüft

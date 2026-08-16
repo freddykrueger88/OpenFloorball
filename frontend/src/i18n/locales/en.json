@@ -361,6 +361,34 @@
     "ariaLabel": "Line stats for this game",
     "timeUnknown": "unknown"
   },
+  "shotZones": {
+    "nahzone_zentrum": "Close range – central",
+    "nahzone_links": "Close range – left",
+    "nahzone_rechts": "Close range – right",
+    "halbdistanz": "Mid range",
+    "distanz": "Long range",
+    "unknown": "unknown",
+    "diagramAriaLabel": "Floorball field zone diagram"
+  },
+  "shotStats": {
+    "title": "Shot stats",
+    "ariaLabel": "Shot stats for this game",
+    "shots": "Shots",
+    "shotsOnGoal": "Shots on goal",
+    "goals": "Goals",
+    "shotPercentage": "Shot %",
+    "percentageUnknown": "unknown",
+    "byZoneTitle": "By zone"
+  },
+  "goalkeeperStats": {
+    "title": "Goalkeeper stats",
+    "ariaLabel": "Goalkeeper stats for this game",
+    "shotsAgainst": "Shots on goal",
+    "saves": "Saves",
+    "goalsAgainst": "Goals against",
+    "savePercentage": "Save %",
+    "unknownPlayer": "Unknown player"
+  },
   "calendar": {
     "title": "Calendar",
     "navAriaLabel": "Month navigation",
@@ -400,6 +428,10 @@
     "colPenaltyMinutes": "Pen. min.",
     "colMatchPenalties": "Match penalties",
     "colAppearances": "Appearances",
+    "colShots": "Shots",
+    "colShotPercentage": "Shot %",
+    "colGoalsAgainst": "Goals against",
+    "colSavePercentage": "Save %",
     "personal": "Personal"
   },
   "news": {
@@ -1134,7 +1166,16 @@
     "linesAriaLabel": "Lines for this game – quick switch",
     "lineActive": "{{name}} (active)",
     "manageLines": "Manage lines",
-    "lineSwitchNote": "Line change – {{name}}"
+    "lineSwitchNote": "Line change – {{name}}",
+    "shotEntryButton": "Record shot",
+    "shotEntryTitle": "Record shot",
+    "shotAttributionLabel": "Attribution",
+    "shotAttributionGoalkeeperLabel": "Our goalkeeper",
+    "shotAttributionGoalkeeperNone": "Not specified",
+    "shotPositionLabel": "Position on the field",
+    "shotTypeLabel": "Shot type",
+    "shotOutcomeLabel": "Outcome",
+    "shotSubmit": "Save shot"
   },
   "roster": {
     "title": "Roster",

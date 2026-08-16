@@ -29,13 +29,26 @@ function toApiRosterPlayer(row) {
   };
 }
 
+// Torhüter-Felder (Phase 3 Schuss-Tracking) sind auf role==='TW' gegated
+// – nicht in der SQL, sondern hier an der API-Grenze, damit eine
+// versehentliche Torhüter-Zuordnung bei einem Nicht-TW-Spieler nie eine
+// irreführende Fangquote anzeigt.
 function toApiRosterStats(row) {
+  const isGoalkeeper = row.role === 'TW';
+  const shotsOnGoal = Number(row.shots_on_goal ?? 0);
+  const gkShotsOnGoalAgainst = Number(row.gk_shots_on_goal_against ?? 0);
   return {
     ...toApiRosterPlayer(row),
     goals:          Number(row.goals ?? 0),
     penaltyMinutes: Number(row.penalty_minutes ?? 0),
     matchPenalties: Number(row.match_penalties ?? 0),
     appearances:    Number(row.appearances ?? 0),
+    shots:          Number(row.shots ?? 0),
+    shotPercentage: shotsOnGoal > 0 ? Math.round((Number(row.shot_goals ?? 0) / shotsOnGoal) * 1000) / 10 : null,
+    goalsAgainst:   isGoalkeeper ? Number(row.gk_goals_against ?? 0) : null,
+    savePercentage: isGoalkeeper && gkShotsOnGoalAgainst > 0
+      ? Math.round((Number(row.gk_saves ?? 0) / gkShotsOnGoalAgainst) * 1000) / 10
+      : null,
   };
 }
 
@@ -95,7 +108,13 @@ export async function getRosterStats(req, res) {
               COALESCE(g.goals, 0)::int           AS goals,
               COALESCE(g.penalty_minutes, 0)::int AS penalty_minutes,
               COALESCE(g.match_penalties, 0)::int AS match_penalties,
-              COALESCE(s.appearances, 0)::int      AS appearances
+              COALESCE(s.appearances, 0)::int      AS appearances,
+              COALESCE(sh.shots, 0)::int           AS shots,
+              COALESCE(sh.shots_on_goal, 0)::int   AS shots_on_goal,
+              COALESCE(sh.shot_goals, 0)::int      AS shot_goals,
+              COALESCE(gk.shots_on_goal_against, 0)::int AS gk_shots_on_goal_against,
+              COALESCE(gk.saves, 0)::int                 AS gk_saves,
+              COALESCE(gk.goals_against, 0)::int         AS gk_goals_against
        FROM roster_players rp
        LEFT JOIN (
          SELECT roster_player_id,
@@ -112,6 +131,24 @@ export async function getRosterStats(req, res) {
          WHERE status = 'playing'
          GROUP BY roster_player_id
        ) s ON s.roster_player_id = rp.id
+       LEFT JOIN (
+         SELECT roster_player_id,
+                COUNT(*) AS shots,
+                SUM(CASE WHEN outcome IN ('goal', 'save') THEN 1 ELSE 0 END) AS shots_on_goal,
+                SUM(CASE WHEN outcome = 'goal' THEN 1 ELSE 0 END) AS shot_goals
+         FROM game_events
+         WHERE event_type = 'shot' AND NOT is_opponent AND roster_player_id IS NOT NULL
+         GROUP BY roster_player_id
+       ) sh ON sh.roster_player_id = rp.id
+       LEFT JOIN (
+         SELECT secondary_roster_player_id AS roster_player_id,
+                SUM(CASE WHEN outcome IN ('goal', 'save') THEN 1 ELSE 0 END) AS shots_on_goal_against,
+                SUM(CASE WHEN outcome = 'save' THEN 1 ELSE 0 END) AS saves,
+                SUM(CASE WHEN outcome = 'goal' THEN 1 ELSE 0 END) AS goals_against
+         FROM game_events
+         WHERE event_type = 'shot' AND is_opponent AND secondary_roster_player_id IS NOT NULL
+         GROUP BY secondary_roster_player_id
+       ) gk ON gk.roster_player_id = rp.id
        WHERE rp.user_id = $1 OR rp.team_id = ANY($2::uuid[])
        ORDER BY goals DESC, rp.jersey_number ASC NULLS LAST, rp.name ASC`,
       [req.user.id, teamIds]

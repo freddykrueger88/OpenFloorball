@@ -979,6 +979,38 @@ export async function runMigrations() {
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_game_event_deletions_game_id ON game_event_deletions(game_id);`);
 
+    // ── Statistik-Architektur Phase 2 (docs/planning/STATISTICS_ANALYTICS_ARCHITECTURE.md
+    // Abschnitt 8.3): zeitgestempelte Historie tatsächlicher Line-Nutzung
+    // während eines konkreten Spiels – ENTKOPPELT von der lines-Vorlage
+    // selbst (lines.is_active bleibt unverändert ein reines
+    // Vorbereitungs-Flag ohne Spielbezug, siehe linesController.
+    // setLineActive). line_name ist ein Snapshot (überlebt Umbenennen/
+    // Löschen der Vorlage). Bewusst KEINE Cross-Game-Exklusivität auf
+    // line_id – Lines sind bereits geteilte Vorlagen, match_lines ist ein
+    // reines Spiel-Log, keine Live-Sperre wie lines.is_active. Muss NACH
+    // games/lines/users stehen (FK-Ziele).
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS match_lines (
+        id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        game_id    UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+        line_id    UUID REFERENCES lines(id) ON DELETE SET NULL,
+        line_name  TEXT NOT NULL,
+        period     INT,
+        started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        ended_at   TIMESTAMPTZ,
+        created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        CHECK (ended_at IS NULL OR ended_at >= started_at)
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_match_lines_game_id ON match_lines(game_id);`);
+    // Höchstens eine offene Zeile pro Spiel – schützt gegen Race
+    // Conditions UND ist zugleich der Index für "finde die aktuell
+    // offene Zeile für Spiel X".
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_match_lines_one_open_per_game
+        ON match_lines(game_id) WHERE ended_at IS NULL;
+    `);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

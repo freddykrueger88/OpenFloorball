@@ -4,10 +4,12 @@
 
 ## Statistik- und Performance-Analytics: Bestandsaufnahme, Gap-Analyse, Zielarchitektur
 
-> Status: Analyse abgeschlossen (2026-08-10). Noch NICHT implementiert außer
-> den Abschnitten, die explizit als "umgesetzt" markiert sind. Dieses
-> Dokument ist die kanonische Quelle für die Statistik-/Analytics-Domäne
-> und wird mit jeder Phase fortgeschrieben (siehe `docs/planning/DECISIONS.md`
+> Status: Analyse abgeschlossen (2026-08-10). Phase 1 (Commit `f5f2ef6`)
+> und Phase 2 (Match-Line/Shift-Tracking) umgesetzt. Alle weiteren
+> Abschnitte noch NICHT implementiert außer explizit als "umgesetzt"
+> markiert. Dieses Dokument ist die kanonische Quelle für die
+> Statistik-/Analytics-Domäne und wird mit jeder Phase fortgeschrieben
+> (siehe `docs/planning/DECISIONS.md`
 > ADR-0001 für die zentrale Architekturentscheidung).
 
 ---
@@ -366,6 +368,13 @@ Presets-UI.
 
 ## 8.3 `match_lines` (NEU)
 
+> ✅ Umgesetzt (Phase 2). `line_id`/`line_name`/`period`/`started_at`/
+> `ended_at`/`created_by` exakt wie unten beschrieben; zusätzlich ein
+> `CHECK (ended_at IS NULL OR ended_at >= started_at)` und ein
+> partieller Unique-Index (`WHERE ended_at IS NULL`) für höchstens eine
+> offene Zeile pro Spiel. `calculateLineStats` in `statisticsEngine.js`
+> mit halb-offenem Zeitfenster `[started_at, ended_at)`.
+
 ```sql
 CREATE TABLE match_lines (
   id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -513,9 +522,9 @@ für alle künftigen Kennzahlen):
 
 | Phase | Inhalt | Abhängigkeit |
 |---|---|---|
-| **0** | Dieses Dokument (Audit, Gap-Analyse, Architektur) | – (heute abgeschlossen) |
-| **1** | `event_type_definitions`, erweiterte `game_events`-Spalten, Statistics Engine (Score-Zentralisierung), `docs/statistics.md`, Tests | Phase 0 |
-| **2** | `match_lines`, Time-on-Floor/Shift-Zahlen, Line-Statistiken (Goals For/Against, Zeit zusammen) | Phase 1 |
+| **0** | Dieses Dokument (Audit, Gap-Analyse, Architektur) | – ✅ umgesetzt |
+| **1** | `event_type_definitions`, erweiterte `game_events`-Spalten, Statistics Engine (Score-Zentralisierung), `docs/statistics.md`, Tests | Phase 0 – ✅ umgesetzt (Commit `f5f2ef6`) |
+| **2** | `match_lines`, Time-on-Floor/Shift-Zahlen, Line-Statistiken (Goals For/Against, Zeit zusammen) | Phase 1 – ✅ umgesetzt |
 | **3** | Shot Tracking (UI + `shot`-Events mit x/y/outcome/shotType), Shot Map, floorball-eigene Zonen-Definition, einfache Torhüter-Statistiken | Phase 1 |
 | **4** | Special Teams (PP/PK, aus Strafen+Uhr abgeleitet), Situations-Splits (Score-State, Periode), Spieler-Vergleich, Trends | Phase 1–3 |
 | **5** | Trainings-Analytics/Spielerentwicklung (eigene Domäne, niedrigere Priorität für dieses Dokument) | – |

@@ -118,6 +118,62 @@ Kader stand – das ist ein echtes Zählergebnis, kein "unbekannt"-Fall
 
 ---
 
+### Zeit zusammen (Time on Floor je Line)
+
+**Definition:** Summe der Zeit, die eine Line während eines Spiels
+tatsächlich "auf dem Feld" war (nicht: wie lange sie als Vorlage
+existiert – siehe `lines.is_active`, das ein reines
+Vorbereitungs-Flag ohne Spielbezug ist).
+
+**Formel:** Für jede geschlossene `match_lines`-Zeile (`ended_at`
+gesetzt): `ended_at - started_at`, aufsummiert je `line_id`
+(Fallback `line_name`, falls die Vorlage seither gelöscht wurde).
+Zeitfenster sind **halb-offen** `[started_at, ended_at)` – beim
+Line-Wechsel liefert Postgres' `NOW()` innerhalb derselben Transaktion
+für das Schließen der alten und das Öffnen der neuen Zeile denselben
+Zeitstempel, wodurch der Übergang lückenlos ist.
+
+**Benötigte Daten:** `match_lines`.
+
+**Einschränkungen:** **Unbekannt ≠ 0** – eine noch offene Zeile
+(`ended_at IS NULL`, die Line ist gerade aktiv) trägt standardmäßig
+NICHT zur Summe bei (kein geschätzter Endzeitpunkt wird in einen
+gespeicherten Wert eingefroren); nur in der Live-Ansicht eines
+laufenden Spiels wird sie bis zum aktuellen Zeitpunkt mitgezählt und
+zusätzlich über `hasOpenShift: true` als vorläufig markiert. Eine
+Line, die in diesem Spiel nie aktiviert wurde, taucht in der Liste gar
+nicht auf (kein 0-Eintrag). **Keine Cross-Game-Exklusivität**: dieselbe
+Line-Vorlage kann in zwei verschiedenen, gleichzeitig laufenden
+Spielen offen sein – `match_lines` ist ein reines Spiel-Log, keine
+Live-Sperre.
+
+**Implementierung:** `backend/src/services/statisticsEngine.js`
+(`calculateLineStats`), `GET /api/games/:id/match-lines/stats`.
+
+---
+
+### Goals For/Against je Line
+
+**Definition:** Wie viele eigene bzw. gegnerische Tore fielen,
+während eine bestimmte Line auf dem Feld war.
+
+**Formel:** Für jedes Tor-Ereignis (`event_type = 'goal'`): fällt sein
+`created_at` in das halb-offene Zeitfenster `[started_at, ended_at)`
+einer `match_lines`-Zeile, wird es je nach `is_opponent` zu
+`goalsFor`/`goalsAgainst` dieser Line gezählt.
+
+**Benötigte Daten:** `match_lines`, `game_events`.
+
+**Einschränkungen:** Ein Tor, das VOR der ersten Line-Aktivierung
+eines Spiels fällt, wird keiner Line zugeordnet (dokumentierte Lücke,
+kein Fehler). Bei einer offenen Zeile gilt dieselbe "unbekannt ≠
+0"-Regel wie bei der Zeit-Kennzahl oben – ohne `now`-Parameter werden
+Tore während einer noch offenen Zeile nicht gezählt.
+
+**Implementierung:** wie oben, `calculateLineStats`.
+
+---
+
 ## Ab Phase 1 möglich, noch nicht auf einer Statistikseite ausgewertet
 
 Diese Formeln sind mit den in Phase 1 ergänzten `game_events`-Spalten

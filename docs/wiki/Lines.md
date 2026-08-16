@@ -48,6 +48,10 @@ Aktivieren einer anderen Line deaktiviert automatisch die vorherige.
 Lines direkt über den Live-Notizen – ein Klick aktiviert die Line und
 trägt automatisch eine Notiz mit Zeitstempel ein (z. B. "Linienwechsel
 – Line 2"), ohne dass extra auf `/lines` gewechselt werden muss.
+Zusätzlich entsteht dabei ein strukturierter Datensatz, aus dem die
+[Line-Statistiken](./Live-Spielnotizen.md#line-statistiken) (Zeit
+zusammen, Torverhältnis je Line) berechnet werden – die Taktik-Vorlage
+selbst (`is_active` oben) bleibt davon unberührt.
 
 ## Im Board-Editor
 

@@ -29,10 +29,12 @@ import { useLines } from '../hooks/useLines.js';
 import { usePdfExport } from '../hooks/usePdfExport.js';
 import { useGameClock } from '../hooks/useGameClock.js';
 import { useGameClockSync } from '../hooks/useGameClockSync.js';
+import { useMatchLines } from '../hooks/useMatchLines.js';
 import { formatDate } from '../utils/formatDate.js';
 import useAnnounceStore from '../store/announceStore.js';
 import RsvpSection from '../components/rsvp/RsvpSection.jsx';
 import MatchSquadSection from '../components/matchSquad/MatchSquadSection.jsx';
+import LineStatsSection from '../components/lineStats/LineStatsSection.jsx';
 import Button from '../components/common/Button.jsx';
 import styles from './GamePage.module.css';
 
@@ -53,6 +55,11 @@ export default function GamePage() {
   // müssen. Aktivieren postet zusätzlich eine Notiz über den bereits
   // vorhandenen Preset-Mechanismus (reine Wiederverwendung).
   const { lines, fetchLines, setActive: setLineActive } = useLines();
+  // Statistik-Architektur Phase 2: zusätzlich zur Freitext-Notiz wird
+  // beim Aktivieren jetzt auch eine strukturierte, zeitgestempelte
+  // match_lines-Zeile angelegt (siehe handleActivateLine unten) – Basis
+  // für die Line-Statistiken (LineStatsSection).
+  const { activateMatchLine, error: matchLinesError } = useMatchLines(id);
 
   const [game,          setGame         ] = useState(null);
   const [gameError,     setGameError    ] = useState(null);
@@ -254,10 +261,16 @@ export default function GamePage() {
 
   // Line-Wechsel ist kein festes IFF-Ereignis (kein Eintrag in PRESETS) –
   // bleibt bewusst eine Freitext-Notiz über comments, wie vor dem
-  // Ereignisse-Umbau.
+  // Ereignisse-Umbau. Zusätzlich (Statistik-Architektur Phase 2) wird
+  // eine strukturierte match_lines-Zeile angelegt – in einem
+  // VERSCHACHTELTEN try/catch, damit ein Fehler dort die für den Trainer
+  // sichtbare Zeitleisten-Notiz nicht verhindert.
   const handleActivateLine = async (line) => {
     try {
       await setLineActive(line._id, true);
+      try {
+        await activateMatchLine(line._id);
+      } catch { /* zusätzliche Statistik-Datenquelle, Fehler hier darf die Notiz nicht blockieren */ }
       await addComment(t('games.lineSwitchNote', { name: line.name }));
       useAnnounceStore.getState().announce(t('games.noteAddedAnnouncement'));
     } catch { /* error via hook */ }
@@ -392,8 +405,8 @@ export default function GamePage() {
         <FileDown size={16} aria-hidden="true" /> {exportingReport ? t('games.exportingReport') : t('games.exportReportButton')}
       </Button>
 
-      {(gameError || notesError || eventsError || reportError || clockError) && (
-        <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError ?? eventsError ?? reportError ?? clockError}</div>
+      {(gameError || notesError || eventsError || reportError || clockError || matchLinesError) && (
+        <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError ?? eventsError ?? reportError ?? clockError ?? matchLinesError}</div>
       )}
 
       <RsvpSection resourceKind="games" resourceId={id} teamId={game.teamId} />
@@ -418,6 +431,12 @@ export default function GamePage() {
           <Link to="/lines" className={styles.manageLinesLink}>{t('games.manageLines')}</Link>
         </section>
       )}
+
+      <LineStatsSection
+        gameId={id}
+        events={events}
+        activeLineId={linesForGame.find((l) => l.isActive)?._id ?? null}
+      />
 
       <section className={styles.notesSection} aria-label={t('games.notesAriaLabel')}>
         <div className={styles.presetsRow} role="group" aria-label={t('games.presetsAriaLabel')}>

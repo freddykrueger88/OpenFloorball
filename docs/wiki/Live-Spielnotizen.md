@@ -109,6 +109,19 @@ Login funktioniert). Ein Klick auf ⟲ setzt den Status zurück auf
 Vorlage, der Match-Kader gilt nur für dieses eine Spiel und verändert
 keine Line.
 
+## Line-Statistiken
+
+Jeder Line-Wechsel während eines Spiels (siehe [Lines](./Lines.md#aktive-line))
+legt zusätzlich zur weiterhin unveränderten Freitext-Notiz eine
+strukturierte, zeitgestempelte Aufzeichnung an: welche Line wann
+"auf dem Feld" war. Direkt unter den Line-Buttons zeigt eine
+"Line-Statistiken"-Sektion je Line: die Zeit zusammen (mm:ss, ein "+"
+bedeutet die Line ist gerade aktiv und die Zahl läuft live weiter)
+sowie das Torverhältnis (eigene : gegnerische Tore), während diese
+Line auf dem Feld war. Steht "unbekannt" bei der Zeit, gibt es noch
+keine abgeschlossene Phase dieser Line in diesem Spiel. Rein
+informativ – ändert nichts an der Taktik-Vorlage selbst.
+
 ## Technischer Hinweis
 
 Die 10 festen Ereignis-Buttons (Anstoß Drittel 1–3, Drittelende,
@@ -116,12 +129,13 @@ Auszeit, Tor, Strafe 2/5 Min., Matchstrafe, Spielende) werden seit
 dem Roadmap-Punkt "Live-Match-Ereignisse" **strukturiert** gespeichert
 (Ereignistyp + Zuordnung als eigene Datenbank-Felder statt fertigem
 Text) – das ist die Grundlage für spätere Statistiken (Tore je
-Spieler, Strafminuten, Stand je Drittel). Das freie Eingabefeld und
-die Notiz beim Line-Wechsel bleiben unverändert Freitext und nutzen
-weiterhin dieselbe Kommentar-Infrastruktur wie Boards und
-Trainingseinheiten. Beide Quellen erscheinen gemeinsam in einer
-Liste, sortiert nach Zeitpunkt – für den Trainer ändert sich an der
-Bedienung nichts.
+Spieler, Strafminuten, Stand je Drittel). Line-Wechsel werden
+zusätzlich in einer eigenen `match_lines`-Tabelle festgehalten (Basis
+für die Line-Statistiken oben). Das freie Eingabefeld und die Notiz
+beim Line-Wechsel bleiben unverändert Freitext und nutzen weiterhin
+dieselbe Kommentar-Infrastruktur wie Boards und Trainingseinheiten.
+Beide Quellen erscheinen gemeinsam in einer Liste, sortiert nach
+Zeitpunkt – für den Trainer ändert sich an der Bedienung nichts.
 
 Bereits vor diesem Umbau erfasste Ereignisse bleiben als eingefrorener
 Text sichtbar (keine rückwirkende Umwandlung).

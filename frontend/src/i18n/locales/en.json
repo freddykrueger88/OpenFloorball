@@ -356,6 +356,11 @@
     "clearAriaLabel": "Reset status for {{name}}",
     "clearTitle": "Reset (not decided)"
   },
+  "lineStats": {
+    "title": "Line stats",
+    "ariaLabel": "Line stats for this game",
+    "timeUnknown": "unknown"
+  },
   "calendar": {
     "title": "Calendar",
     "navAriaLabel": "Month navigation",

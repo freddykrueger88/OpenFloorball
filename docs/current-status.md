@@ -43,7 +43,9 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   (Start/Pause/Drittel-Wechsel, server-persistiert, Echtzeit-Sync über
   mehrere Geräte via WebSocket, verknüpft mit Anstoß-/Drittelende-
   Ereignissen). Spielbericht als druckfreundlicher PDF-Export
-  (Endstand, Ereignis-Zeitleiste, Match-Kader). Details:
+  (Endstand, Ereignis-Zeitleiste, Match-Kader). Line-Statistiken
+  (Zeit zusammen, Goals For/Against je Line, aus strukturiertem
+  Match-Line-Tracking). Details:
   [Live-Spielnotizen](./wiki/Live-Spielnotizen.md).
 - **RSVP/Anwesenheit** – Team-Mitglieder sagen für Spiele/Trainings
   zu/ab/unsicher, optional mit Absagegrund. Details:

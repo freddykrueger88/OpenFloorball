@@ -14,6 +14,16 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Statistik-Architektur Phase 2 (EPIC 012): strukturiertes
+  Match-Line/Shift-Tracking – jeder Line-Wechsel während eines Spiels
+  legt jetzt zusätzlich zur bestehenden Freitext-Notiz eine
+  zeitgestempelte `match_lines`-Zeile an (Aktivieren einer neuen Line
+  schließt die vorherige automatisch). Neue "Line-Statistiken"-Sektion
+  auf der Spielseite zeigt je Line Zeit-zusammen und
+  Goals-For/Against, live berechnet über die zentrale
+  `statisticsEngine.js` (`calculateLineStats`). Additiv – die
+  bestehende `lines.is_active`-Taktikvorlage und die Freitext-Notiz im
+  Zeitleisten-Verlauf bleiben unverändert.
 - Vereinsweite Termin-Übersicht (EPIC 011, erster Baustein): das
   Verein-Dashboard zeigt Vereinsadmins jetzt zusätzlich eine
   gebündelte, rein lesende Liste aller anstehenden Spiele und

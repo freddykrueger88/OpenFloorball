@@ -208,3 +208,152 @@ export function calculateGoalkeeperStats(eventRows) {
     savePercentage: g.shotsOnGoalAgainst > 0 ? Math.round((g.saves / g.shotsOnGoalAgainst) * 1000) / 10 : null,
   }));
 }
+
+// PENALTY_DURATIONS_SECONDS – einzige Quelle für die Strafdauer, statt in
+// SQL (gameEventsController.computeStrengthState) und hier getrennt
+// hartcodiert. match_penalty bewusst NICHT enthalten – siehe ADR-0004
+// in DECISIONS.md: keine feste Dauer/Bank-Minor-Regel modellierbar, ohne
+// Präzision vorzutäuschen, die die Datenlage nicht hergibt.
+export const PENALTY_DURATIONS_SECONDS = { penalty_2: 120, penalty_5: 300 };
+
+function penaltyWindow(event, periodEndSeconds) {
+  const start = event.clock_seconds_at_event;
+  const end = Math.min(start + PENALTY_DURATIONS_SECONDS[event.event_type], periodEndSeconds);
+  return { period: event.period, start, end, isOpponent: event.is_opponent };
+}
+
+// calculateSpecialTeamsStats – Powerplay/Penalty-Kill, direkt aus rohen
+// penalty_2/penalty_5-Zeilen neu berechnet (NICHT aus der gespeicherten
+// strength_state-Spalte) – wichtig für Rückwärtskompatibilität mit vor
+// Phase 4 erfassten Spielen (dort ist strength_state NULL) und
+// konsistent mit dem etablierten Fallback-Muster (calculateShotStats'
+// `zone ?? deriveZone(...)`).
+//
+// Bewusste Vereinfachungen (ADR-0004, siehe auch docs/statistics.md):
+// - Strafenfenster werden am Periodenende gekappt, nicht über Perioden
+//   hinweg fortgesetzt.
+// - match_penalty erzeugt kein Fenster (keine verlässliche Dauer/Regel
+//   modellierbar).
+// - Gelegenheiten werden PRO STRAFE gezählt, nicht durch Verschmelzen
+//   überlappender/angrenzender Strafintervalle – eine Gegner-Strafe
+//   zählt als unsere PP-Gelegenheit, außer wir hatten in genau diesem
+//   Moment bereits selbst eine aktive Strafe (dann bleibt der Zustand
+//   "even", keine echte Gelegenheit). Spiegelbildlich für PK.
+// "unbekannt ≠ 0": percentage bleibt null bei 0 Gelegenheiten.
+export function calculateSpecialTeamsStats(eventRows, { periodMinutes = 20 } = {}) {
+  const periodEndSeconds = periodMinutes * 60;
+  const penaltyEvents = eventRows.filter((e) =>
+    (e.event_type === 'penalty_2' || e.event_type === 'penalty_5')
+    && e.period != null && e.clock_seconds_at_event != null);
+  const windows = penaltyEvents.map((e) => penaltyWindow(e, periodEndSeconds));
+
+  const goalEvents = eventRows.filter((e) =>
+    e.event_type === 'goal' && e.period != null && e.clock_seconds_at_event != null);
+
+  // Halb-offenes Fenster [start, end) – gleiche Konvention wie
+  // calculateLineStats. excludeIndex blendet die eigene Strafe aus, wenn
+  // geprüft wird, ob VOR ihr bereits eine andere Strafe aktiv war (per
+  // Index, nicht Werte-Gleichheit – vermeidet Fehlzuordnung bei zwei
+  // Strafen mit exakt demselben Zeitpunkt).
+  const activeCountsAt = (period, atSeconds, excludeIndex = -1) => {
+    let own = 0;
+    let opponent = 0;
+    windows.forEach((w, idx) => {
+      if (idx === excludeIndex) return;
+      if (w.period === period && w.start <= atSeconds && atSeconds < w.end) {
+        if (w.isOpponent) opponent += 1; else own += 1;
+      }
+    });
+    return { own, opponent };
+  };
+
+  let ppOpportunities = 0;
+  let pkOpportunities = 0;
+  penaltyEvents.forEach((pen, idx) => {
+    const { own, opponent } = activeCountsAt(pen.period, pen.clock_seconds_at_event, idx);
+    if (pen.is_opponent && own === 0) ppOpportunities += 1;
+    if (!pen.is_opponent && opponent === 0) pkOpportunities += 1;
+  });
+
+  let ppGoals = 0;
+  let pkGoalsAgainst = 0;
+  for (const goal of goalEvents) {
+    const { own, opponent } = activeCountsAt(goal.period, goal.clock_seconds_at_event);
+    if (!goal.is_opponent && own < opponent) ppGoals += 1;
+    if (goal.is_opponent && own > opponent) pkGoalsAgainst += 1;
+  }
+
+  return {
+    powerPlay: {
+      opportunities: ppOpportunities,
+      goals: ppGoals,
+      percentage: ppOpportunities > 0 ? Math.round((ppGoals / ppOpportunities) * 1000) / 10 : null,
+    },
+    penaltyKill: {
+      opportunities: pkOpportunities,
+      goalsAgainst: pkGoalsAgainst,
+      percentage: pkOpportunities > 0 ? Math.round(((pkOpportunities - pkGoalsAgainst) / pkOpportunities) * 1000) / 10 : null,
+    },
+  };
+}
+
+// calculateSituationalStats – Aufschlüsselung nach Periode und nach
+// Spielstand (Führung/Rückstand/Unentschieden). Chronologische
+// Sortierung nach created_at (nicht period+clock_seconds_at_event, die
+// bei nie gestarteter Uhr null sind). Jedes Ereignis wird nach dem
+// Spielstand VOR ihm klassifiziert, Tor-Tallies werden erst danach
+// aktualisiert.
+//
+// ownGoals/opponentGoals zählen ALLE goal-Events (auch vom klassischen
+// "Tor"-Preset ohne shot-Unterbau) – nur shots/shotsOnGoal/shotGoals
+// kommen ausschließlich aus shot-Events. Ein rein shot-basierter
+// Goal-Count würde Tore ohne Schuss-Tracking-Nutzung stillschweigend
+// unterzählen.
+export function calculateSituationalStats(eventRows) {
+  const sorted = [...eventRows].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+  const newBucket = () => ({ ownGoals: 0, opponentGoals: 0, shots: 0, shotsOnGoal: 0, shotGoals: 0 });
+  const finalize = (b) => ({
+    ...b,
+    shotPercentage: b.shotsOnGoal > 0 ? Math.round((b.shotGoals / b.shotsOnGoal) * 1000) / 10 : null,
+  });
+
+  const byScoreStateMap = { leading: newBucket(), trailing: newBucket(), tied: newBucket() };
+  const byPeriodMap = new Map();
+  const periodBucket = (period) => {
+    const key = period ?? '__unbekannt__';
+    if (!byPeriodMap.has(key)) byPeriodMap.set(key, { period, ...newBucket() });
+    return byPeriodMap.get(key);
+  };
+
+  let ownGoals = 0;
+  let opponentGoals = 0;
+  for (const evt of sorted) {
+    const scoreState = ownGoals === opponentGoals ? 'tied' : ownGoals > opponentGoals ? 'leading' : 'trailing';
+    const stateBucket = byScoreStateMap[scoreState];
+    const pBucket = periodBucket(evt.period);
+
+    if (evt.event_type === 'goal') {
+      const key = evt.is_opponent ? 'opponentGoals' : 'ownGoals';
+      stateBucket[key] += 1;
+      pBucket[key] += 1;
+      if (evt.is_opponent) opponentGoals += 1; else ownGoals += 1;
+    }
+    if (evt.event_type === 'shot') {
+      const onGoal = evt.outcome === 'goal' || evt.outcome === 'save';
+      const isGoal = evt.outcome === 'goal';
+      for (const b of [stateBucket, pBucket]) {
+        b.shots += 1;
+        if (onGoal) b.shotsOnGoal += 1;
+        if (isGoal) b.shotGoals += 1;
+      }
+    }
+  }
+
+  return {
+    byScoreState: ['leading', 'trailing', 'tied'].map((s) => ({ scoreState: s, ...finalize(byScoreStateMap[s]) })),
+    byPeriod: Array.from(byPeriodMap.values())
+      .sort((a, b) => (a.period ?? Infinity) - (b.period ?? Infinity))
+      .map(finalize),
+  };
+}

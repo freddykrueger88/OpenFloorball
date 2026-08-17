@@ -39,6 +39,8 @@ import { SHOT_OUTCOMES } from '../constants/shotOptions.js';
 import ShotEntryPanel from '../components/shotTracking/ShotEntryPanel.jsx';
 import ShotStatsSection from '../components/shotTracking/ShotStatsSection.jsx';
 import GoalkeeperStatsSection from '../components/shotTracking/GoalkeeperStatsSection.jsx';
+import SpecialTeamsStatsSection from '../components/gameFlowStats/SpecialTeamsStatsSection.jsx';
+import SituationalStatsSection from '../components/gameFlowStats/SituationalStatsSection.jsx';
 import Button from '../components/common/Button.jsx';
 import styles from './GamePage.module.css';
 
@@ -469,6 +471,8 @@ export default function GamePage() {
 
       <ShotStatsSection gameId={id} events={events} />
       <GoalkeeperStatsSection gameId={id} events={events} squadForGame={squadForGame} />
+      <SpecialTeamsStatsSection gameId={id} events={events} />
+      <SituationalStatsSection gameId={id} events={events} />
 
       {/* Statistik-Architektur Phase 3: Schuss-Tracking ist additiv zum
           bestehenden "Tor"-Preset unten (bleibt unverändert als schnelle

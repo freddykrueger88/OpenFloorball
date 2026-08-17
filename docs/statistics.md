@@ -257,6 +257,109 @@ Fangquote.
 
 ---
 
+### Special Teams: Powerplay-% / Penalty-Kill-%
+
+**Definition:** Erfolgsquote bei eigenem Zahlenvorteil (Powerplay)
+bzw. eigener Unterzahl (Penalty Kill).
+
+**Formel:** `Powerplay-% = PP-Tore / PP-Gelegenheiten`,
+`Penalty-Kill-% = (PK-Gelegenheiten − Gegentore in Unterzahl) /
+PK-Gelegenheiten`. `strength_state` (`even`/`powerplay`/`shorthanded`)
+wird serverseitig bei JEDEM Ereignis automatisch aus aktiven
+`penalty_2`/`penalty_5`-Strafen berechnet (siehe
+`gameEventsController.computeStrengthState`); die Aggregat-Kennzahl
+selbst wird jedoch unabhängig davon direkt aus den rohen
+Strafen-Zeitfenstern neu berechnet (Rückwärtskompatibilität mit vor
+Phase 4 erfassten Spielen, deren `strength_state` NULL ist).
+
+**Benötigte Daten:** `game_events` mit `event_type IN ('penalty_2',
+'penalty_5')` und `event_type='goal'`.
+
+**Einschränkungen (bewusste Vereinfachungen, siehe ADR-0004 in
+`docs/planning/DECISIONS.md`):**
+- Strafenfenster werden am Periodenende gekappt, nicht über Perioden
+  hinweg fortgesetzt – ein Vorteil, der über eine Drittelpause
+  hinausreicht, wird nicht abgebildet.
+- `match_penalty` erzeugt kein Fenster (keine verlässliche
+  Dauer/Bank-Minor-Regel modellierbar, ohne Präzision vorzutäuschen).
+- Gelegenheiten werden PRO STRAFE gezählt, nicht durch Verschmelzen
+  überlappender/angrenzender Strafintervalle – zwei Gegner-Strafen,
+  die beide beginnen, während wir keine eigene aktive Strafe haben,
+  zählen als 2 separate Gelegenheiten, auch wenn ein Unparteiischer
+  das ggf. als einen durchgehenden Vorteil werten würde.
+- `percentage: null` statt `0` bei 0 Gelegenheiten.
+
+**Implementierung:** `statisticsEngine.js`
+(`calculateSpecialTeamsStats`, `PENALTY_DURATIONS_SECONDS`),
+`GET /api/games/:id/events/special-teams-stats`, `GamePage.jsx`
+(`SpecialTeamsStatsSection`).
+
+---
+
+### Situations-Splits: nach Spielstand und nach Periode
+
+**Definition:** Tore (und, sofern Schuss-Tracking genutzt wird,
+Schüsse/Schuss-%) aufgeschlüsselt danach, ob das Team zum Zeitpunkt
+des Ereignisses in Führung, im Rückstand oder unentschieden stand,
+sowie nach Spieldrittel.
+
+**Formel:** Chronologischer Durchlauf aller Ereignisse (sortiert nach
+`created_at`); jedes Ereignis wird nach dem Spielstand VOR ihm
+klassifiziert, Tor-Tallies werden erst danach aktualisiert.
+
+**Benötigte Daten:** `game_events` (`event_type='goal'` für die
+Spielstand-Tallies, `event_type='shot'` für die Schuss-Teilmetriken,
+`period` für die Perioden-Gruppierung).
+
+**Einschränkungen:** `ownGoals`/`opponentGoals` zählen ALLE
+`goal`-Events (auch vom klassischen "Tor"-Preset ohne
+`shot`-Unterbau) – nur die Schuss-Teilmetriken kommen ausschließlich
+aus `shot`-Events und bleiben bei Spielen ohne Schuss-Tracking-Nutzung
+auf 0. Ereignisse ohne `period` (Uhr nie gestartet) landen in einem
+eigenen "unbekannt"-Bucket statt verworfen zu werden.
+
+**Implementierung:** `statisticsEngine.js`
+(`calculateSituationalStats`), `GET /api/games/:id/events/situational-stats`,
+`GamePage.jsx` (`SituationalStatsSection`).
+
+---
+
+### Trends: Spiel-für-Spiel-Verlauf
+
+**Definition:** Rohzahlen (Tore/Schüsse/Strafminuten) je Spiel für
+einen Kader-Spieler, chronologisch, als Grundlage für Last-5/
+Last-10/Saison-Vergleiche.
+
+**Formel:** Fenster-Aggregation summiert Rohzahlen ZUERST (z.B.
+`shotGoals`/`shotsOnGoal` über alle Spiele des Fensters), dividiert
+erst danach (`shotPercentage = Summe shotGoals / Summe shotsOnGoal`)
+– ein Durchschnitt bereits pro Spiel berechneter Prozentwerte wäre
+mathematisch falsch.
+
+**Benötigte Daten:** `games` (`played_at`), `game_squad`
+(`status='playing'`), `game_events`.
+
+**Einschränkungen:** Spiele ohne `played_at` werden ausgeschlossen
+(keine verlässliche Chronologie möglich). Keine Chart-Bibliothek
+verwendet – eine einfache CSS-Breiten-Balken-Darstellung (Tore je
+Spiel) statt eines Diagramm-Frameworks (keine neue Abhängigkeit).
+
+**Implementierung:** `GET /api/roster/:id/game-log`
+(`rosterController.getRosterPlayerGameLog`), `PlayerTrendsPage.jsx`
+(`aggregateWindow`), `GameLogBars.jsx`.
+
+---
+
+### Spieler-Vergleich
+
+Reine Frontend-Wiederverwendung der bereits vorhandenen
+Saison-Kennzahlen (`GET /api/roster/stats`) – keine neue Formel,
+keine neue Backend-Route. Bis zu 4 Spieler gleichzeitig als
+transponierte Tabelle gegenübergestellt (`StatsPage.jsx`,
+`PlayerComparisonSection.jsx`).
+
+---
+
 ## Ab Phase 1 möglich, noch nicht auf einer Statistikseite ausgewertet
 
 ### Assists

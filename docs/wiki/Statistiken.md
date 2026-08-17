@@ -3,7 +3,10 @@
 Unter `/stats` zeigt eine Tabelle für jeden [Kader-Spieler](./Kader.md)
 Tore, Strafminuten, Matchstrafen, Einsätze, Schüsse/Schuss-% sowie
 (nur für Torhüter) Gegentore/Fangquote – aggregiert über alle seine
-Spiele hinweg, sortiert nach Toren.
+Spiele hinweg, sortiert nach Toren. Auf der Spielseite selbst zeigen
+zwei weitere Panels, wie sich ein Spiel im Detail entwickelt hat:
+Special Teams (Powerplay/Penalty Kill) und Situations-Splits (Führung/
+Rückstand/Unentschieden, je Periode).
 
 ## Woher die Zahlen kommen
 
@@ -26,6 +29,60 @@ Eingabe nötig:
   sichtbar, aus Gegner-Schüssen, die diesem Torhüter zugeordnet
   wurden. Ohne Schüsse aufs Tor steht "–" statt einer irreführenden
   0%-Fangquote.
+
+## Special Teams (Powerplay/Penalty Kill)
+
+Auf der Spielseite zeigt das Panel "Special teams", wie erfolgreich
+das Team bei eigenem Zahlenvorteil (Powerplay) und in eigener
+Unterzahl (Penalty Kill) war – abgeleitet aus den erfassten Strafen
+(2/5 Minuten) und der Spieluhr, keine zusätzliche Eingabe nötig.
+
+- **Powerplay-%**: Tore bei eigenem Zahlenvorteil geteilt durch die
+  Anzahl der Gelegenheiten.
+- **Penalty-Kill-%**: Anteil der eigenen Unterzahl-Situationen, in
+  denen kein Gegentor fiel.
+
+Bewusst vereinfacht (siehe ADR-0004 in
+[`docs/planning/DECISIONS.md`](../planning/DECISIONS.md)): eine Strafe
+endet spätestens mit dem Periodenende (kein Übertrag über die
+Drittelpause hinaus), eine Matchstrafe erzeugt keinen eigenen
+Zahlenvorteil-Zeitraum (keine verlässliche Dauer bekannt), und jede
+Strafe zählt als eigene Gelegenheit statt mehrere sich überlappende
+Strafen zu einer einzigen zusammenzufassen. Ohne Gelegenheiten in
+diesem Spiel steht "–" statt einer irreführenden 0%.
+
+## Situations-Splits
+
+Das Panel "Situational splits" schlüsselt Tore (und, sofern
+[Schuss-Tracking](./Live-Spielnotizen.md#schuss-tracking) genutzt
+wurde, auch Schüsse/Schuss-%) danach auf,
+
+- **wie der Spielstand unmittelbar vor dem jeweiligen Ereignis war**
+  (in Führung / im Rückstand / unentschieden), und
+- **in welcher Periode** das Ereignis stattfand.
+
+Beide Aufschlüsselungen laufen automatisch mit, sobald Tore bzw.
+Schüsse erfasst werden – keine zusätzliche Eingabe.
+
+## Spieler-Vergleich
+
+Auf `/stats` lassen sich per Checkbox bis zu 4 Kader-Spieler
+auswählen; darunter erscheint automatisch eine Vergleichstabelle mit
+denselben Kennzahlen wie in der Haupttabelle, nur Spieler statt Zeilen
+nebeneinandergestellt. Nutzt dieselben bereits geladenen
+Saison-Zahlen – keine zusätzliche Abfrage.
+
+## Trends
+
+Ein Klick auf das Trend-Symbol neben einem Spieler auf `/stats` öffnet
+dessen Verlaufsseite (`/stats/:id`): Tore, Tore/Spiel, Schüsse/Schuss-%
+und Strafminuten jeweils für die letzten 5 Spiele, die letzten 10
+Spiele und die gesamte Saison im Vergleich, plus eine Übersicht der
+Tore je Spiel als einfache Balkenliste. Prozentwerte werden dabei
+NICHT aus einzelnen Spiel-Prozentwerten gemittelt, sondern aus den
+aufsummierten Rohzahlen des jeweiligen Zeitfensters neu berechnet –
+sonst würde ein Fenster mit wenigen Schüssen genauso stark gewichtet
+wie eines mit vielen.
 
 ## Umfang (bewusst einfach gehalten)
 

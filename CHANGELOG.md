@@ -14,6 +14,25 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Statistik-Architektur Phase 4 (EPIC 012): Special Teams (Powerplay-%/
+  Penalty-Kill-%, abgeleitet aus Strafen + Spieluhr, mit dokumentierten
+  Vereinfachungen statt erfundener Präzision, siehe ADR-0004),
+  Situations-Splits (Tore/Schüsse nach Spielstand
+  Führung/Rückstand/Unentschieden und nach Periode), Spieler-Vergleich
+  (bis zu 4 Kader-Spieler nebeneinander auf der Statistikseite) und
+  Trends (Spiel-für-Spiel-Verlauf eines Spielers unter `/stats/:id`
+  mit Last-5/Last-10/Saison-Vergleich). Neue Sektionen "Special teams"
+  und "Situational splits" auf der Spielseite.
+
+### Changed
+- `strengthState` (Kräfteverhältnis je Spielereignis) wird ab sofort
+  ausschließlich serverseitig berechnet – ein vom Client mitgesendeter
+  Wert wird stillschweigend ignoriert (analog zu `period` und
+  `clockSecondsAtEvent` seit Phase 1). Kein bekannter Frontend-Code
+  hat dieses Feld bisher gesetzt, daher kein tatsächlicher Breaking
+  Change für die ausgelieferte UI (siehe ADR-0004).
+
+### Added
 - Statistik-Architektur Phase 3 (EPIC 012): Schuss-Tracking, Shot Map
   und einfache Torhüter-Statistiken. Ein neuer "Schuss erfassen"-Button
   auf der Spielseite öffnet ein Panel mit Zuordnung, Position (eigenes,

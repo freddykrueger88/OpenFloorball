@@ -389,6 +389,27 @@
     "savePercentage": "Fangquote",
     "unknownPlayer": "Unbekannter Spieler"
   },
+  "specialTeamsStats": {
+    "title": "Special Teams",
+    "ariaLabel": "Powerplay/Unterzahl-Statistiken für dieses Spiel",
+    "powerPlay": "Powerplay",
+    "penaltyKill": "Unterzahl",
+    "opportunities": "Gelegenheiten",
+    "goals": "Tore",
+    "goalsAgainst": "Gegentore",
+    "percentage": "Quote"
+  },
+  "situationalStats": {
+    "title": "Situations-Splits",
+    "ariaLabel": "Aufschlüsselung nach Periode und Spielstand für dieses Spiel",
+    "byPeriodTitle": "Nach Periode",
+    "byScoreStateTitle": "Nach Spielstand",
+    "period": "Periode",
+    "periodUnknown": "unbekannt",
+    "leading": "Führung",
+    "trailing": "Rückstand",
+    "tied": "Unentschieden"
+  },
   "calendar": {
     "title": "Kalender",
     "navAriaLabel": "Monatsnavigation",
@@ -432,7 +453,25 @@
     "colShotPercentage": "Schuss-%",
     "colGoalsAgainst": "Gegentore",
     "colSavePercentage": "Fangquote",
-    "personal": "Persönlich"
+    "personal": "Persönlich",
+    "trendsLinkAria": "Trends für {{name}} ansehen",
+    "comparison": {
+      "title": "Spieler-Vergleich",
+      "clearSelection": "Auswahl aufheben",
+      "selectPlayerAria": "{{name}} zum Vergleich auswählen",
+      "maxReachedHint": "Maximal 4 Spieler gleichzeitig vergleichbar"
+    },
+    "trends": {
+      "title": "Trends",
+      "ariaLabel": "Spiel-für-Spiel-Verlauf",
+      "backLink": "Zurück zu den Statistiken",
+      "last5": "Letzte 5",
+      "last10": "Letzte 10",
+      "season": "Saison",
+      "games": "Spiele",
+      "goalsPerGame": "Tore pro Spiel",
+      "noGamesYet": "Noch keine datierten Spiele mit Einsatz für diesen Spieler."
+    }
   },
   "news": {
     "title": "News",

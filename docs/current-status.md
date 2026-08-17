@@ -47,8 +47,10 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   (Zeit zusammen, Goals For/Against je Line, aus strukturiertem
   Match-Line-Tracking). Schuss-Tracking (Position, Schusstyp,
   Ergebnis, floorball-eigenes Zonen-Diagramm), Shot Map und einfache
-  Torhüter-Statistiken (Fangquote). Details:
-  [Live-Spielnotizen](./wiki/Live-Spielnotizen.md).
+  Torhüter-Statistiken (Fangquote). Special Teams (Powerplay-%/
+  Penalty-Kill-%, aus Strafen + Spieluhr abgeleitet) und
+  Situations-Splits (Tore/Schüsse nach Spielstand und nach Periode).
+  Details: [Live-Spielnotizen](./wiki/Live-Spielnotizen.md).
 - **RSVP/Anwesenheit** – Team-Mitglieder sagen für Spiele/Trainings
   zu/ab/unsicher, optional mit Absagegrund. Details:
   [Live-Spielnotizen](./wiki/Live-Spielnotizen.md#anwesenheit-rsvp).
@@ -58,7 +60,9 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 - **Spieler-Statistiken** (`/stats`) – Tore, Strafminuten,
   Matchstrafen, Einsätze, Schüsse/Schuss-% sowie (für Torhüter)
   Gegentore/Fangquote pro Kader-Spieler, abgeleitet aus
-  game_events/game_squad. Details:
+  game_events/game_squad. Bis zu 4 Spieler direkt nebeneinander
+  vergleichen. Trends je Spieler (`/stats/:id`) zeigen den
+  Spiel-für-Spiel-Verlauf mit Last-5/Last-10/Saison-Vergleich. Details:
   [docs/wiki/Statistiken.md](./wiki/Statistiken.md).
 - **Kalenderansicht** (`/calendar`) – Monatsraster zeigt Spiele und
   Trainingseinheiten gemeinsam an. Inkl. ICS-Kalender-Abo für

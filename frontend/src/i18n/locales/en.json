@@ -389,6 +389,27 @@
     "savePercentage": "Save %",
     "unknownPlayer": "Unknown player"
   },
+  "specialTeamsStats": {
+    "title": "Special teams",
+    "ariaLabel": "Power play/penalty kill stats for this game",
+    "powerPlay": "Power play",
+    "penaltyKill": "Penalty kill",
+    "opportunities": "Opportunities",
+    "goals": "Goals",
+    "goalsAgainst": "Goals against",
+    "percentage": "Percentage"
+  },
+  "situationalStats": {
+    "title": "Situational splits",
+    "ariaLabel": "Breakdown by period and score state for this game",
+    "byPeriodTitle": "By period",
+    "byScoreStateTitle": "By score state",
+    "period": "Period",
+    "periodUnknown": "unknown",
+    "leading": "Leading",
+    "trailing": "Trailing",
+    "tied": "Tied"
+  },
   "calendar": {
     "title": "Calendar",
     "navAriaLabel": "Month navigation",
@@ -432,7 +453,25 @@
     "colShotPercentage": "Shot %",
     "colGoalsAgainst": "Goals against",
     "colSavePercentage": "Save %",
-    "personal": "Personal"
+    "personal": "Personal",
+    "trendsLinkAria": "View trends for {{name}}",
+    "comparison": {
+      "title": "Player comparison",
+      "clearSelection": "Clear selection",
+      "selectPlayerAria": "Select {{name}} for comparison",
+      "maxReachedHint": "Up to 4 players can be compared at once"
+    },
+    "trends": {
+      "title": "Trends",
+      "ariaLabel": "Game-by-game log",
+      "backLink": "Back to statistics",
+      "last5": "Last 5",
+      "last10": "Last 10",
+      "season": "Season",
+      "games": "Games",
+      "goalsPerGame": "Goals per game",
+      "noGamesYet": "No dated games with an appearance for this player yet."
+    }
   },
   "news": {
     "title": "News",

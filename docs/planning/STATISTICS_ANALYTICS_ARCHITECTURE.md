@@ -346,7 +346,7 @@ ALTER TABLE game_events
   ADD COLUMN clock_seconds_at_event      INT,
   ADD COLUMN outcome                    TEXT,
   ADD COLUMN shot_type                  TEXT,
-  ADD COLUMN strength_state             TEXT,
+  ADD COLUMN strength_state             TEXT, -- ✅ Phase 4: serverseitig auto-befüllt, siehe ADR-0004
   ADD COLUMN x                          REAL,
   ADD COLUMN y                          REAL,
   ADD COLUMN zone                       TEXT,
@@ -503,7 +503,7 @@ berechnet werden?") gilt:
 | TURNOVER, TAKEAWAY, INTERCEPTION, BLOCK, CLEARANCE | Weiterhin nicht gebaut – mögliche spätere, optionale Typen | Wertvoll für Floorball, aber ohne eigenen UI-Erfassungsweg nutzlos; `block` existiert bereits als `shot`-`outcome`, nicht als eigener Event-Typ |
 | FACE_OFF/-_WIN/-_LOSS | **Nicht als Built-in-Typ** | Kein etabliertes Floorball-Kernkonzept (anders als Eishockey-Bully); als optionaler Custom-Typ (Phase 7) möglich, falls ein Verein es will |
 | LINE_CHANGE, SHIFT_START, SHIFT_END | **Kein Event-Typ** – abgebildet über `match_lines`-Tabelle (Abschnitt 8.3) | Strukturierter als ein Event-Strom, siehe Abschnitt 4 |
-| POWERPLAY_START/END, PENALTY_KILL_START/END | **Kein eigener Event-Typ** – abgeleitet aus bestehenden `penalty_2`/`penalty_5`/`match_penalty`-Events + Spieluhr-Dauer | Aus Anforderung §88 selbst: nicht speichern, wenn berechenbar |
+| POWERPLAY_START/END, PENALTY_KILL_START/END | ✅ Umgesetzt (Phase 4): **Kein eigener Event-Typ** – `strength_state` wird auf jedem Event serverseitig aus aktiven `penalty_2`/`penalty_5`-Fenstern abgeleitet (`match_penalty` erzeugt bewusst kein Fenster, siehe ADR-0004) | Aus Anforderung §88 selbst: nicht speichern, wenn berechenbar |
 | TIMEOUT | Bereits vorhanden (`timeout`) | – |
 | SUBSTITUTION | Bereits abgedeckt über `game_squad`-Status-Änderungen | Kein neues Event nötig |
 | CUSTOM_EVENT | Umgesetzt als generisches Konzept: **jede** Zeile in `event_type_definitions` mit `is_builtin=false` ist ein Custom Event | Kein Sonderfall-Typ namens "CUSTOM_EVENT", sondern das ganze System ist custom-fähig |
@@ -533,7 +533,8 @@ statisticsEngine.js
 ├── deriveZone(x, y) / SHOT_ZONES                                                 ✅ Phase 3
 ├── calculateShotStats(events)                                                    ✅ Phase 3
 ├── calculateGoalkeeperStats(events)                                              ✅ Phase 3
-├── calculateSpecialTeamsStats(events)            [Phase 4]
+├── calculateSpecialTeamsStats(events, { periodMinutes })                          ✅ Phase 4
+├── calculateSituationalStats(events)                                              ✅ Phase 4
 ```
 
 Frontend darf **keine eigene Statistiklogik besitzen** – die
@@ -574,7 +575,7 @@ für alle künftigen Kennzahlen):
 | **1** | `event_type_definitions`, erweiterte `game_events`-Spalten, Statistics Engine (Score-Zentralisierung), `docs/statistics.md`, Tests | Phase 0 – ✅ umgesetzt (Commit `f5f2ef6`) |
 | **2** | `match_lines`, Time-on-Floor/Shift-Zahlen, Line-Statistiken (Goals For/Against, Zeit zusammen) | Phase 1 – ✅ umgesetzt |
 | **3** | Shot Tracking (UI + `shot`-Events mit x/y/outcome/shotType), Shot Map, floorball-eigene Zonen-Definition, einfache Torhüter-Statistiken | Phase 1 – ✅ umgesetzt |
-| **4** | Special Teams (PP/PK, aus Strafen+Uhr abgeleitet), Situations-Splits (Score-State, Periode), Spieler-Vergleich, Trends | Phase 1–3 |
+| **4** | Special Teams (PP/PK, aus Strafen+Uhr abgeleitet), Situations-Splits (Score-State, Periode), Spieler-Vergleich, Trends | Phase 1–3 – ✅ umgesetzt (ADR-0004) |
 | **5** | Trainings-Analytics/Spielerentwicklung (eigene Domäne, niedrigere Priorität für dieses Dokument) | – |
 | **6** | Video-Integration: `game_id` an `board_videos` bzw. neue Verknüpfungstabelle, Event→Video-Sprung über `videoTimestampSeconds` | Phase 1 |
 | **7** | Custom-Events-UI (Trainer definiert eigene `event_type_definitions`-Zeilen), Report Builder | Phase 1 |

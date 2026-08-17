@@ -17,6 +17,18 @@ import { getUserTeamIds, assertTeamAccess } from '../utils/teamAccess.js';
 
 const MAX_ROSTER_PLAYERS = 40;
 
+// node-postgres liefert DATE-Spalten als Date-Objekt in der lokalen
+// Zeitzone des Prozesses – über die lokalen Getter statt toISOString()
+// zurück in "YYYY-MM-DD" wandeln (gleiches Problem/Lösung wie in
+// gamesController.js/trainingSessionsController.js).
+function toDateString(date) {
+  if (!date) return null;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 function toApiRosterPlayer(row) {
   return {
     _id:           row.id,
@@ -171,6 +183,82 @@ export async function getRosterPlayer(req, res) {
     res.json(success(toApiRosterPlayer(existing.rows[0])));
   } catch (err) {
     logger.error('[getRosterPlayer]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+function toApiGameLogEntry(row) {
+  return {
+    gameId:         row.game_id,
+    opponent:       row.opponent,
+    playedAt:       toDateString(row.played_at),
+    goals:          Number(row.goals ?? 0),
+    shots:          Number(row.shots ?? 0),
+    shotsOnGoal:    Number(row.shots_on_goal ?? 0),
+    shotGoals:      Number(row.shot_goals ?? 0),
+    penaltyMinutes: Number(row.penalty_minutes ?? 0),
+  };
+}
+
+// GET /api/roster/:id/game-log – Trends (Statistik-Architektur Phase 4):
+// eine Zeile PRO SPIEL (nicht saison-aggregiert wie getRosterStats), in
+// dem der Spieler im Match-Kader als 'playing' stand, chronologisch
+// aufsteigend nach played_at – Grundlage für Last-5/Last-10/Season im
+// Frontend (useGameLog.js). Rohzahlen (shots/shotsOnGoal/shotGoals),
+// NICHT eine pro Spiel fertig berechnete shotPercentage – ein
+// Fenster-Durchschnitt aus einzelnen Prozentwerten wäre mathematisch
+// falsch (Summe der Zähler/Nenner muss VOR der Division über das
+// Fenster gebildet werden, im Frontend).
+// Spiele ohne played_at (NULL) werden ausgeschlossen: ohne Datum ist
+// keine verlässliche Chronologie möglich – bewusst NICHT die
+// `ORDER BY played_at DESC NULLS FIRST`-Sortierung aus
+// gamesController.getGames übernehmen, die für "letzte N Spiele" falsch
+// wäre (würde undatierte Spiele zuerst zeigen).
+export async function getRosterPlayerGameLog(req, res) {
+  try {
+    const existing = await pool.query('SELECT * FROM roster_players WHERE id = $1', [req.params.id]);
+    if (existing.rows.length === 0 || !(await assertResourceRead(existing.rows[0], req.user.id))) {
+      return res.status(404).json(error('Kader-Spieler nicht gefunden'));
+    }
+
+    const result = await pool.query(
+      `SELECT g.id AS game_id, g.opponent, g.played_at,
+              COALESCE(go.goals, 0)::int         AS goals,
+              COALESCE(sh.shots, 0)::int         AS shots,
+              COALESCE(sh.shots_on_goal, 0)::int AS shots_on_goal,
+              COALESCE(sh.shot_goals, 0)::int    AS shot_goals,
+              COALESCE(pen.penalty_minutes, 0)::int AS penalty_minutes
+       FROM games g
+       JOIN game_squad gs ON gs.game_id = g.id AND gs.roster_player_id = $1 AND gs.status = 'playing'
+       LEFT JOIN (
+         SELECT game_id, COUNT(*) AS goals
+         FROM game_events
+         WHERE event_type = 'goal' AND NOT is_opponent AND roster_player_id = $1
+         GROUP BY game_id
+       ) go ON go.game_id = g.id
+       LEFT JOIN (
+         SELECT game_id,
+                COUNT(*) AS shots,
+                SUM(CASE WHEN outcome IN ('goal', 'save') THEN 1 ELSE 0 END) AS shots_on_goal,
+                SUM(CASE WHEN outcome = 'goal' THEN 1 ELSE 0 END) AS shot_goals
+         FROM game_events
+         WHERE event_type = 'shot' AND NOT is_opponent AND roster_player_id = $1
+         GROUP BY game_id
+       ) sh ON sh.game_id = g.id
+       LEFT JOIN (
+         SELECT game_id,
+                SUM(CASE WHEN event_type = 'penalty_2' THEN 2 WHEN event_type = 'penalty_5' THEN 5 ELSE 0 END) AS penalty_minutes
+         FROM game_events
+         WHERE roster_player_id = $1
+         GROUP BY game_id
+       ) pen ON pen.game_id = g.id
+       WHERE g.played_at IS NOT NULL
+       ORDER BY g.played_at ASC, g.created_at ASC`,
+      [req.params.id]
+    );
+    res.json(success(result.rows.map(toApiGameLogEntry)));
+  } catch (err) {
+    logger.error('[getRosterPlayerGameLog]', err);
     res.status(500).json(error('Interner Serverfehler'));
   }
 }

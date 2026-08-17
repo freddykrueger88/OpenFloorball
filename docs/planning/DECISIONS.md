@@ -485,6 +485,135 @@ Nachteile:
 
 ---
 
+# ADR-0004: Special-Teams-Kräfteverhältnis – Vereinfachungsmodell und serverseitige Ableitung
+
+## Datum
+
+2026-08-17
+
+---
+
+## Status
+
+Akzeptiert
+
+---
+
+## Kontext
+
+Phase 4 braucht Powerplay-%/Penalty-Kill-% sowie ein `strengthState`
+(`even`/`powerplay`/`shorthanded`) je Ereignis. Das exakte
+Floorball-Regelwerk für Strafzeiten (Perioden-übergreifende
+Fortsetzung, Bank-Minor bei Matchstrafen, echtes Verschmelzen
+überlappender Strafintervalle zu einer einzigen "Gelegenheit") ist
+komplex und ohne verlässliche, vollständige Datenbasis (z.B. exakte
+Restzeit bei Perioden-Wechsel, offizielle Ahndung von
+Matchstrafen-Ersatzspielern) nicht fehlerfrei nachbaubar. Die
+Anforderung selbst verbietet erfundene Präzision.
+
+Zusätzlich war `strengthState` seit Phase 1 ein vom Client
+sendbares, aber nirgends tatsächlich befülltes Feld (kein
+Frontend-Code setzte es) – Phase 4 musste entscheiden, ob es
+client-seitig bleibt oder wie `period`/`clockSecondsAtEvent`
+serverseitig übernommen wird.
+
+---
+
+## Entscheidung
+
+1. **Kein Perioden-übergreifendes Strafzeitfenster.** Ein
+   Strafzeitfenster wird am Periodenende gekappt
+   (`min(start + Dauer, periodEndSeconds)`), nicht in die nächste
+   Periode fortgesetzt.
+2. **`match_penalty` erzeugt kein Zeitfenster.** Ohne verlässliche
+   Dauer/Ersatzspieler-Regel wird keine Kräfteverhältnis-Auswirkung
+   simuliert.
+3. **Gelegenheiten werden pro Strafe gezählt**, nicht durch
+   Verschmelzen überlappender/angrenzender Strafintervalle zu einer
+   gemeinsamen Gelegenheit.
+4. **`strengthState` wird vollständig serverseitig abgeleitet** (wie
+   `period`/`clockSecondsAtEvent` seit Phase 1) statt vom Client
+   akzeptiert – `req.body.strengthState` wird ignoriert, der
+   Validator dafür entfernt.
+
+---
+
+## Alternativen
+
+### Exakte Intervall-Verschmelzung überlappender Strafen
+
+Vorteile: fachlich präziser bei mehreren gleichzeitigen Strafen.
+
+Nachteile: deutlich komplexere Logik (Intervall-Merge-Algorithmus),
+für einen Randfall (mehrere gleichzeitige Strafen desselben Teams),
+der in der Praxis selten ist – Mehraufwand ohne proportionalen Nutzen,
+und schwerer nachvollziehbar/dokumentierbar für Trainer als "eine
+Strafe = eine Gelegenheit".
+
+### Perioden-übergreifende Fortsetzung
+
+Vorteile: bildet die reale Regel ab, dass eine Strafe über die
+Drittelpause hinaus andauern kann.
+
+Nachteile: erfordert zusätzliche Annahmen darüber, wie Pausenzeit
+gezählt wird (real verstrichene Zeit vs. Spieluhr) – ohne verlässliche
+Daten dazu wäre das Ergebnis geraten, nicht abgeleitet.
+
+### `strengthState` client-seitig belassen
+
+Vorteile: kein Server-Query pro Event.
+
+Nachteile: kein Frontend-Code setzt das Feld je (verifiziert), es
+wäre dauerhaft `null`/unbenutzt geblieben – inkonsistent mit dem
+etablierten Muster, dass ableitbare Felder serverseitig berechnet
+werden (`period`, `clockSecondsAtEvent`, `zone`).
+
+---
+
+## Begründung
+
+Diese Vereinfachungen sind bewusste, dokumentierte Näherungen statt
+stillschweigend erfundener Präzision – konsistent mit dem Prinzip
+"unbekannt ≠ 0" und der expliziten Anforderung, keine Genauigkeit
+vorzutäuschen, die die Datenlage nicht hergibt. Alle drei
+Strafzeit-Vereinfachungen sind in `docs/statistics.md` unter
+"Special Teams" explizit als Einschränkungen benannt, nicht versteckt.
+
+Die serverseitige Ableitung von `strengthState` folgt demselben
+bereits etablierten Muster wie `period`/`clockSecondsAtEvent`
+(Phase 1) und `zone` (Phase 3) – der Server ist die einzige
+verlässliche Quelle für aus anderen Ereignissen abgeleitete Felder.
+
+---
+
+## Konsequenzen
+
+Vorteile:
+
+* Einfache, nachvollziehbare, testbare Logik
+  (`calculateSpecialTeamsStats`, `computeStrengthState`).
+* `strengthState` ist ab sofort für jedes Ereignis korrekt und
+  konsistent befüllt, unabhängig vom Frontend-Client.
+* Rückwärtskompatibel: `calculateSpecialTeamsStats` berechnet
+  Strafzeitfenster direkt aus rohen `penalty_2`/`penalty_5`-Zeilen
+  neu, nicht aus der gespeicherten `strength_state`-Spalte – Spiele
+  aus Phase 1–3 (dort `strength_state` NULL) liefern trotzdem
+  korrekte Special-Teams-Statistiken.
+
+Nachteile:
+
+* **API-Contract-Änderung**: ein vom Client gesendetes
+  `strengthState` wird ab Phase 4 stillschweigend ignoriert (siehe
+  `CHANGELOG.md`). Da kein ausgelieferter Frontend-Code dieses Feld
+  je gesetzt hat, kein tatsächlicher Breaking Change für die
+  ausgelieferte UI.
+* Kanten-Situationen wie eine über die Drittelpause andauernde Strafe
+  oder mehrere sich überlappende Strafen desselben Teams werden
+  bewusst ungenau (konservativ) abgebildet – dokumentiert, nicht
+  verschwiegen.
+
+---
+
 # Regel
 
 Architekturentscheidungen werden nicht vergessen.

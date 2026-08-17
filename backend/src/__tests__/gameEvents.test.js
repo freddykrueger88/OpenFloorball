@@ -151,7 +151,6 @@ describe('Statistik-Architektur Phase 1: erweiterte Event-Felder', () => {
         secondaryRosterPlayerId: assister,
         outcome: 'goal',
         shotType: 'wrist',
-        strengthState: 'even',
         x: 0.8,
         y: 0.5,
         zone: 'slot',
@@ -162,7 +161,10 @@ describe('Statistik-Architektur Phase 1: erweiterte Event-Felder', () => {
     expect(res.body.data.secondaryRosterPlayerId).toBe(assister);
     expect(res.body.data.outcome).toBe('goal');
     expect(res.body.data.shotType).toBe('wrist');
-    expect(res.body.data.strengthState).toBe('even');
+    // strengthState wird seit Phase 4 serverseitig berechnet, nicht mehr
+    // vom Client entgegengenommen – hier null, da die Spieluhr dieses
+    // Spiels nie gestartet wurde (siehe eigener describe-Block unten).
+    expect(res.body.data.strengthState).toBeNull();
     expect(res.body.data.x).toBeCloseTo(0.8);
     expect(res.body.data.y).toBeCloseTo(0.5);
     expect(res.body.data.zone).toBe('slot');
@@ -205,6 +207,91 @@ describe('Statistik-Architektur Phase 1: erweiterte Event-Felder', () => {
     expect(res.status).toBe(201);
     expect(res.body.data.period).toBe(1);
     expect(res.body.data.clockSecondsAtEvent).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('Statistik-Architektur Phase 4: strengthState automatisch befüllt', () => {
+  it('ist "even" ohne aktive Strafen', async () => {
+    const gameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Strength-Even-Test', teamId });
+    const stGameId = gameRes.body.data._id;
+    await request(app).post(`/api/games/${stGameId}/clock/start`).set('Cookie', owner.cookie);
+
+    const res = await request(app).post(`/api/games/${stGameId}/events`).set('Cookie', owner.cookie).send({ eventType: 'timeout' });
+    expect(res.body.data.strengthState).toBe('even');
+  });
+
+  it('wird "powerplay", solange eine Gegner-Strafe aktiv ist, und "shorthanded" bei einer eigenen', async () => {
+    const gameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Strength-PP-Test', teamId });
+    const stGameId = gameRes.body.data._id;
+    await request(app).post(`/api/games/${stGameId}/clock/start`).set('Cookie', owner.cookie);
+
+    const penRes = await request(app).post(`/api/games/${stGameId}/events`).set('Cookie', owner.cookie).send({ eventType: 'penalty_2', isOpponent: true });
+    expect(penRes.status).toBe(201);
+
+    const ppRes = await request(app).post(`/api/games/${stGameId}/events`).set('Cookie', owner.cookie).send({ eventType: 'timeout' });
+    expect(ppRes.body.data.strengthState).toBe('powerplay');
+
+    const ownPenRes = await request(app).post(`/api/games/${stGameId}/events`).set('Cookie', owner.cookie).send({ eventType: 'penalty_2' });
+    expect(ownPenRes.status).toBe(201);
+    // Jetzt sind beide Strafen aktiv (Gegner + eigene) → wieder "even".
+    const evenRes = await request(app).post(`/api/games/${stGameId}/events`).set('Cookie', owner.cookie).send({ eventType: 'timeout' });
+    expect(evenRes.body.data.strengthState).toBe('even');
+  });
+
+  it('bleibt null, solange die Spieluhr nie gestartet wurde', async () => {
+    const gameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Strength-NoClock-Test', teamId });
+    const stGameId = gameRes.body.data._id;
+    const res = await request(app).post(`/api/games/${stGameId}/events`).set('Cookie', owner.cookie).send({ eventType: 'timeout' });
+    expect(res.body.data.strengthState).toBeNull();
+  });
+
+  it('ignoriert einen vom Client mitgeschickten strengthState-Wert', async () => {
+    const gameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Strength-ClientIgnored-Test', teamId });
+    const stGameId = gameRes.body.data._id;
+    await request(app).post(`/api/games/${stGameId}/clock/start`).set('Cookie', owner.cookie);
+
+    const res = await request(app).post(`/api/games/${stGameId}/events`).set('Cookie', owner.cookie).send({ eventType: 'timeout', strengthState: 'powerplay' });
+    expect(res.body.data.strengthState).toBe('even');
+  });
+
+  it('kopiert denselben strengthState auf das Companion-Goal-Event eines Schusses', async () => {
+    const gameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Strength-Companion-Test', teamId });
+    const stGameId = gameRes.body.data._id;
+    await request(app).post(`/api/games/${stGameId}/clock/start`).set('Cookie', owner.cookie);
+    await request(app).post(`/api/games/${stGameId}/events`).set('Cookie', owner.cookie).send({ eventType: 'penalty_2', isOpponent: true });
+
+    const shotRes = await request(app)
+      .post(`/api/games/${stGameId}/events`)
+      .set('Cookie', owner.cookie)
+      .send({ eventType: 'shot', rosterPlayerId: p1, x: 0.9, y: 0.5, outcome: 'goal' });
+    expect(shotRes.body.data.strengthState).toBe('powerplay');
+
+    const eventsRes = await request(app).get(`/api/games/${stGameId}/events`).set('Cookie', owner.cookie);
+    const companion = eventsRes.body.data.find((e) => e._id === shotRes.body.data.metadata.companionGoalEventId);
+    expect(companion.strengthState).toBe('powerplay');
+  });
+});
+
+describe('GET /api/games/:id/events/special-teams-stats und /situational-stats', () => {
+  it('liefert plausible Werte, member darf lesen, stranger bekommt 404', async () => {
+    const gameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'SpecialTeams-Endpoint-Test', teamId });
+    const stGameId = gameRes.body.data._id;
+    await request(app).post(`/api/games/${stGameId}/clock/start`).set('Cookie', owner.cookie);
+    await request(app).post(`/api/games/${stGameId}/events`).set('Cookie', owner.cookie).send({ eventType: 'penalty_2', isOpponent: true });
+    await request(app).post(`/api/games/${stGameId}/events`).set('Cookie', owner.cookie).send({ eventType: 'goal', rosterPlayerId: p1 });
+
+    const specialRes = await request(app).get(`/api/games/${stGameId}/events/special-teams-stats`).set('Cookie', member.cookie);
+    expect(specialRes.status).toBe(200);
+    expect(specialRes.body.data.powerPlay).toMatchObject({ opportunities: 1, goals: 1, percentage: 100 });
+
+    const situationalRes = await request(app).get(`/api/games/${stGameId}/events/situational-stats`).set('Cookie', member.cookie);
+    expect(situationalRes.status).toBe(200);
+    expect(situationalRes.body.data.byScoreState).toHaveLength(3);
+
+    const strangerSpecialRes = await request(app).get(`/api/games/${stGameId}/events/special-teams-stats`).set('Cookie', stranger.cookie);
+    expect(strangerSpecialRes.status).toBe(404);
+    const strangerSituationalRes = await request(app).get(`/api/games/${stGameId}/events/situational-stats`).set('Cookie', stranger.cookie);
+    expect(strangerSituationalRes.status).toBe(404);
   });
 });
 

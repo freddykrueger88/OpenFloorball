@@ -14,7 +14,10 @@ import pool from '../db/pool.js';
 import logger from '../utils/logger.js';
 import { success, created, error } from '../utils/apiResponse.js';
 import { assertGameRead, assertGameWrite } from './gamesController.js';
-import { calculateShotStats, calculateGoalkeeperStats, deriveZone } from '../services/statisticsEngine.js';
+import {
+  calculateShotStats, calculateGoalkeeperStats, deriveZone,
+  calculateSpecialTeamsStats, calculateSituationalStats, PENALTY_DURATIONS_SECONDS,
+} from '../services/statisticsEngine.js';
 
 function toApiEvent(row) {
   return {
@@ -60,6 +63,44 @@ export async function getEvents(req, res) {
   }
 }
 
+// computeStrengthState (Phase 4 Special Teams, ADR-0004) – vergleicht,
+// wie viele eigene bzw. gegnerische penalty_2/penalty_5-Strafen zum
+// Zeitpunkt des neuen Ereignisses (SELBE Periode, halb-offenes Fenster
+// [start, end), Fenster am Periodenende gekappt statt über Perioden
+// hinweg fortgesetzt) noch aktiv sind. Läuft bewusst mit `pool`, nicht
+// `client`, VOR BEGIN – die Berechnung sieht ausschließlich bereits
+// committete Ereignisse früherer Requests, keine transaktionale
+// Konsistenz mit dem gerade entstehenden Insert nötig.
+async function computeStrengthState(gameId, period, clockSecondsAtEvent, periodEndSeconds) {
+  if (period === null || clockSecondsAtEvent === null) return null; // unbekannt ≠ 0
+  const result = await pool.query(
+    `SELECT is_opponent,
+            LEAST(
+              clock_seconds_at_event + CASE event_type
+                WHEN 'penalty_2' THEN $4::int
+                WHEN 'penalty_5' THEN $5::int
+              END,
+              $6::int
+            ) AS window_end
+     FROM game_events
+     WHERE game_id = $1 AND period = $2
+       AND event_type IN ('penalty_2', 'penalty_5')
+       AND clock_seconds_at_event <= $3`,
+    [gameId, period, clockSecondsAtEvent,
+     PENALTY_DURATIONS_SECONDS.penalty_2, PENALTY_DURATIONS_SECONDS.penalty_5, periodEndSeconds]
+  );
+  let own = 0;
+  let opponent = 0;
+  for (const row of result.rows) {
+    if (row.window_end > clockSecondsAtEvent) {
+      if (row.is_opponent) opponent += 1; else own += 1;
+    }
+  }
+  if (own < opponent) return 'powerplay';
+  if (own > opponent) return 'shorthanded';
+  return 'even';
+}
+
 // POST /api/games/:id/events – Coach-Entscheidung wie beim Anlegen
 // einer Notiz, daher assertGameWrite. Transaktional (seit Phase 3
 // Schuss-Tracking): ein `shot`-Ereignis mit outcome='goal' legt
@@ -76,10 +117,14 @@ export async function addEvent(req, res) {
       return res.status(404).json(error('Spiel nicht gefunden'));
     }
 
+    // strengthState wird NICHT mehr vom Client entgegengenommen (Phase 4,
+    // ADR-0004) – wie period/clockSecondsAtEvent ist es rein serverseitig
+    // berechnet (siehe computeStrengthState unten), ein evtl. mitgeschickter
+    // Client-Wert wird stillschweigend ignoriert.
     const {
       eventType, rosterPlayerId = null, isOpponent = false,
       secondaryRosterPlayerId = null, outcome = null, shotType = null,
-      strengthState = null, x = null, y = null, zone = null,
+      x = null, y = null, zone = null,
       videoTimestampSeconds = null, metadata = {},
     } = req.body;
 
@@ -101,7 +146,7 @@ export async function addEvent(req, res) {
     }
 
     const gameResult = await pool.query(
-      'SELECT user_id, team_id, clock_period, clock_elapsed_seconds, clock_status, clock_started_at FROM games WHERE id = $1',
+      'SELECT user_id, team_id, clock_period, clock_elapsed_seconds, clock_status, clock_started_at, clock_period_minutes FROM games WHERE id = $1',
       [gameId]
     );
     const game = gameResult.rows[0];
@@ -146,6 +191,11 @@ export async function addEvent(req, res) {
       }
     }
 
+    // strengthState automatisch aus aktiven Strafen berechnen (Phase 4,
+    // siehe computeStrengthState oben).
+    const periodEndSeconds = (game.clock_period_minutes || 20) * 60;
+    const strengthState = await computeStrengthState(gameId, period, clockSecondsAtEvent, periodEndSeconds);
+
     // Zone-Fallback (Phase 3): wenn der Client x/y, aber keine zone
     // mitschickt, serverseitig aus deriveZone ableiten. Eine vom Client
     // explizit gesetzte zone hat Vorrang, wird nicht überschrieben.
@@ -157,13 +207,14 @@ export async function addEvent(req, res) {
     // mit outcome='goal'. Bewusst schlank (kein x/y/zone/shotType), damit
     // eine spätere naive Zonen-Auswertung über ALLE event_type='goal'
     // nicht doppelt zählt – der `shot`-Datensatz bleibt der einzige
-    // detaillierte Datenpunkt.
+    // detaillierte Datenpunkt. strengthState wird seit Phase 4 zusätzlich
+    // kopiert (derselbe reale Moment, für Special-Teams-Torzuordnung).
     let companionGoalId = null;
     if (eventType === 'shot' && outcome === 'goal') {
       const companionResult = await client.query(
-        `INSERT INTO game_events (game_id, event_type, roster_player_id, is_opponent, period, clock_seconds_at_event, created_by)
-         VALUES ($1, 'goal', $2, $3, $4, $5, $6) RETURNING id`,
-        [gameId, rosterPlayerId, isOpponent, period, clockSecondsAtEvent, req.user.id]
+        `INSERT INTO game_events (game_id, event_type, roster_player_id, is_opponent, period, clock_seconds_at_event, strength_state, created_by)
+         VALUES ($1, 'goal', $2, $3, $4, $5, $6, $7) RETURNING id`,
+        [gameId, rosterPlayerId, isOpponent, period, clockSecondsAtEvent, strengthState, req.user.id]
       );
       companionGoalId = companionResult.rows[0].id;
     }
@@ -281,6 +332,38 @@ export async function getGoalkeeperStats(req, res) {
     res.json(success(calculateGoalkeeperStats(result.rows)));
   } catch (err) {
     logger.error('[getGoalkeeperStats]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// GET /api/games/:id/events/special-teams-stats – Lesezugriff reicht.
+export async function getSpecialTeamsStats(req, res) {
+  try {
+    const gameId = req.params.id;
+    if (!(await assertGameRead(gameId, req.user.id))) {
+      return res.status(404).json(error('Spiel nicht gefunden'));
+    }
+    const gameResult = await pool.query('SELECT clock_period_minutes FROM games WHERE id = $1', [gameId]);
+    const periodMinutes = gameResult.rows[0]?.clock_period_minutes ?? 20;
+    const result = await pool.query('SELECT * FROM game_events WHERE game_id = $1', [gameId]);
+    res.json(success(calculateSpecialTeamsStats(result.rows, { periodMinutes })));
+  } catch (err) {
+    logger.error('[getSpecialTeamsStats]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// GET /api/games/:id/events/situational-stats – Lesezugriff reicht.
+export async function getSituationalStats(req, res) {
+  try {
+    const gameId = req.params.id;
+    if (!(await assertGameRead(gameId, req.user.id))) {
+      return res.status(404).json(error('Spiel nicht gefunden'));
+    }
+    const result = await pool.query('SELECT * FROM game_events WHERE game_id = $1', [gameId]);
+    res.json(success(calculateSituationalStats(result.rows)));
+  } catch (err) {
+    logger.error('[getSituationalStats]', err);
     res.status(500).json(error('Interner Serverfehler'));
   }
 }

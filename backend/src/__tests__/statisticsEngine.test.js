@@ -3,7 +3,10 @@
  * (docs/planning/STATISTICS_ANALYTICS_ARCHITECTURE.md, Abschnitt 10),
  * isoliert ohne Testdatenbank testbar.
  */
-import { calculateMatchScore, calculateLineStats, deriveZone, calculateShotStats, calculateGoalkeeperStats } from '../services/statisticsEngine.js';
+import {
+  calculateMatchScore, calculateLineStats, deriveZone, calculateShotStats, calculateGoalkeeperStats,
+  calculateSpecialTeamsStats, calculateSituationalStats,
+} from '../services/statisticsEngine.js';
 
 describe('calculateMatchScore', () => {
   it('zählt eigene und gegnerische Tore getrennt', () => {
@@ -225,5 +228,128 @@ describe('calculateGoalkeeperStats', () => {
     const events = [{ event_type: 'shot', is_opponent: true, secondary_roster_player_id: 'kp1', outcome: 'block' }];
     const [result] = calculateGoalkeeperStats(events);
     expect(result.savePercentage).toBeNull();
+  });
+});
+
+describe('calculateSpecialTeamsStats', () => {
+  it('liefert Nullwerte ohne Ereignisse', () => {
+    expect(calculateSpecialTeamsStats([])).toEqual({
+      powerPlay: { opportunities: 0, goals: 0, percentage: null },
+      penaltyKill: { opportunities: 0, goalsAgainst: 0, percentage: null },
+    });
+  });
+
+  it('zählt eine nicht-überlappende Gegner-Strafe als PP-Gelegenheit, Tor im Fenster als PP-Tor', () => {
+    const events = [
+      { event_type: 'penalty_2', is_opponent: true, period: 1, clock_seconds_at_event: 100 },
+      { event_type: 'goal', is_opponent: false, period: 1, clock_seconds_at_event: 150 },
+    ];
+    const { powerPlay } = calculateSpecialTeamsStats(events, { periodMinutes: 20 });
+    expect(powerPlay).toEqual({ opportunities: 1, goals: 1, percentage: 100 });
+  });
+
+  it('zählt eine nicht-überlappende eigene Strafe als PK-Gelegenheit, Gegentor im Fenster als Gegentor', () => {
+    const events = [
+      { event_type: 'penalty_5', is_opponent: false, period: 1, clock_seconds_at_event: 200 },
+      { event_type: 'goal', is_opponent: true, period: 1, clock_seconds_at_event: 250 },
+    ];
+    const { penaltyKill } = calculateSpecialTeamsStats(events, { periodMinutes: 20 });
+    expect(penaltyKill).toEqual({ opportunities: 1, goalsAgainst: 1, percentage: 0 });
+  });
+
+  it('zählt bei gleichzeitigen Strafen beider Teams keine Gelegenheit für keine Seite', () => {
+    const events = [
+      { event_type: 'penalty_2', is_opponent: false, period: 1, clock_seconds_at_event: 300 },
+      { event_type: 'penalty_2', is_opponent: true, period: 1, clock_seconds_at_event: 300 },
+    ];
+    const { powerPlay, penaltyKill } = calculateSpecialTeamsStats(events, { periodMinutes: 20 });
+    expect(powerPlay.opportunities).toBe(0);
+    expect(penaltyKill.opportunities).toBe(0);
+  });
+
+  it('kappt das Strafenfenster am Periodenende – ein Tor danach zählt nicht mehr als PP-Tor', () => {
+    const events = [
+      { event_type: 'penalty_2', is_opponent: true, period: 1, clock_seconds_at_event: 1170 }, // Fenster würde bis 1290 gehen, gekappt auf 1200
+      { event_type: 'goal', is_opponent: false, period: 1, clock_seconds_at_event: 1200 }, // genau am gekappten Ende – halb-offen, zählt nicht
+    ];
+    const { powerPlay } = calculateSpecialTeamsStats(events, { periodMinutes: 20 });
+    expect(powerPlay).toEqual({ opportunities: 1, goals: 0, percentage: 0 });
+  });
+
+  it('ignoriert match_penalty vollständig (kein Fenster, keine Gelegenheit)', () => {
+    const events = [
+      { event_type: 'match_penalty', is_opponent: true, period: 1, clock_seconds_at_event: 50 },
+      { event_type: 'penalty_2', is_opponent: true, period: 1, clock_seconds_at_event: 100 },
+      { event_type: 'goal', is_opponent: false, period: 1, clock_seconds_at_event: 150 },
+    ];
+    const { powerPlay } = calculateSpecialTeamsStats(events, { periodMinutes: 20 });
+    expect(powerPlay).toEqual({ opportunities: 1, goals: 1, percentage: 100 });
+  });
+
+  it('zählt zwei zeitlich getrennte eigene Strafen als zwei separate PK-Gelegenheiten (keine Intervall-Verschmelzung, ADR-0004)', () => {
+    const events = [
+      { event_type: 'penalty_2', is_opponent: false, period: 1, clock_seconds_at_event: 100 },
+      { event_type: 'penalty_2', is_opponent: false, period: 1, clock_seconds_at_event: 400 },
+    ];
+    const { penaltyKill } = calculateSpecialTeamsStats(events, { periodMinutes: 20 });
+    expect(penaltyKill.opportunities).toBe(2);
+  });
+});
+
+describe('calculateSituationalStats', () => {
+  it('liefert 3 leere Spielstand-Buckets und ein leeres byPeriod ohne Ereignisse', () => {
+    const result = calculateSituationalStats([]);
+    expect(result.byScoreState).toHaveLength(3);
+    expect(result.byScoreState.map((b) => b.scoreState).sort()).toEqual(['leading', 'tied', 'trailing']);
+    for (const bucket of result.byScoreState) {
+      expect(bucket).toMatchObject({ ownGoals: 0, opponentGoals: 0, shots: 0, shotsOnGoal: 0, shotGoals: 0, shotPercentage: null });
+    }
+    expect(result.byPeriod).toEqual([]);
+  });
+
+  it('klassifiziert jedes Ereignis nach dem Spielstand VOR ihm, aktualisiert Tallies erst danach', () => {
+    const events = [
+      { event_type: 'goal', is_opponent: true, period: 1, created_at: '2026-01-01T10:00:00.000Z' }, // vor: 0-0 tied
+      { event_type: 'goal', is_opponent: false, period: 1, created_at: '2026-01-01T10:01:00.000Z' }, // vor: 0-1 trailing
+      { event_type: 'goal', is_opponent: false, period: 1, created_at: '2026-01-01T10:02:00.000Z' }, // vor: 1-1 tied
+      { event_type: 'shot', is_opponent: false, outcome: 'miss', period: 1, created_at: '2026-01-01T10:03:00.000Z' }, // vor: 2-1 leading
+    ];
+    const { byScoreState } = calculateSituationalStats(events);
+    const tied = byScoreState.find((b) => b.scoreState === 'tied');
+    const trailing = byScoreState.find((b) => b.scoreState === 'trailing');
+    const leading = byScoreState.find((b) => b.scoreState === 'leading');
+    expect(tied).toMatchObject({ opponentGoals: 1, ownGoals: 1 });
+    expect(trailing).toMatchObject({ ownGoals: 1 });
+    expect(leading).toMatchObject({ shots: 1 });
+  });
+
+  it('zählt ein shot+Companion-Goal-Paar nur einmal bei ownGoals', () => {
+    const events = [
+      { event_type: 'shot', is_opponent: false, outcome: 'goal', period: 1, created_at: '2026-01-01T10:00:00.000Z' },
+      { event_type: 'goal', is_opponent: false, period: 1, created_at: '2026-01-01T10:00:00.000Z' },
+    ];
+    const { byScoreState } = calculateSituationalStats(events);
+    const totalOwnGoals = byScoreState.reduce((sum, b) => sum + b.ownGoals, 0);
+    expect(totalOwnGoals).toBe(1);
+    const totalShots = byScoreState.reduce((sum, b) => sum + b.shots, 0);
+    expect(totalShots).toBe(1);
+  });
+
+  it('zählt ein Tor über das klassische Preset (ohne shot-Unterbau) korrekt', () => {
+    const events = [{ event_type: 'goal', is_opponent: false, period: 1, created_at: '2026-01-01T10:00:00.000Z' }];
+    const { byScoreState } = calculateSituationalStats(events);
+    const totalOwnGoals = byScoreState.reduce((sum, b) => sum + b.ownGoals, 0);
+    expect(totalOwnGoals).toBe(1);
+  });
+
+  it('gruppiert nach Periode, unbekannte Periode (null) landet als letzter Eintrag', () => {
+    const events = [
+      { event_type: 'goal', is_opponent: false, period: 2, created_at: '2026-01-01T10:00:00.000Z' },
+      { event_type: 'goal', is_opponent: false, period: 1, created_at: '2026-01-01T10:01:00.000Z' },
+      { event_type: 'goal', is_opponent: true, period: 3, created_at: '2026-01-01T10:02:00.000Z' },
+      { event_type: 'goal', is_opponent: false, period: null, created_at: '2026-01-01T10:03:00.000Z' },
+    ];
+    const { byPeriod } = calculateSituationalStats(events);
+    expect(byPeriod.map((p) => p.period)).toEqual([1, 2, 3, null]);
   });
 });

@@ -1,0 +1,38 @@
+name: Gitleaks
+
+# Eigenständiger Workflow statt Integration in security.yml: security.yml triggert
+# aktuell nur auf push (main) + wöchentlichem Cron, aber Gitleaks soll laut Vorgabe
+# auch auf Pull Requests laufen. Ein zusätzlicher pull_request-Trigger in security.yml
+# würde auch den bestehenden npm-audit-Job auf PRs mitlaufen lassen – das ist eine
+# Nebenwirkung, die nicht Teil dieser Aufgabe ist. Branch-Set (main, develop) folgt
+# der bestehenden Konvention aus ci.yml.
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    name: 🔑 Gitleaks Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Gitleaks scannt die Git-Historie (nicht nur den Working Tree) und
+          # benötigt dafür laut offizieller Doku einen vollständigen Checkout.
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_LICENSE ist laut offizieller Doku nur für Organization-Repos
+          # nötig, nicht für Repos unter einem persönlichen Account (dieses Repo).
+          # PR-Inline-Kommentare bewusst deaktiviert: dafür wäre `pull-requests:
+          # write` nötig, was über das für den reinen Scan erforderliche
+          # `contents: read` hinausgeht (Least Privilege, siehe Vorgabe).
+          GITLEAKS_ENABLE_COMMENTS: 'false'

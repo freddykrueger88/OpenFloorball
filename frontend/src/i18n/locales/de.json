@@ -356,6 +356,33 @@
     "clearAriaLabel": "Status von {{name}} zurücksetzen",
     "clearTitle": "Zurücksetzen (nicht entschieden)"
   },
+  "trainingAttendance": {
+    "title": "Anwesenheit",
+    "ariaLabel": "Anwesenheit bei diesem Training",
+    "loading": "Lädt Anwesenheit…",
+    "setStatusAriaLabel": "Status für {{name}} setzen",
+    "statusPresent": "Anwesend",
+    "statusExcused": "Entschuldigt",
+    "statusInjured": "Verletzt",
+    "statusAbsent": "Unentschuldigt",
+    "statusNone": "Nicht erfasst",
+    "clearAriaLabel": "Status von {{name}} zurücksetzen",
+    "clearTitle": "Zurücksetzen (nicht erfasst)"
+  },
+  "playerNotes": {
+    "title": "Spielerentwicklung",
+    "ariaLabel": "Entwicklungsnotizen zu diesem Spieler",
+    "loading": "Lädt Notizen…",
+    "empty": "Noch keine Entwicklungsnotizen.",
+    "placeholder": "Beobachtung notieren…",
+    "addBtn": "Notiz hinzufügen",
+    "editBtn": "Bearbeiten",
+    "editAriaLabel": "Notiz bearbeiten",
+    "saveBtn": "Speichern",
+    "cancelBtn": "Abbrechen",
+    "deleteBtn": "Löschen",
+    "deleteAriaLabel": "Notiz löschen"
+  },
   "lineStats": {
     "title": "Line-Statistiken",
     "ariaLabel": "Line-Statistiken für dieses Spiel",
@@ -453,6 +480,7 @@
     "colShotPercentage": "Schuss-%",
     "colGoalsAgainst": "Gegentore",
     "colSavePercentage": "Fangquote",
+    "colAttendanceRate": "Trainings-%",
     "personal": "Persönlich",
     "trendsLinkAria": "Trends für {{name}} ansehen",
     "comparison": {
@@ -470,7 +498,10 @@
       "season": "Saison",
       "games": "Spiele",
       "goalsPerGame": "Tore pro Spiel",
-      "noGamesYet": "Noch keine datierten Spiele mit Einsatz für diesen Spieler."
+      "noGamesYet": "Noch keine datierten Spiele mit Einsatz für diesen Spieler.",
+      "attendanceTitle": "Trainings-Beteiligung",
+      "trainingsRecorded": "Erfasste Trainings",
+      "attendanceRate": "Beteiligungsquote"
     }
   },
   "news": {

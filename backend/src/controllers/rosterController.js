@@ -61,6 +61,16 @@ function toApiRosterStats(row) {
     savePercentage: isGoalkeeper && gkShotsOnGoalAgainst > 0
       ? Math.round((Number(row.gk_saves ?? 0) / gkShotsOnGoalAgainst) * 1000) / 10
       : null,
+    // Statistik-Architektur Phase 5: Beteiligungsquote über ERFASSTE
+    // Trainings (jede Anwesenheits-Entscheidung, nicht nur "präsent"),
+    // analog appearances oben nur bei tatsächlich gesetztem Status
+    // gezählt. null statt 0, solange kein einziges Training erfasst
+    // wurde ("unbekannt ≠ 0", Architektur-Dokument Abschnitt 10).
+    trainingsRecorded: Number(row.trainings_recorded ?? 0),
+    trainingsPresent:  Number(row.trainings_present ?? 0),
+    attendanceRate: Number(row.trainings_recorded ?? 0) > 0
+      ? Math.round((Number(row.trainings_present ?? 0) / Number(row.trainings_recorded)) * 1000) / 10
+      : null,
   };
 }
 
@@ -126,7 +136,9 @@ export async function getRosterStats(req, res) {
               COALESCE(sh.shot_goals, 0)::int      AS shot_goals,
               COALESCE(gk.shots_on_goal_against, 0)::int AS gk_shots_on_goal_against,
               COALESCE(gk.saves, 0)::int                 AS gk_saves,
-              COALESCE(gk.goals_against, 0)::int         AS gk_goals_against
+              COALESCE(gk.goals_against, 0)::int         AS gk_goals_against,
+              COALESCE(ta.trainings_recorded, 0)::int    AS trainings_recorded,
+              COALESCE(ta.trainings_present, 0)::int     AS trainings_present
        FROM roster_players rp
        LEFT JOIN (
          SELECT roster_player_id,
@@ -161,6 +173,13 @@ export async function getRosterStats(req, res) {
          WHERE event_type = 'shot' AND is_opponent AND secondary_roster_player_id IS NOT NULL
          GROUP BY secondary_roster_player_id
        ) gk ON gk.roster_player_id = rp.id
+       LEFT JOIN (
+         SELECT roster_player_id,
+                COUNT(*) AS trainings_recorded,
+                SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) AS trainings_present
+         FROM training_attendance
+         GROUP BY roster_player_id
+       ) ta ON ta.roster_player_id = rp.id
        WHERE rp.user_id = $1 OR rp.team_id = ANY($2::uuid[])
        ORDER BY goals DESC, rp.jersey_number ASC NULLS LAST, rp.name ASC`,
       [req.user.id, teamIds]
@@ -259,6 +278,44 @@ export async function getRosterPlayerGameLog(req, res) {
     res.json(success(result.rows.map(toApiGameLogEntry)));
   } catch (err) {
     logger.error('[getRosterPlayerGameLog]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+function toApiTrainingLogEntry(row) {
+  return {
+    sessionId:     row.session_id,
+    sessionName:   row.session_name,
+    scheduledDate: toDateString(row.scheduled_date),
+    status:        row.status,
+  };
+}
+
+// GET /api/roster/:id/training-log – Trainings-für-Training-Verlauf
+// (Statistik-Architektur Phase 5), analog getRosterPlayerGameLog: eine
+// Zeile pro Training, in dem für den Spieler eine Anwesenheit ERFASST
+// wurde (jeder Status, nicht nur "präsent") – Grundlage für Last-5/
+// Last-10/Season-Beteiligungsquote im Frontend. Trainings ohne
+// scheduled_date (NULL) werden ausgeschlossen: ohne Datum ist keine
+// verlässliche Chronologie möglich, exakt wie played_at bei Spielen.
+export async function getRosterPlayerTrainingLog(req, res) {
+  try {
+    const existing = await pool.query('SELECT * FROM roster_players WHERE id = $1', [req.params.id]);
+    if (existing.rows.length === 0 || !(await assertResourceRead(existing.rows[0], req.user.id))) {
+      return res.status(404).json(error('Kader-Spieler nicht gefunden'));
+    }
+
+    const result = await pool.query(
+      `SELECT s.id AS session_id, s.name AS session_name, s.scheduled_date, ta.status
+       FROM training_sessions s
+       JOIN training_attendance ta ON ta.session_id = s.id AND ta.roster_player_id = $1
+       WHERE s.scheduled_date IS NOT NULL
+       ORDER BY s.scheduled_date ASC, s.created_at ASC`,
+      [req.params.id]
+    );
+    res.json(success(result.rows.map(toApiTrainingLogEntry)));
+  } catch (err) {
+    logger.error('[getRosterPlayerTrainingLog]', err);
     res.status(500).json(error('Interner Serverfehler'));
   }
 }

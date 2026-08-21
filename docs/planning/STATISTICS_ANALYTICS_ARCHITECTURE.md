@@ -486,6 +486,50 @@ game_events
 └── createdAt                   TIMESTAMPTZ
 ```
 
+## 8.7 Trainings-Analytics/Spielerentwicklung (Phase 5)
+
+Anders als Phase 1–4 (Match-Events) eine eigene, kleinere Domäne ohne
+Bezug zu `game_events`/`event_type_definitions` – Grundlage sind
+`training_sessions`/`roster_players`, nicht `games`.
+
+`training_attendance` (NEU): tatsächliche Anwesenheit bei einem
+Training, strukturell identisch zu `game_squad` (echte Junction,
+`UNIQUE (session_id, roster_player_id)`, `ON DELETE CASCADE` an beiden
+FKs), aber mit trainings-eigenen Status-Werten (`present`, `excused`,
+`absent`, `injured` statt `playing`/`reserve`/…). Bewusst getrennt von
+RSVP (`rsvps`, Selbstauskunft VOR dem Termin) – ein Spieler kann
+zugesagt haben und trotzdem nicht erschienen sein, das eine ersetzt
+das andere nicht.
+
+`player_development_notes` (NEU): freie, zeitgestempelte
+Beobachtungsnotizen eines Coaches zu einem Kader-Spieler, optional mit
+`training_session_id`-Kontext (`ON DELETE SET NULL` – die Notiz
+überlebt das Löschen des Trainings). Bewusst NICHT über die
+bestehende, polymorphe `comments`-Tabelle (dort für Boards/Trainings/
+Spiele, mit "jedes Team-Mitglied liest mit") – Entwicklungsnotizen
+sind personenbezogene Daten ÜBER einen Spieler (oft minderjährig),
+keine Diskussion ZU einer Ressource, daher ein eigener, restriktiverer
+Zugriff (nur coach/owner, nie `member`, siehe
+`playerDevelopmentNotesController.js`).
+
+Ableitungen: `GET /api/roster/stats` liefert zusätzlich
+`trainingsRecorded`/`trainingsPresent`/`attendanceRate` je Spieler
+(analog `appearances` aus `game_squad`, `null` statt `0` ohne ein
+einziges erfasstes Training – "unbekannt ≠ 0", siehe Abschnitt 10).
+`GET /api/roster/:id/training-log` liefert den Trainings-für-Training-
+Verlauf für Last-5/Last-10/Season-Trends im Frontend, exakt analog
+`game-log` aus Phase 4.
+
+Bewusst NICHT Teil dieser Phase: Aufnahme in den GDPR-Backup-Export
+(`exportUserData.js`) – der Export deckt aktuell die gesamte
+Spiel-Domäne (`games`/`game_events`/`game_squad`) ebenfalls nicht ab;
+Trainings-Anwesenheit/Entwicklungsnotizen konsistent zu diesem
+bestehenden Stand zu halten statt isoliert vorzuziehen. Nachgezogen
+werden sollte das gemeinsam mit der Spiel-Domäne, nicht separat –
+offener Folgepunkt, siehe `docs/planning/BACKLOG.md`.
+
+---
+
 ## Welche der in der Anforderung vorgeschlagenen "Grundtypen" werden wie behandelt
 
 Die Anforderung listet ca. 30 mögliche Grundtypen (GOAL, SHOT,
@@ -576,7 +620,7 @@ für alle künftigen Kennzahlen):
 | **2** | `match_lines`, Time-on-Floor/Shift-Zahlen, Line-Statistiken (Goals For/Against, Zeit zusammen) | Phase 1 – ✅ umgesetzt |
 | **3** | Shot Tracking (UI + `shot`-Events mit x/y/outcome/shotType), Shot Map, floorball-eigene Zonen-Definition, einfache Torhüter-Statistiken | Phase 1 – ✅ umgesetzt |
 | **4** | Special Teams (PP/PK, aus Strafen+Uhr abgeleitet), Situations-Splits (Score-State, Periode), Spieler-Vergleich, Trends | Phase 1–3 – ✅ umgesetzt (ADR-0004) |
-| **5** | Trainings-Analytics/Spielerentwicklung (eigene Domäne, niedrigere Priorität für dieses Dokument) | – |
+| **5** | Trainings-Analytics/Spielerentwicklung (eigene Domäne, niedrigere Priorität für dieses Dokument) | – ✅ umgesetzt |
 | **6** | Video-Integration: `game_id` an `board_videos` bzw. neue Verknüpfungstabelle, Event→Video-Sprung über `videoTimestampSeconds` | Phase 1 |
 | **7** | Custom-Events-UI (Trainer definiert eigene `event_type_definitions`-Zeilen), Report Builder | Phase 1 |
 | **8** | Advanced Analytics: xG-Modell v1 (erst mit ausreichender Datenbasis), Line-Chemie, Shot Quality – Modellversionierung dokumentiert | Phase 3 |

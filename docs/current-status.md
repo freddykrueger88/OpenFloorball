@@ -32,7 +32,10 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 - **Trainingsplaner** – Trainingseinheiten mit Übungen, referenziert
   Boards live per Fremdschlüssel statt Kopie. Inkl. Serientermine
   (täglich/wöchentlich/alle 2 Wochen, unabhängige Folgetermine ohne
-  Serien-Tracking). Details: [Trainingsplaner](./wiki/Trainingsplaner.md).
+  Serien-Tracking). Tatsächliche Trainings-Anwesenheit je Kader-Spieler
+  (präsent/entschuldigt/unentschuldigt/verletzt, unabhängig von RSVP)
+  seit "Statistik-Architektur Phase 5" (EPIC 012). Details:
+  [Trainingsplaner](./wiki/Trainingsplaner.md).
 - **Live-Spielnotizen** – Spiele anlegen (Gegner/Datum, optional
   team-geteilt), während des laufenden Spiels schnelle,
   zeitgestempelte Notizen erfassen. Die 10 festen IFF-Presets (Tor,
@@ -62,8 +65,15 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   Gegentore/Fangquote pro Kader-Spieler, abgeleitet aus
   game_events/game_squad. Bis zu 4 Spieler direkt nebeneinander
   vergleichen. Trends je Spieler (`/stats/:id`) zeigen den
-  Spiel-für-Spiel-Verlauf mit Last-5/Last-10/Saison-Vergleich. Details:
-  [docs/wiki/Statistiken.md](./wiki/Statistiken.md).
+  Spiel-für-Spiel-Verlauf mit Last-5/Last-10/Saison-Vergleich, seit
+  Phase 5 zusätzlich die Trainings-Beteiligungsquote (erfasste
+  Trainings/Anwesenheits-%) im selben Last-5/Last-10/Saison-Muster.
+  Details: [docs/wiki/Statistiken.md](./wiki/Statistiken.md).
+- **Spielerentwicklung** – freie, zeitgestempelte Beobachtungsnotizen
+  eines Coaches zu einem Kader-Spieler (`/stats/:id`), optional mit
+  Trainings-Kontext. Nur coach/owner sehen und schreiben (nie
+  'member') – personenbezogene Daten über einen Spieler, kein
+  Team-Kommentarfeld. Statistik-Architektur Phase 5 (EPIC 012).
 - **Kalenderansicht** (`/calendar`) – Monatsraster zeigt Spiele und
   Trainingseinheiten gemeinsam an. Inkl. ICS-Kalender-Abo für
   Google Calendar/Apple Kalender/Outlook (Details:
@@ -183,7 +193,7 @@ konkrete Backlog-Einträge vor (siehe unten).
 | Backend | Node ≥24, Express 5, PostgreSQL 18, Redis 8 |
 | Frontend | React 19, Vite 7, react-router 8, zustand 5, Konva 10/react-konva 19, i18next (DE/EN) |
 | PWA | `vite-plugin-pwa`, echt konfiguriert (Workbox-Caching, Manifest) |
-| Tests | 33 Backend-Testdateien, 18 Frontend-Testdateien |
+| Tests | 53 Backend-Testdateien, 19 Frontend-Testdateien |
 | CI/CD | GitHub Actions – Lint/Test/Build (Backend + Frontend), Docker-Build-Check, Security-Scan, Dependency-Review |
 | Deployment | Docker Compose, optionales TLS-Overlay (Caddy) |
 | Lizenz | MIT |

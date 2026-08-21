@@ -98,6 +98,34 @@ describe('GET /api/roster/stats', () => {
     expect(entry.appearances).toBe(0);
   });
 
+  it('berechnet die Trainings-Beteiligungsquote (Statistik-Architektur Phase 5)', async () => {
+    const playerRes = await request(app).post('/api/roster').set('Cookie', owner.cookie).send({ name: 'Trainingsfleißig', teamId });
+    const playerId = playerRes.body.data._id;
+
+    const s1 = await request(app).post('/api/trainings').set('Cookie', owner.cookie).send({ name: 'Stats-Training-1', teamId });
+    const s2 = await request(app).post('/api/trainings').set('Cookie', owner.cookie).send({ name: 'Stats-Training-2', teamId });
+    const s3 = await request(app).post('/api/trainings').set('Cookie', owner.cookie).send({ name: 'Stats-Training-3', teamId });
+    await request(app).put(`/api/trainings/${s1.body.data._id}/attendance/${playerId}`).set('Cookie', owner.cookie).send({ status: 'present' });
+    await request(app).put(`/api/trainings/${s2.body.data._id}/attendance/${playerId}`).set('Cookie', owner.cookie).send({ status: 'present' });
+    await request(app).put(`/api/trainings/${s3.body.data._id}/attendance/${playerId}`).set('Cookie', owner.cookie).send({ status: 'excused' });
+
+    const res = await request(app).get('/api/roster/stats').set('Cookie', owner.cookie);
+    const entry = res.body.data.find((p) => p._id === playerId);
+    expect(entry.trainingsRecorded).toBe(3);
+    expect(entry.trainingsPresent).toBe(2);
+    expect(entry.attendanceRate).toBeCloseTo(66.7, 1);
+  });
+
+  it('liefert null statt 0 für die Beteiligungsquote ohne erfasstes Training ("unbekannt ≠ 0")', async () => {
+    const playerRes = await request(app).post('/api/roster').set('Cookie', owner.cookie).send({ name: 'Ohne-Training', teamId });
+    const playerId = playerRes.body.data._id;
+
+    const res = await request(app).get('/api/roster/stats').set('Cookie', owner.cookie);
+    const entry = res.body.data.find((p) => p._id === playerId);
+    expect(entry.trainingsRecorded).toBe(0);
+    expect(entry.attendanceRate).toBeNull();
+  });
+
   it('member sieht die Team-Kader-Stats, ein Fremder sieht sie nicht', async () => {
     const memberRes = await request(app).get('/api/roster/stats').set('Cookie', member.cookie);
     expect(memberRes.status).toBe(200);

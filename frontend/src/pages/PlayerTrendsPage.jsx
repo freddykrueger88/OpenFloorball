@@ -10,7 +10,9 @@ import { useTranslation } from 'react-i18next';
 import { AlertTriangle } from 'lucide-react';
 import { useRoster } from '../hooks/useRoster.js';
 import { useGameLog } from '../hooks/useGameLog.js';
+import { useTrainingLog } from '../hooks/useTrainingLog.js';
 import GameLogBars from '../components/stats/GameLogBars.jsx';
+import PlayerDevelopmentNotesSection from '../components/playerNotes/PlayerDevelopmentNotesSection.jsx';
 import styles from './PlayerTrendsPage.module.css';
 
 // aggregateWindow – summiert Rohzahlen ZUERST, dividiert danach. Ein
@@ -36,11 +38,25 @@ function aggregateWindow(games) {
   };
 }
 
+// aggregateAttendanceWindow – analog aggregateWindow oben, aber für den
+// Trainings-Anwesenheitsverlauf (Statistik-Architektur Phase 5): jeder
+// erfasste Status zählt zum Fenster, nur 'present' zählt als Anwesenheit.
+function aggregateAttendanceWindow(entries) {
+  const recorded = entries.length;
+  const present = entries.filter((e) => e.status === 'present').length;
+  return {
+    recorded,
+    present,
+    rate: recorded > 0 ? Math.round((present / recorded) * 1000) / 10 : null,
+  };
+}
+
 export default function PlayerTrendsPage() {
   const { t } = useTranslation();
   const { playerId } = useParams();
   const { rosterPlayers, fetchRoster } = useRoster();
   const { gameLog, loading, error, fetchGameLog } = useGameLog(playerId);
+  const { trainingLog, fetchTrainingLog } = useTrainingLog(playerId);
 
   const load = useCallback(async () => {
     try { await fetchGameLog(); } catch { /* error via hook */ }
@@ -48,12 +64,17 @@ export default function PlayerTrendsPage() {
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { fetchRoster().catch(() => {}); }, [fetchRoster]);
+  useEffect(() => { fetchTrainingLog().catch(() => {}); }, [fetchTrainingLog]);
 
   const player = rosterPlayers.find((p) => p._id === playerId);
 
   const last5 = aggregateWindow(gameLog.slice(-5));
   const last10 = aggregateWindow(gameLog.slice(-10));
   const season = aggregateWindow(gameLog);
+
+  const attendanceLast5 = aggregateAttendanceWindow(trainingLog.slice(-5));
+  const attendanceLast10 = aggregateAttendanceWindow(trainingLog.slice(-10));
+  const attendanceSeason = aggregateAttendanceWindow(trainingLog);
 
   const percentageOrUnknown = (value) => value ?? t('shotStats.percentageUnknown');
 
@@ -123,6 +144,38 @@ export default function PlayerTrendsPage() {
           </section>
         </>
       )}
+
+      {trainingLog.length > 0 && (
+        <section aria-label={t('stats.trends.attendanceTitle')}>
+          <h2 className={styles.subheading}>{t('stats.trends.attendanceTitle')}</h2>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th />
+                  <th>{t('stats.trends.last5')}</th>
+                  <th>{t('stats.trends.last10')}</th>
+                  <th>{t('stats.trends.season')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{t('stats.trends.trainingsRecorded')}</td>
+                  <td>{attendanceLast5.recorded}</td><td>{attendanceLast10.recorded}</td><td>{attendanceSeason.recorded}</td>
+                </tr>
+                <tr>
+                  <td>{t('stats.trends.attendanceRate')}</td>
+                  <td>{percentageOrUnknown(attendanceLast5.rate)}</td>
+                  <td>{percentageOrUnknown(attendanceLast10.rate)}</td>
+                  <td>{percentageOrUnknown(attendanceSeason.rate)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {playerId && <PlayerDevelopmentNotesSection playerId={playerId} />}
     </main>
   );
 }

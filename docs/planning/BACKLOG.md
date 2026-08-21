@@ -559,6 +559,164 @@ P2
 
 ---
 
+# ISSUE 025
+
+## Gegnerische Spieler nicht automatisch auf dem Feld platzieren
+
+### Beschreibung
+
+Beim Anlegen eines neuen Boards (`boardsController.js` →
+`buildDefaultPlayers`) sowie beim Zurücksetzen/Wechseln des Feldtyps
+im Editor (`usePlayerState.js` → `buildDefaultPlayers`) werden aktuell
+automatisch sowohl die eigene Mannschaft ("home") als auch eine
+vollständige gegnerische Aufstellung ("away") auf dem Feld platziert.
+Das entspricht nicht dem typischen Trainer-Workflow: die meisten
+Taktiken (Spielaufbau, Systeme, Trainingsformen) betreffen zunächst
+nur die eigene Mannschaft. Feedback: die gegnerischen Spieler sollen
+nicht automatisch auf dem Feld stehen.
+
+---
+
+## Aufgaben
+
+* Default beim Anlegen eines neuen Boards/beim Zurücksetzen: nur
+  eigene Mannschaft ("home") + Ball platzieren, keine "away"-Spieler.
+* Zusätzlich (Feedback-Erweiterung): pro Spieler einzeln ein-/
+  ausblendbar machen, nicht nur pauschal die ganze gegnerische
+  Mannschaft. D.h. jeder Token (Home wie Away) bekommt eine
+  Sichtbarkeits-Option statt nur "Gegner an/aus" als Gruppe – z.B. ein
+  Kontextmenü-Eintrag "Ausblenden" pro Spieler-Token plus eine
+  Übersicht/Liste im Editor (ähnlich Layer-Panel, CLAUDE.md Kapitel
+  10.2), über die ausgeblendete Spieler gezielt wieder eingeblendet
+  werden können.
+* Ausgeblendete Spieler bleiben im Datenmodell erhalten (nur
+  `visible: false`/ähnlich), keine Löschung – sonst gehen Name/
+  Zuordnung beim Wiedereinblenden verloren.
+* Bereits gespeicherte Boards nicht verändern (betrifft nur den
+  Default für neue Boards/Resets).
+* Frontend (`fieldConfig.js` → `buildDefaultPlayers`) und Backend
+  (`defaultPositions.js` → `buildDefaultPlayers`) synchron halten
+  (bestehender Duplikations-Hinweis in beiden Dateien beachten).
+
+---
+
+## Technische Überlegungen
+
+* Beide `buildDefaultPlayers`-Implementierungen
+  (`frontend/src/constants/fieldConfig.js`,
+  `backend/src/constants/defaultPositions.js`) müssten um einen
+  Parameter erweitert werden (z.B. `includeAway = false`) statt away
+  hart einzubacken.
+* Sichtbarkeit pro Spieler ist ein neues Feld im Player-Objekt (z.B.
+  `visible`, Default `true` für home, `false` für away) – wirkt sich
+  auf Rendering (Feld), nicht auf Drag&Drop/Positions-Logik aus.
+  Bestehende Boards ohne dieses Feld müssen als "sichtbar" gelten
+  (Fallback `visible !== false`), damit alte Frames unverändert
+  aussehen.
+* `usePlayerState.resetPlayer`/`resetAllPlayers` nutzen dieselbe
+  Funktion für "Zurücksetzen" – Verhalten sollte konsistent bleiben
+  (kein Zurücksetzen, das plötzlich Spieler wieder einblendet, die
+  bewusst ausgeblendet wurden, außer der Nutzer wählt das aktiv).
+* Frame-Animation/Versionierung beachten: Sichtbarkeit ist Teil des
+  Frame-Zustands, muss also pro Szene mit animiert/gespeichert werden
+  können, nicht nur global pro Board.
+* Kein Datenmodell-Wechsel bei `team` nötig – `team: 'away'` existiert
+  bereits, es geht nur um den initial befüllten Default plus die neue
+  Sichtbarkeits-Option pro Spieler.
+
+---
+
+## Akzeptanzkriterien
+
+* Ein neu angelegtes Board zeigt initial nur die eigene Mannschaft
+  (+ Ball), keine gegnerischen Spieler.
+* Jeder einzelne Spieler (Home wie Away) lässt sich unabhängig
+  ein-/ausblenden, nicht nur die gegnerische Mannschaft als Ganzes.
+* Ausgeblendete Spieler lassen sich über eine Übersicht gezielt
+  wieder einblenden, ohne sie neu anlegen zu müssen.
+* Bestehende, bereits gespeicherte Boards mit Gegnern sind von der
+  Änderung nicht betroffen (alle Spieler weiterhin sichtbar).
+* Feldtyp-Wechsel/"Alle zurücksetzen" platziert ebenfalls keine
+  Gegner automatisch.
+
+Priorität:
+
+P1
+
+---
+
+# ISSUE 026
+
+## GDPR-Backup-Export um Spiel- und Trainings-Domäne erweitern
+
+### Beschreibung
+
+`exportUserData.js` (genutzt von `GET /api/user/data` – Art. 15
+Auskunft – und `GET /api/user/export` – ZIP-Backup) deckt aktuell
+Boards, Kader, Lines, Playbooks, Formationsvorlagen und
+Trainingspläne ab, aber weder die gesamte Spiel-Domäne
+(`games`/`game_events`/`game_squad`/`match_lines`, EPIC 012 Phase 1–4)
+noch die mit Statistik-Architektur Phase 5 neu hinzugekommenen
+Trainings-Anwesenheit (`training_attendance`) und
+Spielerentwicklungsnotizen (`player_development_notes`). Datenschutz-
+und Auskunftsrecht sollten den vollen Datenbestand eines Accounts
+abdecken (CLAUDE.md §5.2/§5.3 – Datenportabilität, Recht auf Auskunft).
+
+---
+
+## Aufgaben
+
+* `buildUserExport` um eine `games`-Sektion erweitern (analog
+  `trainingSessions`: eigene Spiele mit `game_events`/`game_squad`/
+  `match_lines`, Referenzierung per Name/Datum statt DB-ID wie beim
+  bestehenden Muster).
+* Trainingspläne-Sektion um `attendance` je Session erweitern
+  (Kader-Spieler-Referenz per Name+Nummer, analog `lines`-Export).
+* Kader-Sektion um `developmentNotes` je Spieler erweitern (nur vom
+  exportierenden Nutzer selbst verfasste Notizen).
+* `importAccount` entsprechend erweitern, damit ein Re-Import nichts
+  von alledem stillschweigend verwirft.
+* Bestehende Backup-Format-Version (`BACKUP_FORMAT`) prüfen, ob eine
+  neue Versionsnummer nötig ist oder additive Felder ausreichen.
+* Die Datenkategorien-Liste auf `/privacy`
+  (`frontend/src/pages/PrivacyPage.jsx`,
+  `privacyPage.dataCategories.*`) nennt bisher nur Konto/Boards/
+  Einstellungen – Kader, Spiele, Trainingsdaten (inkl. der neuen
+  Trainings-Anwesenheit/Spielerentwicklungsnotizen) fehlen dort
+  komplett. Gehört zum selben Auskunfts-/Transparenz-Thema wie der
+  Export oben, sollte gemeinsam nachgezogen werden statt Einzelfelder
+  isoliert zu ergänzen.
+
+---
+
+## Technische Überlegungen
+
+* Games/game_events sind der größere, unabhängige Teil dieser Lücke –
+  existierte bereits vor Statistik-Architektur Phase 5 und sollte
+  gemeinsam mit der neuen Trainings-Anwesenheit/-Notizen nachgezogen
+  werden, nicht isoliert (siehe Anmerkung in
+  `docs/planning/STATISTICS_ANALYTICS_ARCHITECTURE.md` Abschnitt 8.7).
+* Live-Spielstand/Statistiken sind aus `game_events` abgeleitet
+  (`statisticsEngine.js`) – ein Re-Import müsste nur die Rohereignisse
+  zurückspielen, nicht abgeleitete Werte.
+
+---
+
+## Akzeptanzkriterien
+
+* Art. 15-Auskunft (`GET /api/user/data`) enthält alle personenbezogenen
+  Daten des Accounts, inklusive Spiele und Trainings-Anwesenheit/
+  -Notizen.
+* Ein ZIP-Export lässt sich in einen neuen Account re-importieren,
+  ohne dass Spiele, Anwesenheit oder Entwicklungsnotizen verloren
+  gehen.
+
+Priorität:
+
+P2
+
+---
+
 # EPIC 009 – Nach MVP
 
 Priorität:

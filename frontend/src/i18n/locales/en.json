@@ -356,6 +356,33 @@
     "clearAriaLabel": "Reset status for {{name}}",
     "clearTitle": "Reset (not decided)"
   },
+  "trainingAttendance": {
+    "title": "Attendance",
+    "ariaLabel": "Attendance for this training",
+    "loading": "Loading attendance…",
+    "setStatusAriaLabel": "Set status for {{name}}",
+    "statusPresent": "Present",
+    "statusExcused": "Excused",
+    "statusInjured": "Injured",
+    "statusAbsent": "Absent",
+    "statusNone": "Not recorded",
+    "clearAriaLabel": "Reset status for {{name}}",
+    "clearTitle": "Reset (not recorded)"
+  },
+  "playerNotes": {
+    "title": "Player development",
+    "ariaLabel": "Development notes for this player",
+    "loading": "Loading notes…",
+    "empty": "No development notes yet.",
+    "placeholder": "Note an observation…",
+    "addBtn": "Add note",
+    "editBtn": "Edit",
+    "editAriaLabel": "Edit note",
+    "saveBtn": "Save",
+    "cancelBtn": "Cancel",
+    "deleteBtn": "Delete",
+    "deleteAriaLabel": "Delete note"
+  },
   "lineStats": {
     "title": "Line stats",
     "ariaLabel": "Line stats for this game",
@@ -453,6 +480,7 @@
     "colShotPercentage": "Shot %",
     "colGoalsAgainst": "Goals against",
     "colSavePercentage": "Save %",
+    "colAttendanceRate": "Attendance %",
     "personal": "Personal",
     "trendsLinkAria": "View trends for {{name}}",
     "comparison": {
@@ -470,7 +498,10 @@
       "season": "Season",
       "games": "Games",
       "goalsPerGame": "Goals per game",
-      "noGamesYet": "No dated games with an appearance for this player yet."
+      "noGamesYet": "No dated games with an appearance for this player yet.",
+      "attendanceTitle": "Training attendance",
+      "trainingsRecorded": "Trainings recorded",
+      "attendanceRate": "Attendance rate"
     }
   },
   "news": {

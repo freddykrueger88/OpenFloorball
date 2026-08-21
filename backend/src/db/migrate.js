@@ -1028,6 +1028,65 @@ export async function runMigrations() {
       ON CONFLICT (key) DO NOTHING;
     `);
 
+    // ── Statistik-Architektur Phase 5 (Trainings-Analytics/
+    // Spielerentwicklung, eigene Domäne, siehe Architektur-Dokument
+    // Abschnitt 11) ──────────────────────────────────────────────────────
+    // training_attendance: tatsächliche Anwesenheit bei einem Training,
+    // analog game_squad – unabhängig von RSVP (Selbstauskunft VOR dem
+    // Termin) und unabhängig von Lines (taktische Gruppierung). Echte
+    // Junction (nicht polymorph wie comments/rsvps) – CASCADE räumt
+    // automatisch auf. Muss NACH training_sessions/roster_players stehen.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS training_attendance (
+        id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        session_id       UUID NOT NULL REFERENCES training_sessions(id) ON DELETE CASCADE,
+        roster_player_id UUID NOT NULL REFERENCES roster_players(id) ON DELETE CASCADE,
+        status           TEXT NOT NULL CHECK (status IN ('present', 'excused', 'absent', 'injured')),
+        note             TEXT NOT NULL DEFAULT '',
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE (session_id, roster_player_id)
+      );
+    `);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_training_attendance_updated_at ON training_attendance;
+      CREATE TRIGGER trg_training_attendance_updated_at
+        BEFORE UPDATE ON training_attendance
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_training_attendance_session_id ON training_attendance(session_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_training_attendance_roster_player_id ON training_attendance(roster_player_id);`);
+
+    // player_development_notes: freie, zeitgestempelte Beobachtungsnotizen
+    // eines Coaches zu einem Kader-Spieler (CLAUDE.md-Vision "Wissen im
+    // Verein aufbauen" / "Spielerentwicklung langfristig begleiten").
+    // Bewusst NICHT über comments (polymorph, dort für Boards/Trainings/
+    // Spiele) – Notizen hier sind personenbezogene Daten ÜBER einen
+    // Spieler (oft minderjährig), keine Diskussion ZU einer Ressource,
+    // daher restriktiverer Lese-/Schreibzugriff (nur coach/owner, siehe
+    // playerDevelopmentNotesController.js) statt "jedes Team-Mitglied
+    // liest mit" wie bei comments. training_session_id optional (Kontext,
+    // in dem die Beobachtung entstand) – ON DELETE SET NULL, eine Notiz
+    // überlebt das Löschen des Trainings.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS player_development_notes (
+        id                   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        roster_player_id     UUID NOT NULL REFERENCES roster_players(id) ON DELETE CASCADE,
+        author_user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        training_session_id  UUID REFERENCES training_sessions(id) ON DELETE SET NULL,
+        note                 TEXT NOT NULL,
+        created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at           TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_player_development_notes_updated_at ON player_development_notes;
+      CREATE TRIGGER trg_player_development_notes_updated_at
+        BEFORE UPDATE ON player_development_notes
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_player_development_notes_roster_player_id ON player_development_notes(roster_player_id);`);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

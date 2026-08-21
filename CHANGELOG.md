@@ -14,6 +14,18 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Statistik-Architektur Phase 5 (EPIC 012): Trainings-Analytics/
+  Spielerentwicklung. Tatsächliche Trainings-Anwesenheit je
+  Kader-Spieler (präsent/entschuldigt/unentschuldigt/verletzt,
+  unabhängig von RSVP) direkt auf der Trainings-Seite erfassbar. Freie,
+  zeitgestempelte Spielerentwicklungsnotizen eines Coaches (nur coach/
+  owner, nie 'member', da personenbezogene Daten über einen Spieler)
+  auf der Trends-Seite eines Spielers. Trainings-Beteiligungsquote
+  (erfasste Trainings/Anwesenheits-%) in der Statistik-Übersicht und
+  als Last-5/Last-10/Saison-Trend, analog zum bestehenden
+  Spiel-Trend-Muster aus Phase 4.
+
+### Added
 - Statistik-Architektur Phase 4 (EPIC 012): Special Teams (Powerplay-%/
   Penalty-Kill-%, abgeleitet aus Strafen + Spieluhr, mit dokumentierten
   Vereinfachungen statt erfundener Präzision, siehe ADR-0004),

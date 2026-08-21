@@ -80,6 +80,7 @@ export default function StatsPage() {
                   <th>{t('stats.colShotPercentage')}</th>
                   <th>{t('stats.colGoalsAgainst')}</th>
                   <th>{t('stats.colSavePercentage')}</th>
+                  <th>{t('stats.colAttendanceRate')}</th>
                   <th />
                 </tr>
               </thead>
@@ -110,6 +111,7 @@ export default function StatsPage() {
                       <td>{player.shotPercentage ?? '–'}</td>
                       <td>{player.goalsAgainst ?? '–'}</td>
                       <td>{player.savePercentage ?? '–'}</td>
+                      <td>{player.attendanceRate ?? '–'}</td>
                       <td>
                         <Link to={`/stats/${player._id}`} aria-label={t('stats.trendsLinkAria', { name: player.name })}>
                           <TrendingUp size={16} aria-hidden="true" />

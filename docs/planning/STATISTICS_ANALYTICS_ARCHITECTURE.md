@@ -621,7 +621,7 @@ für alle künftigen Kennzahlen):
 | **3** | Shot Tracking (UI + `shot`-Events mit x/y/outcome/shotType), Shot Map, floorball-eigene Zonen-Definition, einfache Torhüter-Statistiken | Phase 1 – ✅ umgesetzt |
 | **4** | Special Teams (PP/PK, aus Strafen+Uhr abgeleitet), Situations-Splits (Score-State, Periode), Spieler-Vergleich, Trends | Phase 1–3 – ✅ umgesetzt (ADR-0004) |
 | **5** | Trainings-Analytics/Spielerentwicklung (eigene Domäne, niedrigere Priorität für dieses Dokument) | – ✅ umgesetzt |
-| **6** | Video-Integration: `game_id` an `board_videos` bzw. neue Verknüpfungstabelle, Event→Video-Sprung über `videoTimestampSeconds` | Phase 1 |
+| **6** | Video-Integration: eigene `game_videos`-Tabelle (ADR-0005), Event→Video-Sprung über `videoId`/`videoTimestampSeconds` | Phase 1 – ✅ umgesetzt |
 | **7** | Custom-Events-UI (Trainer definiert eigene `event_type_definitions`-Zeilen), Report Builder | Phase 1 |
 | **8** | Advanced Analytics: xG-Modell v1 (erst mit ausreichender Datenbasis), Line-Chemie, Shot Quality – Modellversionierung dokumentiert | Phase 3 |
 | **9** | KI/ML-Grundlagen (Pattern Detection, automatische Spiel-Insights) – ausschließlich als nachvollziehbare Vorschläge, nie autoritativ (§5.9/18 `CLAUDE.md`) | Phase 8 |

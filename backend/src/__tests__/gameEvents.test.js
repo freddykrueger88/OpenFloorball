@@ -210,6 +210,80 @@ describe('Statistik-Architektur Phase 1: erweiterte Event-Felder', () => {
   });
 });
 
+describe('Statistik-Architektur Phase 6: Video-Verknüpfung', () => {
+  let videoId;
+
+  beforeAll(async () => {
+    const uploadRes = await request(app)
+      .post(`/api/games/${gameId}/videos`)
+      .set('Cookie', owner.cookie)
+      .attach('video', Buffer.from('kein echtes mp4, reicht aber'), { filename: 'clip.mp4', contentType: 'video/mp4' });
+    videoId = uploadRes.body.data._id;
+  });
+
+  it('speichert videoId/videoTimestampSeconds direkt beim Anlegen', async () => {
+    const res = await request(app)
+      .post(`/api/games/${gameId}/events`)
+      .set('Cookie', owner.cookie)
+      .send({ eventType: 'timeout', videoId, videoTimestampSeconds: 42.5 });
+    expect(res.status).toBe(201);
+    expect(res.body.data.videoId).toBe(videoId);
+    expect(res.body.data.videoTimestampSeconds).toBeCloseTo(42.5);
+  });
+
+  it('lehnt ein Video ab, das zu einem anderen Spiel gehört, mit 400', async () => {
+    const otherGameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Anderes Spiel', teamId });
+    const otherVideoRes = await request(app)
+      .post(`/api/games/${otherGameRes.body.data._id}/videos`)
+      .set('Cookie', owner.cookie)
+      .attach('video', Buffer.from('anderes video'), { filename: 'clip.mp4', contentType: 'video/mp4' });
+
+    const res = await request(app)
+      .post(`/api/games/${gameId}/events`)
+      .set('Cookie', owner.cookie)
+      .send({ eventType: 'timeout', videoId: otherVideoRes.body.data._id });
+    expect(res.status).toBe(400);
+  });
+
+  it('verknüpft ein bereits bestehendes Ereignis nachträglich mit einem Video (PUT .../video-link)', async () => {
+    const eventRes = await request(app)
+      .post(`/api/games/${gameId}/events`)
+      .set('Cookie', owner.cookie)
+      .send({ eventType: 'timeout' });
+    const eventId = eventRes.body.data._id;
+    expect(eventRes.body.data.videoId).toBeNull();
+
+    const linkRes = await request(app)
+      .put(`/api/games/${gameId}/events/${eventId}/video-link`)
+      .set('Cookie', owner.cookie)
+      .send({ videoId, videoTimestampSeconds: 99 });
+    expect(linkRes.status).toBe(200);
+    expect(linkRes.body.data.videoId).toBe(videoId);
+    expect(linkRes.body.data.videoTimestampSeconds).toBeCloseTo(99);
+
+    const unlinkRes = await request(app)
+      .put(`/api/games/${gameId}/events/${eventId}/video-link`)
+      .set('Cookie', owner.cookie)
+      .send({ videoId: null, videoTimestampSeconds: null });
+    expect(unlinkRes.status).toBe(200);
+    expect(unlinkRes.body.data.videoId).toBeNull();
+    expect(unlinkRes.body.data.videoTimestampSeconds).toBeNull();
+  });
+
+  it('lehnt die Video-Verknüpfung durch einen Fremden mit 404 ab', async () => {
+    const eventRes = await request(app)
+      .post(`/api/games/${gameId}/events`)
+      .set('Cookie', owner.cookie)
+      .send({ eventType: 'timeout' });
+
+    const res = await request(app)
+      .put(`/api/games/${gameId}/events/${eventRes.body.data._id}/video-link`)
+      .set('Cookie', stranger.cookie)
+      .send({ videoId });
+    expect(res.status).toBe(404);
+  });
+});
+
 describe('Statistik-Architektur Phase 4: strengthState automatisch befüllt', () => {
   it('ist "even" ohne aktive Strafen', async () => {
     const gameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Strength-Even-Test', teamId });

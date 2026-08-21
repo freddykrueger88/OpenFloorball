@@ -148,6 +148,27 @@ Direkt darunter zeigen zwei weitere Sektionen:
   Gegner-Schuss einem Torhüter zugeordnet wurde – zeigt Schüsse aufs
   Tor, Paraden, Gegentore und Fangquote je Torhüter.
 
+## Spielvideos und Video-Verknüpfung
+
+Unter dem Statistik-Bereich lässt sich bis zu 5 Videos pro Spiel
+hochladen (Format/Größen-Grenzen wie bei
+[Board-Videos](./Video-Integration.md), aber eine eigene, spielbezogene
+Video-Ablage statt an ein Board gehängt) – z. B. die Aufnahme der ersten
+und zweiten Halbzeit als zwei separate Clips. Zeichnen-Überlagerung,
+Trimmen und Szenen-Marken funktionieren identisch zu Board-Videos.
+
+Zusätzlich lässt sich direkt am Video die aktuelle Wiedergabeposition
+mit einem bereits erfassten Ereignis aus der Zeitleiste verknüpfen:
+Video an die passende Stelle spulen, Ereignis aus der Liste auswählen,
+"Aktuelle Position verknüpfen". Das funktioniert **nachträglich beim
+Sichten nach dem Spiel** genauso wie **live**, während ein zweites
+Gerät bereits mitfilmt – die Verknüpfung ist der einzige Fall, in dem
+sich ein bereits erfasstes Ereignis noch ändern lässt (nur der
+Video-Link, nicht Ereignistyp/Zuordnung/Ergebnis – siehe ADR-0005 in
+`docs/planning/DECISIONS.md`). Ein verknüpftes Ereignis zeigt in der
+Zeitleiste ein Video-Symbol; ein Klick darauf springt direkt zur
+verknüpften Stelle im Video.
+
 ## Technischer Hinweis
 
 Die 10 festen Ereignis-Buttons (Anstoß Drittel 1–3, Drittelende,
@@ -173,5 +194,5 @@ Text sichtbar (keine rückwirkende Umwandlung).
 ## Verwandt
 
 - [Trainingsplaner](./Trainingsplaner.md)
-- [Video-Integration](./Video-Integration.md) – Analyse im Nachhinein
-  statt live
+- [Video-Integration](./Video-Integration.md) – Zeichnen/Trimmen/Marken,
+  identisch für Board- und Spielvideos

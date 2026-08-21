@@ -20,7 +20,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Trash2, Send, FileDown, Play, Pause, SkipForward, RotateCcw } from 'lucide-react';
+import { AlertTriangle, Trash2, Send, FileDown, Play, Pause, SkipForward, RotateCcw, Video } from 'lucide-react';
 import { useGames } from '../hooks/useGames.js';
 import { useComments } from '../hooks/useComments.js';
 import { useGameEvents } from '../hooks/useGameEvents.js';
@@ -41,6 +41,7 @@ import ShotStatsSection from '../components/shotTracking/ShotStatsSection.jsx';
 import GoalkeeperStatsSection from '../components/shotTracking/GoalkeeperStatsSection.jsx';
 import SpecialTeamsStatsSection from '../components/gameFlowStats/SpecialTeamsStatsSection.jsx';
 import SituationalStatsSection from '../components/gameFlowStats/SituationalStatsSection.jsx';
+import GameVideoPanel from '../components/games/GameVideoPanel.jsx';
 import Button from '../components/common/Button.jsx';
 import styles from './GamePage.module.css';
 
@@ -50,7 +51,12 @@ export default function GamePage() {
   const { fetchGame, updateGame } = useGames();
   const { exporting: exportingReport, error: reportError, exportGameReport } = usePdfExport();
   const { comments: notes, loading: notesLoading, error: notesError, fetchComments, addComment, deleteComment } = useComments('games', id);
-  const { events, loading: eventsLoading, error: eventsError, fetchEvents, addEvent, deleteEvent } = useGameEvents(id);
+  const { events, loading: eventsLoading, error: eventsError, fetchEvents, addEvent, deleteEvent, linkEventVideo } = useGameEvents(id);
+  // Statistik-Architektur Phase 6: Sprung-Funktion, die GameVideoPanel
+  // einmalig über registerJump nach oben meldet (siehe dort) – als Ref
+  // statt State, da sie sich bei jedem Video-Fetch neu zusammensetzt und
+  // selbst keinen Re-Render der Seite auslösen soll.
+  const jumpToVideoRef = useRef(null);
   const { error: clockError, start: startClock, pause: pauseClock, nextPeriod: nextClockPeriod, reset: resetClock } = useGameClock();
   // IFF-Regelwerk 2026: auch Torhüter dürfen inzwischen Tore erzielen –
   // die Zuordnungs-Auswahl (Tor/Strafzeiten/Matchstrafe) filtert Rollen
@@ -341,7 +347,10 @@ export default function GamePage() {
   // gemeinsamen, chronologisch sortierten Zeitleiste zusammengeführt –
   // Anzeige bleibt für den Trainer wie zuvor eine einzige Liste.
   const timelineItems = [
-    ...events.filter((e) => !companionGoalIds.has(e._id)).map((e) => ({ kind: 'event', id: e._id, createdAt: e.createdAt, email: e.email, label: eventLabel(e) })),
+    ...events.filter((e) => !companionGoalIds.has(e._id)).map((e) => ({
+      kind: 'event', id: e._id, createdAt: e.createdAt, email: e.email, label: eventLabel(e),
+      videoId: e.videoId, videoTimestampSeconds: e.videoTimestampSeconds,
+    })),
     ...notes.map((n) => ({ kind: 'note', id: n._id, createdAt: n.createdAt, email: n.email, label: n.text })),
   ].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   const timelineNewestFirst = [...timelineItems].reverse();
@@ -349,6 +358,17 @@ export default function GamePage() {
   const handleDeleteTimelineItem = (item) => (
     item.kind === 'event' ? deleteEvent(item.id) : deleteComment(item.id)
   );
+
+  // Statistik-Architektur Phase 6: Video-Verknüpfung ans GameVideoPanel
+  // durchgereicht (siehe dort und VideoAnnotationOverlay.jsx). Companion-
+  // Goal-Events bewusst mit dabei (nicht wie in timelineItems gefiltert) –
+  // ein Video-Link auf das schlanke Companion-Tor wäre zwar unüblich,
+  // aber nicht falsch; die Filterung dort ist rein eine Anzeige-Dopplung,
+  // kein Verknüpfungs-Verbot.
+  const linkableEvents = events.map((e) => ({ _id: e._id, label: eventLabel(e), videoId: e.videoId, videoTimestampSeconds: e.videoTimestampSeconds }));
+  const handleLinkEvent = (eventId, videoId, timestamp) => linkEventVideo(eventId, videoId, timestamp);
+  const handleUnlinkEvent = (eventId) => linkEventVideo(eventId, null, null);
+  const handleJumpToVideo = (videoId, timestamp) => jumpToVideoRef.current?.(videoId, timestamp);
 
   return (
     <main className={styles.page} id="main-content">
@@ -474,6 +494,15 @@ export default function GamePage() {
       <SpecialTeamsStatsSection gameId={id} events={events} />
       <SituationalStatsSection gameId={id} events={events} />
 
+      <GameVideoPanel
+        gameId={id}
+        canEdit
+        linkableEvents={linkableEvents}
+        onLinkEvent={handleLinkEvent}
+        onUnlinkEvent={handleUnlinkEvent}
+        registerJump={(fn) => { jumpToVideoRef.current = fn; }}
+      />
+
       {/* Statistik-Architektur Phase 3: Schuss-Tracking ist additiv zum
           bestehenden "Tor"-Preset unten (bleibt unverändert als schnelle
           Alternative erhalten) – eigener Umschalt-Button statt Teil der
@@ -561,6 +590,18 @@ export default function GamePage() {
                 </span>
                 <span className={styles.noteText}>{item.label}</span>
                 {game.teamId && <span className={styles.noteAuthor}>{item.email}</span>}
+                {item.kind === 'event' && item.videoId && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    iconOnly
+                    onClick={() => handleJumpToVideo(item.videoId, item.videoTimestampSeconds ?? 0)}
+                    aria-label={t('games.jumpToVideoAriaLabel')}
+                    title={t('games.jumpToVideoAriaLabel')}
+                  >
+                    <Video size={16} aria-hidden="true" />
+                  </Button>
+                )}
                 <Button
                   variant="danger"
                   size="sm"

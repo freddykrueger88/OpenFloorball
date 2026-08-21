@@ -14,6 +14,16 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Statistik-Architektur Phase 6 (EPIC 012): Video-Integration. Bis zu 5
+  Videos direkt an ein Spiel hängbar (neue `game_videos`-Tabelle, ADR-0005
+  in `docs/planning/DECISIONS.md`), mit derselben Zeichnen-/Trimmen-/
+  Marken-Funktionalität wie bei Board-Videos. Zusätzlich lässt sich die
+  aktuelle Videoposition mit einem bereits erfassten Ereignis aus der
+  Spiel-Zeitleiste verknüpfen (live oder nachträglich beim Video-Review)
+  – ein verknüpftes Ereignis springt per Klick zur passenden Stelle im
+  Video.
+
+### Added
 - Statistik-Architektur Phase 5 (EPIC 012): Trainings-Analytics/
   Spielerentwicklung. Tatsächliche Trainings-Anwesenheit je
   Kader-Spieler (präsent/entschuldigt/unentschuldigt/verletzt,

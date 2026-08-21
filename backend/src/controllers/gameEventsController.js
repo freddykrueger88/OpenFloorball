@@ -35,6 +35,7 @@ function toApiEvent(row) {
     x:                       row.x,
     y:                       row.y,
     zone:                    row.zone,
+    videoId:                 row.video_id,
     videoTimestampSeconds:   row.video_timestamp_seconds,
     metadata:                row.metadata,
     email:                   row.email,
@@ -125,7 +126,7 @@ export async function addEvent(req, res) {
       eventType, rosterPlayerId = null, isOpponent = false,
       secondaryRosterPlayerId = null, outcome = null, shotType = null,
       x = null, y = null, zone = null,
-      videoTimestampSeconds = null, metadata = {},
+      videoId = null, videoTimestampSeconds = null, metadata = {},
     } = req.body;
 
     if (rosterPlayerId && isOpponent) {
@@ -178,6 +179,15 @@ export async function addEvent(req, res) {
       if (scope === 'wrong_scope') { client.release(); return res.status(400).json(error('Kader-Spieler gehört nicht zum Kader dieses Spiels')); }
     }
 
+    // videoId muss zu DIESEM Spiel gehören (Phase 6) – dieselbe
+    // "existiert gar nicht 404 vs. falscher Scope 400"-Unterscheidung wie
+    // bei den Kader-Spieler-Checks oben.
+    if (videoId) {
+      const videoResult = await pool.query('SELECT game_id FROM game_videos WHERE id = $1', [videoId]);
+      if (videoResult.rows.length === 0) { client.release(); return res.status(404).json(error('Video nicht gefunden')); }
+      if (videoResult.rows[0].game_id !== gameId) { client.release(); return res.status(400).json(error('Video gehört nicht zu diesem Spiel')); }
+    }
+
     // period/clockSecondsAtEvent automatisch aus der Spieluhr befüllen –
     // "unbekannt ≠ 0" (Datenqualitätsprinzip): solange die Uhr nie
     // gestartet wurde (clock_period=0), bleibt beides NULL statt 0, damit
@@ -225,13 +235,13 @@ export async function addEvent(req, res) {
          game_id, event_type, roster_player_id, is_opponent,
          secondary_roster_player_id, period, clock_seconds_at_event,
          outcome, shot_type, strength_state, x, y, zone,
-         video_timestamp_seconds, metadata, created_by
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id`,
+         video_id, video_timestamp_seconds, metadata, created_by
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING id`,
       [
         gameId, eventType, rosterPlayerId, isOpponent,
         secondaryRosterPlayerId, period, clockSecondsAtEvent,
         outcome, shotType, strengthState, x, y, effectiveZone,
-        videoTimestampSeconds, JSON.stringify(effectiveMetadata), req.user.id,
+        videoId, videoTimestampSeconds, JSON.stringify(effectiveMetadata), req.user.id,
       ]
     );
     await client.query('COMMIT');
@@ -247,6 +257,53 @@ export async function addEvent(req, res) {
     res.status(500).json(error('Interner Serverfehler'));
   } finally {
     client.release();
+  }
+}
+
+// PUT /api/games/:id/events/:eventId/video-link – Phase 6, bewusst der
+// EINZIGE nachträgliche Änderungspfad an einem bestehenden Ereignis
+// (weiterhin "kein Edit-Endpunkt" für eventType/Zuordnung/Ergebnis, siehe
+// Datei-Kommentar oben und deleteEvent unten). Grund für die Ausnahme:
+// die Architektur-Doku fordert explizit, dass ein Video-Zeitstempel auch
+// NACHTRÄGLICH (aus bereits erfassten Ereignissen heraus, beim
+// Video-Review nach dem Spiel) gesetzt werden können muss – "bei
+// Tippfehler löschen und neu erfassen" würde hier bedeuten, ein
+// korrektes Tor-Ereignis zu löschen, nur um einen Video-Link zu ändern.
+// videoId=null setzt den Link explizit zurück (z.B. wenn das Video
+// gelöscht wurde) – 'videoId' in req.body statt !== undefined, analog
+// gameVideosController.updateVideo.
+export async function linkEventVideo(req, res) {
+  try {
+    const gameId = req.params.id;
+    if (!(await assertGameWrite(gameId, req.user.id))) {
+      return res.status(404).json(error('Spiel nicht gefunden'));
+    }
+
+    const { videoId = null, videoTimestampSeconds = null } = req.body;
+
+    if (videoId) {
+      const videoResult = await pool.query('SELECT game_id FROM game_videos WHERE id = $1', [videoId]);
+      if (videoResult.rows.length === 0) return res.status(404).json(error('Video nicht gefunden'));
+      if (videoResult.rows[0].game_id !== gameId) return res.status(400).json(error('Video gehört nicht zu diesem Spiel'));
+    }
+
+    const result = await pool.query(
+      `UPDATE game_events SET video_id = $1, video_timestamp_seconds = $2
+       WHERE id = $3 AND game_id = $4 RETURNING *`,
+      [videoId, videoTimestampSeconds, req.params.eventId, gameId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json(error('Ereignis nicht gefunden'));
+    }
+
+    const eventResult = await pool.query(
+      `SELECT ge.*, u.email FROM game_events ge JOIN users u ON u.id = ge.created_by WHERE ge.id = $1`,
+      [result.rows[0].id]
+    );
+    res.json(success(toApiEvent(eventResult.rows[0])));
+  } catch (err) {
+    logger.error('[linkEventVideo]', err);
+    res.status(500).json(error('Interner Serverfehler'));
   }
 }
 

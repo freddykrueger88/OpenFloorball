@@ -614,6 +614,114 @@ Nachteile:
 
 ---
 
+# ADR-0005: Video-Integration – eigene `game_videos`-Tabelle statt `game_id` an `board_videos`
+
+## Datum
+
+2026-08-21
+
+---
+
+## Status
+
+Akzeptiert
+
+---
+
+## Kontext
+
+Phase 6 verbindet Match-Videos mit `game_events` ("Event → Video
+springen", `videoTimestampSeconds` existiert seit Phase 1 als
+vorbereitete, bis dahin ungenutzte Spalte). Board-Videos
+(`board_videos`) und Spiele/Ereignisse (`games`/`game_events`) waren
+bis Phase 6 vollständig getrennte Subsysteme ohne jede Verbindung.
+
+Die Roadmap (`STATISTICS_ANALYTICS_ARCHITECTURE.md`, Abschnitt 11)
+nannte zwei mögliche Wege: `game_id` an `board_videos` anhängen, oder
+eine neue Verknüpfungstabelle. Beide Wege mussten gegen die in
+Abschnitt 5 desselben Dokuments festgehaltenen Muster geprüft werden:
+
+* Vorlagen-Ressourcen (`roster_players`, `lines`, `board_videos`)
+  scopen direkt über `team_id`/`board_id`.
+* Spielbezogene Ressourcen (`game_events`, `game_squad`, `match_lines`)
+  scopen transitiv über `game_id` und nutzen `assertGameRead`/
+  `assertGameWrite`, nicht `assertBoardAccess`.
+
+`board_videos` gehört klar zur ersten Gruppe (Board-Zugriffsmodell:
+Owner + Kollaboratoren mit read/write), Spiel-Videos klar zur
+zweiten (Team-Zugriffsmodell: Owner + Team-Mitglieder mit
+member/coach-Rollen). Diese beiden Zugriffsmodelle sind strukturell
+unterschiedlich genug, dass ein gemeinsamer Controller sie hätte
+verzweigen müssen.
+
+---
+
+## Entscheidung
+
+1. **Neue, eigenständige Tabelle `game_videos`**, strukturell
+   identisch zu `board_videos` (gleiche Spalten: Zeichnungs-Überlagerung,
+   Trim-Grenzen, Szenen-Marken, gleiche Disk-Ablage über `VIDEOS_DIR`),
+   aber mit `game_id` statt `board_id` und darüber transitivem
+   Team-Scoping über `assertGameRead`/`assertGameWrite` statt
+   `assertBoardAccess`. Eigener Controller
+   (`gameVideosController.js`), der `videoController.js` bewusst
+   spiegelt statt eine gemeinsame Abstraktion einzuführen – folgt dem
+   bestehenden, in Abschnitt 5 der Architektur-Doku dokumentierten
+   Muster "Zugriffsprüfung pro Controller dupliziert, kein
+   Refactoring nebenbei".
+2. **`game_events.video_id`** (neu, `ON DELETE SET NULL`) referenziert
+   `game_videos(id)` und macht damit erst eindeutig, zu WELCHEM Video
+   ein `video_timestamp_seconds` gehört – ein Spiel kann mehrere
+   Videos haben (z.B. erste/zweite Halbzeit, mehrere Kamerawinkel).
+3. **Ein neuer, bewusst eng begrenzter Endpunkt**
+   `PUT /api/games/:id/events/:eventId/video-link` erlaubt das
+   nachträgliche Setzen/Entfernen NUR von `videoId`/
+   `videoTimestampSeconds` an einem bereits bestehenden Ereignis –
+   eine gezielte Ausnahme vom Grundsatz "kein Edit-Endpunkt für
+   Ereignisse, bei Tippfehler löschen und neu erfassen"
+   (`game_events`-Tabellenkommentar in `db/migrate.js`). Begründung:
+   die Architektur-Doku fordert explizit, dass eine Video-Verknüpfung
+   sowohl live als auch NACHTRÄGLICH beim Video-Review nach dem Spiel
+   möglich sein muss – "löschen und neu erfassen" würde hier
+   bedeuten, ein korrektes Tor-/Strafe-Ereignis zu löschen, nur um
+   einen Video-Link zu ändern. Alle anderen Ereignisfelder
+   (`eventType`, Zuordnung, `outcome`, …) bleiben weiterhin
+   unveränderlich.
+
+---
+
+## Begründung
+
+* Konsistent mit dem bereits etablierten Scoping-Muster für
+  spielbezogene Ressourcen (kein neuer Präzedenzfall).
+* Kein Vermischen zweier unterschiedlicher Zugriffsmodelle in einem
+  Controller.
+* `board_videos` bleibt unverändert (kein Risiko für bestehende
+  Board-Video-Funktionalität).
+* `VideoAnnotationOverlay.jsx` (Zeichnen/Trimmen/Marken) bleibt
+  vollständig wiederverwendbar für Spiel-Videos – die
+  Ereignis-Verknüpfung ist dort ein rein optionaler Zusatz
+  (`linkableEvents`/`onLinkEvent`/`onUnlinkEvent`/`onSeekReady`),
+  Board-Nutzung bleibt unverändert.
+
+---
+
+## Folgen
+
+* Zwei strukturell sehr ähnliche Tabellen/Controller
+  (`board_videos`/`videoController.js` und
+  `game_videos`/`gameVideosController.js`) existieren bewusst
+  parallel statt einer gemeinsamen Abstraktion – etwas Duplikation,
+  aber klar getrennte, unabhängig veränderbare Zugriffsmodelle. Sollte
+  künftig ein drittes Video-Trägerobjekt hinzukommen, ist an dieser
+  Stelle eine Abstraktion neu zu bewerten.
+* `game_events` hat mit `video_id` erstmals eine Fremdschlüssel-Spalte
+  auf eine andere Ressource als `roster_players`/`games` selbst –
+  unproblematisch, da `ON DELETE SET NULL` das Ereignis von der
+  Videodatei entkoppelt hält.
+
+---
+
 # Regel
 
 Architekturentscheidungen werden nicht vergessen.

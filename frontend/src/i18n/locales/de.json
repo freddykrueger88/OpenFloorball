@@ -1245,7 +1245,11 @@
     "shotPositionLabel": "Position auf dem Feld",
     "shotTypeLabel": "Schusstyp",
     "shotOutcomeLabel": "Ergebnis",
-    "shotSubmit": "Schuss speichern"
+    "shotSubmit": "Schuss speichern",
+    "videoPanelTitle": "🎥 Spielvideo",
+    "videoPanelHint": "Videos zu diesem Spiel hochladen und mit Ereignissen aus der Zeitleiste verknüpfen – auch nachträglich beim Sichten nach dem Spiel.",
+    "videoPanelEmpty": "Noch kein Video zu diesem Spiel – lade die Aufnahme hoch, um Ereignisse damit zu verknüpfen.",
+    "jumpToVideoAriaLabel": "Zur verknüpften Videoposition springen"
   },
   "roster": {
     "title": "Kader",
@@ -1351,7 +1355,11 @@
     "boardFromVideoName": "Aus Video: {{title}}",
     "createdFromVideoNote": "Erstellt aus der Zeichnung im Video „{{title}}“.",
     "createBoardSuccess": "Neues Taktik-Board aus der Video-Zeichnung erstellt.",
-    "createBoardError": "Board konnte nicht erstellt werden. Bitte erneut versuchen."
+    "createBoardError": "Board konnte nicht erstellt werden. Bitte erneut versuchen.",
+    "linkEventPlaceholder": "Ereignis auswählen…",
+    "linkEventSelectAriaLabel": "Ereignis auswählen, das mit der aktuellen Videoposition verknüpft werden soll",
+    "linkEventConfirm": "Aktuelle Position verknüpfen",
+    "unlinkEventAriaLabel": "Verknüpfung mit „{{label}}“ entfernen"
   },
   "tour": {
     "welcomeTitle": "Willkommen bei OpenFloorball!",

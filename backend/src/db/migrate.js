@@ -1087,6 +1087,47 @@ export async function runMigrations() {
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_player_development_notes_roster_player_id ON player_development_notes(roster_player_id);`);
 
+    // ── Statistik-Architektur Phase 6 (Video↔Event-Verknüpfung, siehe
+    // Architektur-Dokument Abschnitt 11/Roadmap Phase 6, ADR-0005 in
+    // DECISIONS.md) ──────────────────────────────────────────────────────
+    // game_videos: EIGENE Tabelle statt game_id an board_videos
+    // anzuhängen – folgt dem in der Architektur-Doku (Abschnitt 5,
+    // "Wichtige Muster") vorgegebenen Grundsatz, dass spielbezogene
+    // Ressourcen transitiv über game_id scopen, nicht dem
+    // Vorlagen-Muster (team_id direkt) von board_videos folgen. Ein
+    // Mischen von assertBoardAccess und assertGameRead/-Write in einem
+    // Controller hätte unnötige Verzweigungskomplexität eingeführt.
+    // Struktur bewusst identisch zu board_videos (gleiche Spalten,
+    // gleiche Disk-Ablage über VIDEOS_DIR) – siehe
+    // gameVideosController.js, das videoController.js spiegelt.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS game_videos (
+        id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        game_id             UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+        user_id             UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        filename            TEXT NOT NULL,
+        storage_key         TEXT NOT NULL UNIQUE,
+        mime_type           TEXT NOT NULL,
+        size_bytes          BIGINT NOT NULL,
+        title               TEXT,
+        elements_json       JSONB NOT NULL DEFAULT '[]'::jsonb,
+        trim_start_seconds  REAL,
+        trim_end_seconds    REAL,
+        markers_json        JSONB NOT NULL DEFAULT '[]'::jsonb,
+        created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_game_videos_game_id ON game_videos(game_id);`);
+
+    // game_events.video_id: verweist auf das konkrete Video, zu dem
+    // video_timestamp_seconds (seit Phase 1 bereits vorhanden, bis hierhin
+    // ungenutzt) gehört – ohne diese Spalte wäre ein Zeitstempel bei
+    // mehreren Videos je Spiel nicht eindeutig zuordenbar. ON DELETE
+    // SET NULL statt CASCADE: das Event selbst (Tor/Strafe/…) bleibt
+    // gültig und in der Statistik zählbar, auch wenn die verknüpfte
+    // Videodatei später gelöscht wird – nur der Video-Sprung verschwindet.
+    await client.query(`ALTER TABLE game_events ADD COLUMN IF NOT EXISTS video_id UUID REFERENCES game_videos(id) ON DELETE SET NULL;`);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

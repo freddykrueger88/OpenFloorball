@@ -8,7 +8,7 @@ import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
   getEvents, addEvent, deleteEvent, getShotStats, getGoalkeeperStats,
-  getSpecialTeamsStats, getSituationalStats,
+  getSpecialTeamsStats, getSituationalStats, linkEventVideo,
 } from '../controllers/gameEventsController.js';
 
 const router = Router({ mergeParams: true });
@@ -42,10 +42,19 @@ router.post  ('/', [
   body('x').optional({ nullable: true }).isFloat({ min: 0, max: 1 }).withMessage('x muss zwischen 0 und 1 liegen'),
   body('y').optional({ nullable: true }).isFloat({ min: 0, max: 1 }).withMessage('y muss zwischen 0 und 1 liegen'),
   body('zone').optional({ nullable: true }).isString().isLength({ max: 50 }),
+  body('videoId').optional({ nullable: true }).isUUID().withMessage('Ungültige Video-ID'),
   body('videoTimestampSeconds').optional({ nullable: true }).isFloat({ min: 0 }),
   body('metadata').optional().isObject().withMessage('metadata muss ein Objekt sein'),
   validate,
 ], addEvent);
+// Phase 6 – siehe gameEventsController.linkEventVideo für die Begründung,
+// warum dies (anders als sonst) ein nachträglicher Änderungspfad ist.
+router.put('/:eventId/video-link', [
+  validateGameId, validateEventId,
+  body('videoId').optional({ nullable: true }).isUUID().withMessage('Ungültige Video-ID'),
+  body('videoTimestampSeconds').optional({ nullable: true }).isFloat({ min: 0 }),
+  validate,
+], linkEventVideo);
 router.delete('/:eventId', [validateGameId, validateEventId, validate], deleteEvent);
 
 export default router;

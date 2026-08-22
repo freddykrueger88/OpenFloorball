@@ -10,8 +10,17 @@
  * derselben `events`-Liste landet, die auch die Timeline/den
  * Live-Spielstand speist – keine zweite, potenziell abweichende
  * Events-Quelle.
+ *
+ * Assist (Phasenplanungs-Review 2026-08-21): bei eigenem Tor
+ * (`outcome==='goal'`, kein Gegner-Schuss) optional ein zweiter
+ * Kader-Spieler als Vorlagengeber, symmetrisch zur bestehenden
+ * Torhüter-Auswahl bei Gegner-Schüssen – beide nutzen
+ * `secondaryRosterPlayerId`, nie gleichzeitig relevant (ADR-0003).
+ * Bewusst NUR hier und nicht zusätzlich beim schnellen "Tor"-Preset in
+ * GamePage.jsx – der Preset-Pfad bleibt bewusst der schnelle,
+ * detailfreie Weg (gleiches Prinzip wie beim Schuss-Tracking selbst).
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SHOT_TYPES, SHOT_OUTCOMES } from '../../constants/shotOptions.js';
 import { deriveZone } from '../../constants/shotZones.js';
@@ -23,6 +32,7 @@ export default function ShotEntryPanel({ squadForGame, addEvent, onSubmitted }) 
   const { t, i18n } = useTranslation();
   const [attribution, setAttribution] = useState(null); // player object | 'opponent' | null (Ohne Angabe)
   const [goalkeeperId, setGoalkeeperId] = useState(null);
+  const [assistId, setAssistId] = useState(null);
   const [point, setPoint] = useState(null);
   const [shotType, setShotType] = useState(SHOT_TYPES[0].key);
   const [outcome, setOutcome] = useState(null);
@@ -30,7 +40,17 @@ export default function ShotEntryPanel({ squadForGame, addEvent, onSubmitted }) 
 
   const isOpponentShot = attribution === 'opponent';
   const goalkeepers = squadForGame.filter((p) => p.role === 'TW');
+  // Ein Spieler kann sich nicht selbst assistieren – Torschütze aus der
+  // Auswahl ausschließen.
+  const possibleAssisters = squadForGame.filter((p) => !attribution || p._id !== attribution._id);
+  const showAssistSection = !isOpponentShot && outcome === 'goal';
   const canSubmit = point && outcome && !submitting;
+
+  // Torschütze nachträglich gewechselt, während bereits ein Assist
+  // gewählt war ("gegen sich selbst assistiert") – zurücksetzen.
+  useEffect(() => {
+    if (assistId && attribution && assistId === attribution._id) setAssistId(null);
+  }, [attribution, assistId]);
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -40,7 +60,7 @@ export default function ShotEntryPanel({ squadForGame, addEvent, onSubmitted }) 
         eventType: 'shot',
         rosterPlayerId: attribution && attribution !== 'opponent' ? attribution._id : null,
         isOpponent: isOpponentShot,
-        secondaryRosterPlayerId: isOpponentShot ? goalkeeperId : null,
+        secondaryRosterPlayerId: isOpponentShot ? goalkeeperId : (showAssistSection ? assistId : null),
         x: point.x,
         y: point.y,
         shotType,
@@ -48,6 +68,7 @@ export default function ShotEntryPanel({ squadForGame, addEvent, onSubmitted }) 
       });
       setAttribution(null);
       setGoalkeeperId(null);
+      setAssistId(null);
       setPoint(null);
       setOutcome(null);
       onSubmitted?.();
@@ -102,6 +123,28 @@ export default function ShotEntryPanel({ squadForGame, addEvent, onSubmitted }) 
             ))}
             <Button type="button" variant={goalkeeperId === null ? 'primary' : 'secondary'} size="sm" onClick={() => setGoalkeeperId(null)}>
               {t('games.shotAttributionGoalkeeperNone')}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {showAssistSection && possibleAssisters.length > 0 && (
+        <div className={styles.section}>
+          <span className={styles.sectionLabel}>{t('games.shotAssistLabel')}</span>
+          <div className={styles.buttonRow} role="group" aria-label={t('games.shotAssistLabel')}>
+            {possibleAssisters.map((p) => (
+              <Button
+                key={p._id}
+                type="button"
+                variant={assistId === p._id ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setAssistId(p._id)}
+              >
+                {p.jerseyNumber != null && `#${p.jerseyNumber} `}{p.name}
+              </Button>
+            ))}
+            <Button type="button" variant={assistId === null ? 'primary' : 'secondary'} size="sm" onClick={() => setAssistId(null)}>
+              {t('games.shotAssistNone')}
             </Button>
           </div>
         </div>

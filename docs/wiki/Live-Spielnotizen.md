@@ -138,6 +138,13 @@ Ein Schuss mit Ergebnis "Tor" aktualisiert automatisch den
 Live-Spielstand – kein zusätzlicher, separater Eintrag nötig. In der
 Zeitleiste erscheint dafür eine einzige Zeile ("Schuss (Tor) – ...").
 
+Bei eigenem Tor (nicht bei einem Gegner-Schuss) erscheint zusätzlich
+eine Vorlagen-Auswahl (Assist) aus dem Kader dieses Spiels – der
+Torschütze selbst steht dort nicht zur Auswahl. Vorlagen fließen in
+die [Statistiken](./Statistiken.md) (Vorlagen/Punkte je Spieler) ein.
+Bewusst nur hier, nicht beim schnellen "Tor"-Preset oben – dieser
+bleibt der schnellste, detailfreie Weg fürs Live-Erfassen.
+
 Direkt darunter zeigen zwei weitere Sektionen:
 
 - **Schuss-Statistiken**: Anzahl Schüsse, Schüsse aufs Tor, Tore,

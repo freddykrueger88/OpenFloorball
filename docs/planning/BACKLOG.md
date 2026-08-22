@@ -858,15 +858,54 @@ darauf aufbauen, keine Statistik-Insel-Lösungen. Siehe ADR-0001 in
 
 ## Phasen (Kurzfassung, Details im Architektur-Dokument)
 
-1. Erweiterbares Event-Modell + zentrale Statistics Engine (Fundament)
-2. Match-Line/Shift-Tracking (Time on Floor, Line-Statistiken)
-3. Shot Tracking + Shot Map + Torhüter-Basis-Statistiken
-4. Special Teams, Situations-Splits, Spieler-Vergleich
-5. Trainings-Analytics/Spielerentwicklung (separate Domäne)
-6. Video↔Event-Verknüpfung
-7. Custom Events/Tags, Report Builder
-8. Advanced Analytics (xG erst mit Datenbasis, Line-Chemie)
-9. KI/ML-Grundlagen (nur als nachvollziehbare Vorschläge)
+> Phasenplanungs-Review 2026-08-21 (nach Abschluss Phase 6): Reihenfolge
+> und Fundament bestätigt, keine Umstrukturierung nötig. Phase 7 im
+> Zuschnitt präzisiert, Phase 8/9 um je eine zuvor implizite
+> Voraussetzung ergänzt. Details/Begründung siehe Gesprächsverlauf
+> dieses Datums bzw. die aktualisierten Abschnitte in
+> `STATISTICS_ANALYTICS_ARCHITECTURE.md`.
+
+1. Erweiterbares Event-Modell + zentrale Statistics Engine (Fundament) – ✅ umgesetzt
+2. Match-Line/Shift-Tracking (Time on Floor, Line-Statistiken) – ✅ umgesetzt
+3. Shot Tracking + Shot Map + Torhüter-Basis-Statistiken – ✅ umgesetzt
+4. Special Teams, Situations-Splits, Spieler-Vergleich – ✅ umgesetzt
+5. Trainings-Analytics/Spielerentwicklung (separate Domäne) – ✅ umgesetzt
+6. Video↔Event-Verknüpfung – ✅ umgesetzt
+7. Assists (Vorlauf, s.u.) + Custom Events/Tags + strukturierter
+   CSV/JSON-Export. Ersetzt das zuvor vage "Report Builder"-Ziel durch
+   einen konkret abgrenzbaren Export (Spiele/Events/Saison-Stats in
+   offenen Formaten, CLAUDE.md §5.3 Digitale Souveränität) – ein freier
+   Report-Baukasten hätte ohne konkreten Use Case unbegrenzten Scope
+   riskiert.
+8. Advanced Analytics (Line-Chemie, xG erst mit Datenbasis). NEU:
+   erster Task ist ein dokumentierter Datenbasis-Check
+   (Go/No-Go) vor jedem Modellbau – verhindert erfundene Präzision bei
+   zu kleiner Schuss-Stichprobe (CLAUDE.md-Pflicht). Line-Chemie ist
+   davon unabhängig umsetzbar (basiert auf bereits ausreichenden
+   `match_lines`-Daten).
+9. KI/ML-Grundlagen (nur als nachvollziehbare Vorschläge). NEU: baut
+   explizit auf der bestehenden KI-Provider-Abstraktion aus EPIC 010
+   (`aiController.js`/`getAiProvider()`) auf statt einer neuen
+   KI-Anbindung – vermeidet doppelte Infrastruktur, hält
+   KI-Unabhängigkeit (§5.8) an einer Stelle konsistent.
+
+**Vorlauf vor Phase 7 – Assists:** `game_events.secondary_roster_player_id`
+existiert bereits seit Phase 1 für genau diesen Zweck, `docs/statistics.md`
+dokumentiert die Formel seit Phase 1 als "möglich, noch nicht
+ausgewertet" – aber keine der Phasen 1–9 hatte je eine Assist-UI als
+Aufgabe zugewiesen. Kleine, in sich abgeschlossene Ergänzung (kein
+neues Schema): Zweitspieler-Auswahl beim Tor-/Schuss-Erfassen +
+`points = goals + assists` zur Anzeigezeit.
+
+**Bewusst nicht Teil dieser Phasen (P2, künftiges, separates
+Backlog-Item):** eine strukturierte Gegner-Entität (`opponents`-Tabelle
+statt Freitext auf `games.opponent`) samt Saison-/Wettbewerbs-Gruppierung
+von Spielen. Fachlich näher an der Spielverwaltung (`games`) als an der
+Statistik-Engine – wurde deshalb bewusst nicht künstlich als Phase 10
+in diese Epic aufgenommen, obwohl CLAUDE.md §8 "Gegneranalyse" für
+Leistungszentren/Nationalteams nennt. Sichtbar dokumentiert statt
+stillschweigend vergessen, siehe `STATISTICS_ANALYTICS_ARCHITECTURE.md`
+Abschnitt 8.4.
 
 ---
 
@@ -876,6 +915,8 @@ darauf aufbauen, keine Statistik-Insel-Lösungen. Siehe ADR-0001 in
 * Kein Ersatz für Trainer-Entscheidungen (Human First, §5.9).
 * Keine Hockey-Geometrie 1:1 übernehmen – floorball-eigene
   Zonen-Definitionen.
+* Kein freier "Report Builder" ohne konkreten Use Case (Review
+  2026-08-21) – stattdessen fester, aber vollständiger CSV/JSON-Export.
 
 ---
 

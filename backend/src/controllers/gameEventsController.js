@@ -219,12 +219,19 @@ export async function addEvent(req, res) {
     // nicht doppelt zählt – der `shot`-Datensatz bleibt der einzige
     // detaillierte Datenpunkt. strengthState wird seit Phase 4 zusätzlich
     // kopiert (derselbe reale Moment, für Special-Teams-Torzuordnung).
+    // secondaryRosterPlayerId wird NUR bei eigenem Tor (!isOpponent)
+    // mitkopiert (Assist, Phasenplanungs-Review 2026-08-21/ADR-0003) – bei
+    // einem Gegner-Tor trägt secondaryRosterPlayerId auf dem shot-Event
+    // stattdessen "unser Torhüter" und hat auf dem Companion-Goal-Event
+    // keine sinnvolle Bedeutung. `getRosterStats`/`getRosterPlayerGameLog`
+    // zählen Assists bewusst aus event_type='goal' (nicht 'shot'), damit
+    // dieselbe einfache Query wie für Tore reicht.
     let companionGoalId = null;
     if (eventType === 'shot' && outcome === 'goal') {
       const companionResult = await client.query(
-        `INSERT INTO game_events (game_id, event_type, roster_player_id, is_opponent, period, clock_seconds_at_event, strength_state, created_by)
-         VALUES ($1, 'goal', $2, $3, $4, $5, $6, $7) RETURNING id`,
-        [gameId, rosterPlayerId, isOpponent, period, clockSecondsAtEvent, strengthState, req.user.id]
+        `INSERT INTO game_events (game_id, event_type, roster_player_id, is_opponent, secondary_roster_player_id, period, clock_seconds_at_event, strength_state, created_by)
+         VALUES ($1, 'goal', $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+        [gameId, rosterPlayerId, isOpponent, isOpponent ? null : secondaryRosterPlayerId, period, clockSecondsAtEvent, strengthState, req.user.id]
       );
       companionGoalId = companionResult.rows[0].id;
     }

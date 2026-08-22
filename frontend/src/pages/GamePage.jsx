@@ -322,15 +322,25 @@ export default function GamePage() {
       const preset = PRESETS.find((p) => p.type === evt.eventType);
       base = preset?.text ?? evt.eventType;
     }
+    // Assist (Phasenplanungs-Review 2026-08-21): nur bei eigenem Tor
+    // relevant, secondaryRosterPlayerId bedeutet bei Gegner-Schüssen
+    // stattdessen "unser Torhüter" (ADR-0003) – hier bewusst nicht
+    // mitgelabelt.
+    const assistSuffix = (!evt.isOpponent && evt.eventType === 'shot' && evt.outcome === 'goal' && evt.secondaryRosterPlayerId)
+      ? (() => {
+          const assister = squadForGame.find((p) => p._id === evt.secondaryRosterPlayerId);
+          return assister ? ` (${t('games.shotAssistLabel')}: ${assister.name})` : '';
+        })()
+      : '';
     if (evt.isOpponent) return `${base} – ${t('games.attributionOpponent')}`;
     if (evt.rosterPlayerId) {
       const player = squadForGame.find((p) => p._id === evt.rosterPlayerId);
       if (player) {
         const label = player.jerseyNumber != null ? `#${player.jerseyNumber} ${player.name}` : player.name;
-        return `${base} – ${label}`;
+        return `${base} – ${label}${assistSuffix}`;
       }
     }
-    return base;
+    return `${base}${assistSuffix}`;
   };
 
   // Companion-Goal-Events (Phase 3, ADR-0002) aus der Zeitleiste

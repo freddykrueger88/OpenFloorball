@@ -52,6 +52,8 @@ function toApiRosterStats(row) {
   return {
     ...toApiRosterPlayer(row),
     goals:          Number(row.goals ?? 0),
+    assists:        Number(row.assists ?? 0),
+    points:         Number(row.goals ?? 0) + Number(row.assists ?? 0),
     penaltyMinutes: Number(row.penalty_minutes ?? 0),
     matchPenalties: Number(row.match_penalties ?? 0),
     appearances:    Number(row.appearances ?? 0),
@@ -128,6 +130,7 @@ export async function getRosterStats(req, res) {
     const result = await pool.query(
       `SELECT rp.*,
               COALESCE(g.goals, 0)::int           AS goals,
+              COALESCE(a.assists, 0)::int         AS assists,
               COALESCE(g.penalty_minutes, 0)::int AS penalty_minutes,
               COALESCE(g.match_penalties, 0)::int AS match_penalties,
               COALESCE(s.appearances, 0)::int      AS appearances,
@@ -149,6 +152,15 @@ export async function getRosterStats(req, res) {
          WHERE roster_player_id IS NOT NULL
          GROUP BY roster_player_id
        ) g ON g.roster_player_id = rp.id
+       LEFT JOIN (
+         -- Assists (Phasenplanungs-Review 2026-08-21): secondary_roster_player_id
+         -- auf einem eigenen Tor-Ereignis, siehe gameEventsController.addEvent
+         -- (Companion-Goal kopiert es seither mit) und docs/statistics.md.
+         SELECT secondary_roster_player_id AS roster_player_id, COUNT(*) AS assists
+         FROM game_events
+         WHERE event_type = 'goal' AND NOT is_opponent AND secondary_roster_player_id IS NOT NULL
+         GROUP BY secondary_roster_player_id
+       ) a ON a.roster_player_id = rp.id
        LEFT JOIN (
          SELECT roster_player_id, COUNT(*) AS appearances
          FROM game_squad
@@ -212,6 +224,7 @@ function toApiGameLogEntry(row) {
     opponent:       row.opponent,
     playedAt:       toDateString(row.played_at),
     goals:          Number(row.goals ?? 0),
+    assists:        Number(row.assists ?? 0),
     shots:          Number(row.shots ?? 0),
     shotsOnGoal:    Number(row.shots_on_goal ?? 0),
     shotGoals:      Number(row.shot_goals ?? 0),
@@ -243,6 +256,7 @@ export async function getRosterPlayerGameLog(req, res) {
     const result = await pool.query(
       `SELECT g.id AS game_id, g.opponent, g.played_at,
               COALESCE(go.goals, 0)::int         AS goals,
+              COALESCE(a.assists, 0)::int        AS assists,
               COALESCE(sh.shots, 0)::int         AS shots,
               COALESCE(sh.shots_on_goal, 0)::int AS shots_on_goal,
               COALESCE(sh.shot_goals, 0)::int    AS shot_goals,
@@ -255,6 +269,12 @@ export async function getRosterPlayerGameLog(req, res) {
          WHERE event_type = 'goal' AND NOT is_opponent AND roster_player_id = $1
          GROUP BY game_id
        ) go ON go.game_id = g.id
+       LEFT JOIN (
+         SELECT game_id, COUNT(*) AS assists
+         FROM game_events
+         WHERE event_type = 'goal' AND NOT is_opponent AND secondary_roster_player_id = $1
+         GROUP BY game_id
+       ) a ON a.game_id = g.id
        LEFT JOIN (
          SELECT game_id,
                 COUNT(*) AS shots,

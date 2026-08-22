@@ -81,6 +81,8 @@ describe('GET /api/roster/stats', () => {
     expect(res.status).toBe(200);
     const entry = res.body.data.find((p) => p._id === playerId);
     expect(entry.goals).toBe(2);
+    expect(entry.assists).toBe(0);
+    expect(entry.points).toBe(2);
     expect(entry.penaltyMinutes).toBe(7);
     expect(entry.matchPenalties).toBe(1);
     expect(entry.appearances).toBe(2);
@@ -93,9 +95,47 @@ describe('GET /api/roster/stats', () => {
     const res = await request(app).get('/api/roster/stats').set('Cookie', owner.cookie);
     const entry = res.body.data.find((p) => p._id === playerId);
     expect(entry.goals).toBe(0);
+    expect(entry.assists).toBe(0);
+    expect(entry.points).toBe(0);
     expect(entry.penaltyMinutes).toBe(0);
     expect(entry.matchPenalties).toBe(0);
     expect(entry.appearances).toBe(0);
+  });
+
+  // Phasenplanungs-Review 2026-08-21: Assists waren seit Phase 1 als
+  // Datenfeld vorbereitet (secondary_roster_player_id), aber nie
+  // ausgewertet.
+  it('zählt Assists (secondary_roster_player_id auf eigenem Tor) und berechnet Punkte = Tore + Assists', async () => {
+    const scorerRes = await request(app).post('/api/roster').set('Cookie', owner.cookie).send({ name: 'Assist-Torschütze', teamId });
+    const assisterRes = await request(app).post('/api/roster').set('Cookie', owner.cookie).send({ name: 'Assist-Geber', teamId });
+    const scorerId = scorerRes.body.data._id;
+    const assisterId = assisterRes.body.data._id;
+    const game = await createGame(owner.cookie, teamId);
+
+    // Direkter API-Pfad (einfaches "Tor"-Preset mit secondaryRosterPlayerId).
+    await addEvent(owner.cookie, game, { eventType: 'goal', rosterPlayerId: scorerId, secondaryRosterPlayerId: assisterId });
+    // Schuss-Tracking-Pfad: Companion-Goal-Event kopiert secondaryRosterPlayerId mit.
+    await addEvent(owner.cookie, game, {
+      eventType: 'shot', outcome: 'goal', rosterPlayerId: scorerId, secondaryRosterPlayerId: assisterId,
+    });
+    // Gegentor mit "unser Torhüter" – secondary_roster_player_id hat hier
+    // eine andere Bedeutung (ADR-0003) und darf NICHT als Assist zählen.
+    const gkRes = await request(app).post('/api/roster').set('Cookie', owner.cookie).send({ name: 'Assist-Test-TW', role: 'TW', teamId });
+    await addEvent(owner.cookie, game, {
+      eventType: 'shot', outcome: 'goal', isOpponent: true, secondaryRosterPlayerId: gkRes.body.data._id,
+    });
+
+    const res = await request(app).get('/api/roster/stats').set('Cookie', owner.cookie);
+    const scorerEntry = res.body.data.find((p) => p._id === scorerId);
+    const assisterEntry = res.body.data.find((p) => p._id === assisterId);
+    const gkEntry = res.body.data.find((p) => p._id === gkRes.body.data._id);
+    expect(scorerEntry.goals).toBe(2);
+    expect(scorerEntry.assists).toBe(0);
+    expect(scorerEntry.points).toBe(2);
+    expect(assisterEntry.goals).toBe(0);
+    expect(assisterEntry.assists).toBe(2);
+    expect(assisterEntry.points).toBe(2);
+    expect(gkEntry.assists).toBe(0);
   });
 
   it('berechnet die Trainings-Beteiligungsquote (Statistik-Architektur Phase 5)', async () => {

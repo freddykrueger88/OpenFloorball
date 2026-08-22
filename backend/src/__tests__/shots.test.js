@@ -31,6 +31,7 @@ let teamId;
 let gameId;
 let scorer;
 let keeper;
+let assister;
 
 beforeAll(async () => {
   await connectRedis();
@@ -45,6 +46,7 @@ beforeAll(async () => {
 
   scorer = await createRosterPlayer(owner.cookie, 'Torschütze', teamId);
   keeper = await createRosterPlayer(owner.cookie, 'Torhüter', teamId, 'TW');
+  assister = await createRosterPlayer(owner.cookie, 'Assistgeber', teamId);
 
   const gameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Shots-Test-Gegner', teamId });
   gameId = gameRes.body.data._id;
@@ -114,6 +116,35 @@ describe('Companion-Goal-Event (ADR-0002)', () => {
     // Companion bleibt schlank – keine Schuss-Details übernommen.
     expect(companion.zone).toBeNull();
     expect(companion.shotType).toBeNull();
+  });
+
+  // Phasenplanungs-Review 2026-08-21: secondaryRosterPlayerId auf einem
+  // eigenen Tor bedeutet Assist (ADR-0003) – muss auf das Companion-Goal-
+  // Event mitkopiert werden, da getRosterStats Assists aus event_type='goal'
+  // zählt, nicht aus 'shot'.
+  it('kopiert secondaryRosterPlayerId (Assist) bei eigenem Tor auf das Companion-Goal-Event mit', async () => {
+    const shotRes = await request(app)
+      .post(`/api/games/${gameId}/events`)
+      .set('Cookie', owner.cookie)
+      .send({ eventType: 'shot', rosterPlayerId: scorer, secondaryRosterPlayerId: assister, x: 0.95, y: 0.5, outcome: 'goal' });
+    expect(shotRes.status).toBe(201);
+    expect(shotRes.body.data.secondaryRosterPlayerId).toBe(assister);
+
+    const afterRes = await request(app).get(`/api/games/${gameId}/events`).set('Cookie', owner.cookie);
+    const companion = afterRes.body.data.find((e) => e._id === shotRes.body.data.metadata.companionGoalEventId);
+    expect(companion.secondaryRosterPlayerId).toBe(assister);
+  });
+
+  it('kopiert secondaryRosterPlayerId NICHT auf das Companion-Goal-Event bei einem Gegner-Tor (dort bedeutet es "unser Torhüter", kein Assist)', async () => {
+    const shotRes = await request(app)
+      .post(`/api/games/${gameId}/events`)
+      .set('Cookie', owner.cookie)
+      .send({ eventType: 'shot', isOpponent: true, secondaryRosterPlayerId: keeper, x: 0.95, y: 0.5, outcome: 'goal' });
+    expect(shotRes.status).toBe(201);
+
+    const afterRes = await request(app).get(`/api/games/${gameId}/events`).set('Cookie', owner.cookie);
+    const companion = afterRes.body.data.find((e) => e._id === shotRes.body.data.metadata.companionGoalEventId);
+    expect(companion.secondaryRosterPlayerId).toBeNull();
   });
 
   it('legt bei outcome=save/miss/block KEIN zusätzliches goal-Event an', async () => {

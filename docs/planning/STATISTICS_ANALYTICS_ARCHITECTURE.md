@@ -4,9 +4,11 @@
 
 ## Statistik- und Performance-Analytics: Bestandsaufnahme, Gap-Analyse, Zielarchitektur
 
-> Status: Analyse abgeschlossen (2026-08-10). Phase 1 (Commit `f5f2ef6`),
-> Phase 2 (Match-Line/Shift-Tracking) und Phase 3 (Schuss-Tracking,
-> Shot Map, Zonen-Taxonomie, Torhüter-Statistiken) umgesetzt. Alle
+> Status: Analyse abgeschlossen (2026-08-10). Phase 1–6 umgesetzt (siehe
+> Roadmap-Tabelle in Abschnitt 11 für Details je Phase); Phase 7–9 noch
+> offen. Dieser Absatz wurde bei früheren Phasen nicht konsequent
+> mitgepflegt – Einzelheiten je Phase daher **immer** über die
+> Roadmap-Tabelle prüfen, nicht über diesen einleitenden Absatz. Alle
 > weiteren Abschnitte noch NICHT implementiert außer explizit als
 > "umgesetzt" markiert. Dieses Dokument ist die kanonische Quelle für
 > die Statistik-/Analytics-Domäne und wird mit jeder Phase
@@ -407,9 +409,14 @@ von Live-Spielen erhalten).
 ## 8.4 Was bewusst NICHT gebaut wird (Phase 1)
 
 - **Keine `opponents`-Tabelle.** `games.opponent` bleibt Freitext – ein
-  strukturiertes Gegner-Profil (Abschnitt 46/47 der Anforderung) ist
-  ein eigenständiges, späteres Feature (siehe Roadmap Phase 4), nicht
-  Teil des Kern-Event-Modells.
+  strukturiertes Gegner-Profil samt Saison-/Wettbewerbs-Gruppierung von
+  Spielen (Abschnitt 46/47 der Anforderung) ist bewusst **kein Teil der
+  9 EPIC-012-Phasen** (Roadmap-Tabelle, Abschnitt 11) – dafür fehlt in
+  keiner der neun Phasen ein Bezug. Bleibt ein eigenständiges, mögliches
+  künftiges Backlog-Item außerhalb dieser Statistik-Architektur (z.B.
+  als Teil einer künftigen "Spielverwaltung"-Erweiterung), kein
+  Bestandteil des Kern-Event-Modells. Siehe Phasenplanungs-Review vom
+  2026-08-21 in `docs/planning/BACKLOG.md`.
 - **Kein gespeicherter Score.** Bleibt abgeleitet – nur die
   *Berechnung* wird zentralisiert (Statistics Engine, Abschnitt 10),
   nicht die Persistenz geändert.

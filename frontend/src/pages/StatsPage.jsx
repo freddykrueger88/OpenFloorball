@@ -73,6 +73,8 @@ export default function StatsPage() {
                   <th>{t('stats.colNumber')}</th>
                   <th>{t('stats.colTeam')}</th>
                   <th>{t('stats.colGoals')}</th>
+                  <th>{t('stats.colAssists')}</th>
+                  <th>{t('stats.colPoints')}</th>
                   <th>{t('stats.colPenaltyMinutes')}</th>
                   <th>{t('stats.colMatchPenalties')}</th>
                   <th>{t('stats.colAppearances')}</th>
@@ -104,6 +106,8 @@ export default function StatsPage() {
                       <td>{player.jerseyNumber ?? '–'}</td>
                       <td>{player.teamId ? teamName(player.teamId) : t('stats.personal')}</td>
                       <td>{player.goals}</td>
+                      <td>{player.assists}</td>
+                      <td>{player.points}</td>
                       <td>{player.penaltyMinutes}</td>
                       <td>{player.matchPenalties}</td>
                       <td>{player.appearances}</td>

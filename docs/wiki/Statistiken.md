@@ -1,9 +1,10 @@
 # 📊 Statistiken
 
 Unter `/stats` zeigt eine Tabelle für jeden [Kader-Spieler](./Kader.md)
-Tore, Strafminuten, Matchstrafen, Einsätze, Schüsse/Schuss-% sowie
-(nur für Torhüter) Gegentore/Fangquote – aggregiert über alle seine
-Spiele hinweg, sortiert nach Toren. Auf der Spielseite selbst zeigen
+Tore, Vorlagen (Assists), Punkte, Strafminuten, Matchstrafen, Einsätze,
+Schüsse/Schuss-% sowie (nur für Torhüter) Gegentore/Fangquote –
+aggregiert über alle seine Spiele hinweg, sortiert nach Toren. Auf der
+Spielseite selbst zeigen
 zwei weitere Panels, wie sich ein Spiel im Detail entwickelt hat:
 Special Teams (Powerplay/Penalty Kill) und Situations-Splits (Führung/
 Rückstand/Unentschieden, je Periode).
@@ -17,6 +18,12 @@ Eingabe nötig:
   vom Typ "Tor", die diesem Spieler zugeordnet wurden. Ein Tor ohne
   Zuordnung zählt zwar für den [Live-Spielstand](./Live-Spielnotizen.md#live-spielstand)
   des Teams, aber – naheliegend – für keinen einzelnen Spieler.
+- **Vorlagen (Assists)**: Anzahl der Tore, bei denen dieser Spieler als
+  Vorlagengeber erfasst wurde. Nur über [Schuss-Tracking](./Live-Spielnotizen.md#schuss-tracking)
+  eingebbar (dort erscheint bei Ergebnis "Tor" eine zusätzliche
+  Vorlagen-Auswahl) – das schnelle "Tor"-Preset bleibt bewusst ohne
+  diese zusätzliche Auswahl, um die Live-Eingabe nicht zu verlangsamen.
+- **Punkte**: Tore + Vorlagen, zur Anzeigezeit berechnet.
 - **Strafminuten**: 2-Minuten- und 5-Minuten-Strafen, aufsummiert.
 - **Matchstrafen**: Anzahl separat gezählt (keine feste Minutenzahl,
   da eine Matchstrafe in der Realität das restliche Spiel betrifft).
@@ -81,8 +88,9 @@ Saison-Zahlen – keine zusätzliche Abfrage.
 ## Trends
 
 Ein Klick auf das Trend-Symbol neben einem Spieler auf `/stats` öffnet
-dessen Verlaufsseite (`/stats/:id`): Tore, Tore/Spiel, Schüsse/Schuss-%
-und Strafminuten jeweils für die letzten 5 Spiele, die letzten 10
+dessen Verlaufsseite (`/stats/:id`): Tore, Vorlagen, Punkte, Tore/Spiel,
+Schüsse/Schuss-% und Strafminuten jeweils für die letzten 5 Spiele, die
+letzten 10
 Spiele und die gesamte Saison im Vergleich, plus eine Übersicht der
 Tore je Spiel als einfache Balkenliste. Prozentwerte werden dabei
 NICHT aus einzelnen Spiel-Prozentwerten gemittelt, sondern aus den
@@ -103,11 +111,8 @@ anders als z. B. Kommentare auf Boards/Trainingseinheiten.
 
 ## Umfang (bewusst einfach gehalten)
 
-Noch **keine Vorlagen/Assists** (bräuchten eine zweite Spieler-
-Zuordnung beim Tor-Erfassen – das dafür vorgesehene Datenfeld
-existiert bereits, wird aber noch nicht über eine UI befüllt) und
-**kein Stand je Drittel**. Beides sind eigene, spätere
-Erweiterungsschritte.
+Noch **kein Stand je Drittel** – ein eigener, späterer
+Erweiterungsschritt.
 
 ## Verwandt
 

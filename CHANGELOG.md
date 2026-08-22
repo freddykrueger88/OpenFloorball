@@ -14,6 +14,14 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Statistik-Architektur, Phasenplanungs-Review 2026-08-21 (EPIC 012):
+  Vorlagen (Assists) und Punkte. Das Datenfeld dafür existierte bereits
+  seit Phase 1, wurde aber nie über eine UI befüllt – jetzt über "Schuss
+  erfassen" bei eigenem Tor auswählbar (Kader-Spieler außer dem
+  Torschützen selbst). Neue Spalten "Vorlagen"/"Punkte" in der
+  Statistik-Übersicht, im Spieler-Vergleich und auf der Trends-Seite
+  (Last-5/Last-10/Saison). Bewusst nicht beim schnellen "Tor"-Preset,
+  um die Live-Eingabe nicht zu verlangsamen.
 - Statistik-Architektur Phase 6 (EPIC 012): Video-Integration. Bis zu 5
   Videos direkt an ein Spiel hängbar (neue `game_videos`-Tabelle, ADR-0005
   in `docs/planning/DECISIONS.md`), mit derselben Zeichnen-/Trimmen-/

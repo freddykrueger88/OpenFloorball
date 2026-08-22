@@ -22,15 +22,18 @@ import styles from './PlayerTrendsPage.module.css';
 function aggregateWindow(games) {
   const totals = games.reduce((acc, g) => ({
     goals: acc.goals + g.goals,
+    assists: acc.assists + g.assists,
     shots: acc.shots + g.shots,
     shotsOnGoal: acc.shotsOnGoal + g.shotsOnGoal,
     shotGoals: acc.shotGoals + g.shotGoals,
     penaltyMinutes: acc.penaltyMinutes + g.penaltyMinutes,
-  }), { goals: 0, shots: 0, shotsOnGoal: 0, shotGoals: 0, penaltyMinutes: 0 });
+  }), { goals: 0, assists: 0, shots: 0, shotsOnGoal: 0, shotGoals: 0, penaltyMinutes: 0 });
 
   return {
     games: games.length,
     goals: totals.goals,
+    assists: totals.assists,
+    points: totals.goals + totals.assists,
     goalsPerGame: games.length > 0 ? Math.round((totals.goals / games.length) * 100) / 100 : null,
     shots: totals.shots,
     shotPercentage: totals.shotsOnGoal > 0 ? Math.round((totals.shotGoals / totals.shotsOnGoal) * 1000) / 10 : null,
@@ -115,6 +118,14 @@ export default function PlayerTrendsPage() {
                 <tr>
                   <td>{t('stats.colGoals')}</td>
                   <td>{last5.goals}</td><td>{last10.goals}</td><td>{season.goals}</td>
+                </tr>
+                <tr>
+                  <td>{t('stats.colAssists')}</td>
+                  <td>{last5.assists}</td><td>{last10.assists}</td><td>{season.assists}</td>
+                </tr>
+                <tr>
+                  <td>{t('stats.colPoints')}</td>
+                  <td>{last5.points}</td><td>{last10.points}</td><td>{season.points}</td>
                 </tr>
                 <tr>
                   <td>{t('stats.trends.goalsPerGame')}</td>

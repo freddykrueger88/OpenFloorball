@@ -14,6 +14,14 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Statistik-Architektur Phase 7 (EPIC 012): Custom Events/Tags + CSV-Export
+  (ADR-0006). Trainer können eigene, kurze Ereignistypen anlegen
+  (team-eigen oder persönlich, z.B. "Konter") und in der Spiel-Zeitleiste
+  taggen – inklusive Video-Verknüpfung wie bei den eingebauten Typen.
+  Auf `/stats` und `/games` lassen sich die Saison-Kennzahlen bzw. die
+  Spieleliste zusätzlich als CSV-Datei exportieren (Excel/Sheets-fähig).
+
+### Added
 - Statistik-Architektur, Phasenplanungs-Review 2026-08-21 (EPIC 012):
   Vorlagen (Assists) und Punkte. Das Datenfeld dafür existierte bereits
   seit Phase 1, wurde aber nie über eine UI befüllt – jetzt über "Schuss

@@ -124,10 +124,12 @@ export async function getRosterPlayers(req, res) {
 // fürs Team-Live-Ergebnis (siehe GamePage.jsx ownGoals), kann aber per
 // Definition keinem einzelnen Spieler persönlich angerechnet werden –
 // WHERE roster_player_id IS NOT NULL blendet solche Zeilen hier bewusst aus.
-export async function getRosterStats(req, res) {
-  try {
-    const teamIds = await getUserTeamIds(req.user.id);
-    const result = await pool.query(
+// Reine Datenbeschaffung ohne req/res – wiederverwendet von getRosterStats
+// (JSON-API) UND vom CSV-Export (csvExportController.js, Statistik-
+// Architektur Phase 7), damit die Kennzahlen-Formel an genau einer Stelle
+// gepflegt wird statt zweimal dieselbe SQL zu duplizieren.
+export async function fetchRosterStats(userId, teamIds) {
+  const result = await pool.query(
       `SELECT rp.*,
               COALESCE(g.goals, 0)::int           AS goals,
               COALESCE(a.assists, 0)::int         AS assists,
@@ -194,9 +196,15 @@ export async function getRosterStats(req, res) {
        ) ta ON ta.roster_player_id = rp.id
        WHERE rp.user_id = $1 OR rp.team_id = ANY($2::uuid[])
        ORDER BY goals DESC, rp.jersey_number ASC NULLS LAST, rp.name ASC`,
-      [req.user.id, teamIds]
-    );
-    res.json(success(result.rows.map(toApiRosterStats)));
+    [userId, teamIds]
+  );
+  return result.rows.map(toApiRosterStats);
+}
+
+export async function getRosterStats(req, res) {
+  try {
+    const teamIds = await getUserTeamIds(req.user.id);
+    res.json(success(await fetchRosterStats(req.user.id, teamIds)));
   } catch (err) {
     logger.error('[getRosterStats]', err);
     res.status(500).json(error('Interner Serverfehler'));

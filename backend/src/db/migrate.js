@@ -1128,6 +1128,19 @@ export async function runMigrations() {
     // Videodatei später gelöscht wird – nur der Video-Sprung verschwindet.
     await client.query(`ALTER TABLE game_events ADD COLUMN IF NOT EXISTS video_id UUID REFERENCES game_videos(id) ON DELETE SET NULL;`);
 
+    // ── Statistik-Architektur Phase 7 (Custom Events, siehe Architektur-
+    // Dokument Roadmap Phase 7, Phasenplanungs-Review 2026-08-21) ─────────
+    // event_type_definitions.team_id existierte bereits (Phase 1), deckte
+    // aber nur team-geteilte Custom-Typen ab. Persönliche (nicht
+    // team-geteilte) Nutzer – überall sonst im Repo als "team_id NULL,
+    // stattdessen user_id" unterstützt (roster_players, formation_templates,
+    // lines, playbooks, games) – hätten sonst gar keine eigenen Custom-Typen
+    // anlegen können. user_id NULL bleibt für die 10 eingebauten globalen
+    // Typen reserviert.
+    await client.query(`ALTER TABLE event_type_definitions ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id) ON DELETE CASCADE;`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_event_type_definitions_team_id ON event_type_definitions(team_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_event_type_definitions_user_id ON event_type_definitions(user_id);`);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

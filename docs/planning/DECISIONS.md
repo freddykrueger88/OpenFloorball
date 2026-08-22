@@ -722,6 +722,108 @@ verzweigen müssen.
 
 ---
 
+# ADR-0006: Custom Events – persönlicher Scope über `user_id`, "Report Builder" ersetzt durch CSV-Export
+
+## Datum
+
+2026-08-22
+
+---
+
+## Status
+
+Akzeptiert
+
+---
+
+## Kontext
+
+Phase 7 sollte laut ursprünglicher Roadmap "Custom-Events-UI (Trainer
+definiert eigene `event_type_definitions`-Zeilen)" und einen "Report
+Builder" liefern. Die Phasenplanungs-Review vom 2026-08-21 hatte den
+Report-Builder-Teil bereits als zu vage/scope-riskant markiert und eine
+Ersetzung durch einen konkret abgegrenzten Export vorgeschlagen; beim
+tatsächlichen Bauen der Custom-Events-UI kam eine zweite, in der Review
+noch nicht erkannte Lücke hinzu: `event_type_definitions.team_id` (seit
+Phase 1) deckt nur team-geteilte Custom-Typen ab. Für persönliche
+(nicht team-geteilte) Nutzer – überall sonst im Repo als "team_id NULL,
+sonst user_id" unterstützt (`roster_players`, `formation_templates`,
+`lines`, `playbooks`, `games`) – gab es keine Möglichkeit, eigene Typen
+anzulegen, ohne sie versehentlich global (für alle Nutzer sichtbar) zu
+machen.
+
+Zusätzlich fiel beim Bauen der `addEvent`-Validierung auf: die
+bestehende Prüfung `SELECT 1 FROM event_type_definitions WHERE key=$1
+AND active=true` prüfte nur Existenz/Aktivierung eines Typs, nicht
+dessen Scope – ein team-eigener oder persönlicher Custom-Typ hätte
+serverseitig auf JEDEM beliebigen Spiel verwendet werden können, nicht
+nur auf einem Spiel desselben Teams/Nutzers.
+
+---
+
+## Entscheidung
+
+1. **Neue Spalte `event_type_definitions.user_id`** (nullable, `ON
+   DELETE CASCADE`), analog zum bestehenden Personal/Team-Muster.
+   Eingebaute Typen haben weiterhin `team_id = NULL, user_id = NULL`.
+2. **Scope-Validierung in `addEvent`** ergänzt: ein Custom-Typ ist nur
+   auf einem Spiel desselben Teams (`team_id` stimmt überein) bzw. bei
+   einem eigenen, nicht team-geteilten Spiel (`user_id` stimmt mit dem
+   anfragenden Nutzer überein) gültig – eingebaute Typen bleiben immer
+   erlaubt.
+3. **`key` wird serverseitig generiert** (`custom_<uuid>`) statt vom
+   Client vorgeschlagen – vermeidet Kollisionen im global über alle
+   Teams/Nutzer geteilten PRIMARY-KEY-Namensraum dieser Tabelle.
+4. **Bewusst schlanke Custom-Typen**: nur Bezeichnung (ein Feld, kein
+   DE/EN-Formular – Nutzerinhalt wird im gesamten Repo nie übersetzt)
+   und optional "braucht Zuordnung". Kein Icon-/Farb-Picker, keine
+   `requires_secondary_player`/`-position`/`-outcome`/`-strength_state`-
+   UI – diese Spalten existieren zwar in der Tabelle, werden aber von
+   keinem bestehenden Frontend-Code gelesen, auch nicht für die 10
+   eingebauten Typen.
+5. **"Report Builder" ersetzt durch zwei CSV-Endpunkte**
+   (`GET /api/export/roster-stats.csv`, `GET /api/export/games.csv`).
+   Bewusst **kein** zusätzlicher JSON-Export: dieselben Daten sind über
+   `GET /api/roster/stats`/`GET /api/games` bereits vollständig
+   maschinenlesbar verfügbar – CLAUDE.md §5.3 (Digitale Souveränität,
+   offene Formate) war damit schon erfüllt. CSV ist der tatsächlich
+   fehlende, in Excel/Sheets direkt nutzbare Mehrwert (siehe
+   "Export ausbauen" in der Wettbewerbs-Analyse,
+   `STATISTICS_ANALYTICS_ARCHITECTURE.md` Abschnitt 7). Kein neues
+   npm-Paket für die CSV-Serialisierung (`utils/csv.js`, ~20 Zeilen,
+   RFC 4180) – unnötige Abhängigkeit für eine derart kleine, stabile
+   Aufgabe (CLAUDE.md §5.4/23).
+
+---
+
+## Begründung
+
+* Konsistent mit dem im gesamten Repo etablierten Personal/Team-Muster
+  statt einer Sonderregel nur für `event_type_definitions`.
+* Schließt eine Dateninkonsistenz-Lücke (fremder Custom-Typ auf
+  falschem Spiel), bevor sie in Produktivdaten sichtbar werden konnte
+  (Feature war zu diesem Zeitpunkt noch nicht ausgeliefert).
+* Ein bewusst kleiner Funktionsumfang für Custom-Typen entspricht der
+  "Custom Events/Tags"-Formulierung der ursprünglichen Roadmap – kein
+  zweites, generalisiertes Schuss-Tracking-Formular ohne belegten
+  Bedarf.
+
+---
+
+## Folgen
+
+* `event_type_definitions` hat jetzt zwei mögliche Scope-Dimensionen
+  (`team_id`, `user_id`) zusätzlich zu `is_builtin` – bei künftigen
+  Änderungen an dieser Tabelle immer beide Fälle bedenken, nicht nur
+  den team-geteilten (der bis Phase 7 der einzig gebaute war).
+* Ein Custom-Typ kann nicht gelöscht werden, sobald er in einem Spiel
+  verwendet wurde (FK-Schutz durch `game_events_event_type_fkey`,
+  bestehend seit ADR-0001) – die UI fängt das ab und deaktiviert
+  stattdessen automatisch (`active = false`), statt den Coach mit einem
+  Sackgassen-Fehler allein zu lassen.
+
+---
+
 # Regel
 
 Architekturentscheidungen werden nicht vergessen.

@@ -871,12 +871,16 @@ darauf aufbauen, keine Statistik-Insel-Lösungen. Siehe ADR-0001 in
 4. Special Teams, Situations-Splits, Spieler-Vergleich – ✅ umgesetzt
 5. Trainings-Analytics/Spielerentwicklung (separate Domäne) – ✅ umgesetzt
 6. Video↔Event-Verknüpfung – ✅ umgesetzt
-7. Assists (Vorlauf, s.u.) + Custom Events/Tags + strukturierter
-   CSV/JSON-Export. Ersetzt das zuvor vage "Report Builder"-Ziel durch
-   einen konkret abgrenzbaren Export (Spiele/Events/Saison-Stats in
-   offenen Formaten, CLAUDE.md §5.3 Digitale Souveränität) – ein freier
-   Report-Baukasten hätte ohne konkreten Use Case unbegrenzten Scope
-   riskiert.
+7. Assists (Vorlauf, s.u.) + Custom Events/Tags + CSV-Export – ✅
+   umgesetzt (ADR-0006). Ersetzt das zuvor vage "Report Builder"-Ziel
+   durch einen konkret abgrenzbaren CSV-Export (Saison-Kennzahlen +
+   Spiele/Endstände) – ein freier Report-Baukasten hätte ohne
+   konkreten Use Case unbegrenzten Scope riskiert. Bewusst KEIN
+   zusätzlicher JSON-Export: dieselben Daten sind über
+   `GET /api/roster/stats`/`GET /api/games` bereits vollständig
+   maschinenlesbar verfügbar (CLAUDE.md §5.3 Digitale Souveränität war
+   damit schon erfüllt) – CSV ist der tatsächlich fehlende, in
+   Excel/Sheets direkt nutzbare Mehrwert.
 8. Advanced Analytics (Line-Chemie, xG erst mit Datenbasis). NEU:
    erster Task ist ein dokumentierter Datenbasis-Check
    (Go/No-Go) vor jedem Modellbau – verhindert erfundene Präzision bei
@@ -889,7 +893,7 @@ darauf aufbauen, keine Statistik-Insel-Lösungen. Siehe ADR-0001 in
    KI-Anbindung – vermeidet doppelte Infrastruktur, hält
    KI-Unabhängigkeit (§5.8) an einer Stelle konsistent.
 
-**Vorlauf vor Phase 7 – Assists:** `game_events.secondary_roster_player_id`
+**Vorlauf vor Phase 7 – Assists (✅ umgesetzt):** `game_events.secondary_roster_player_id`
 existiert bereits seit Phase 1 für genau diesen Zweck, `docs/statistics.md`
 dokumentiert die Formel seit Phase 1 als "möglich, noch nicht
 ausgewertet" – aber keine der Phasen 1–9 hatte je eine Assist-UI als
@@ -916,7 +920,8 @@ Abschnitt 8.4.
 * Keine Hockey-Geometrie 1:1 übernehmen – floorball-eigene
   Zonen-Definitionen.
 * Kein freier "Report Builder" ohne konkreten Use Case (Review
-  2026-08-21) – stattdessen fester, aber vollständiger CSV/JSON-Export.
+  2026-08-21) – stattdessen fester, aber vollständiger CSV-Export
+  (ADR-0006).
 
 ---
 

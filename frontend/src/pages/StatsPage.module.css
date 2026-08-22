@@ -7,7 +7,14 @@
   gap: var(--space-4);
 }
 
-.header { display: flex; flex-direction: column; gap: var(--space-1); }
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+.header > div { display: flex; flex-direction: column; gap: var(--space-1); }
 .title { font-size: var(--text-xl); font-weight: 700; margin: 0; color: var(--color-text); }
 .subtitle { font-size: var(--text-sm); color: var(--color-text-muted); margin: 0; }
 

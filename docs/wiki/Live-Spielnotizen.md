@@ -43,6 +43,26 @@ dieselbe Regel wie bei [Kommentaren](./Export.md). Ein Bearbeiten von
 Notizen ist bewusst nicht vorgesehen: bei einem Tippfehler einfach
 löschen und neu erfassen.
 
+## Eigene Ereignistypen
+
+Neben den festen IFF-Presets lässt sich unter den Vorlagen-Buttons ein
+eigener Ereignistyp anlegen ("Eigenen Typ hinzufügen") – z. B. "Konter"
+oder "Umschaltmoment", um taktisch interessante Momente in der
+Zeitleiste zu markieren (und seit der [Video-Verknüpfung](#spielvideos-und-video-verknüpfung)
+auch direkt mit einer Videoposition zu verbinden). Nur eine Bezeichnung
+und optional "Braucht Zuordnung" (öffnet dann wie beim Tor-Preset die
+Kader/Gegner-Auswahl) – kein Icon, keine Farbe, kein zweites
+Schuss-Tracking-Formular, bewusst ein einfaches, schnelles Tag.
+
+Ein eigener Typ gehört automatisch zu diesem Spiel: bei einem
+team-geteilten Spiel allen Team-Mitgliedern (anlegen nur Owner/
+Co-Trainer), bei einem persönlichen Spiel nur dir – er erscheint dann
+auch nur bei Spielen desselben Teams bzw. bei deinen eigenen
+persönlichen Spielen, nicht überall. Löschen ist jederzeit möglich,
+solange der Typ noch in keinem Spiel verwendet wurde; danach wird er
+beim Löschversuch automatisch deaktiviert statt entfernt (bereits
+erfasste Ereignisse bleiben dadurch gültig und lesbar).
+
 ## Anwesenheit (RSVP)
 
 Bei einem team-geteilten Spiel erscheint über den Notizen ein
@@ -95,6 +115,12 @@ Endstand, die Ereignis-Zeitleiste (nur die strukturierten Ereignisse,
 nicht die Freitext-Notizen) und der Match-Kader-Status. Gedacht zum
 Ausdrucken oder Weitergeben an Verein/Eltern – kein Ersatz für die
 Notizen-Ansicht auf dieser Seite.
+
+Auf der Spielübersicht (`/games`) exportiert "Als CSV exportieren"
+zusätzlich alle sichtbaren Spiele (Datum, Gegner, Team, Endstand) als
+CSV-Datei – für die Weiterverarbeitung in Excel/Sheets, offenes Format
+statt Bildschirm-Tabelle (siehe auch [Statistiken](./Statistiken.md)
+für den CSV-Export der Saison-Kennzahlen je Spieler).
 
 ## Match-Kader
 

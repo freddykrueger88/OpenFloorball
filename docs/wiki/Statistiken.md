@@ -3,7 +3,10 @@
 Unter `/stats` zeigt eine Tabelle für jeden [Kader-Spieler](./Kader.md)
 Tore, Vorlagen (Assists), Punkte, Strafminuten, Matchstrafen, Einsätze,
 Schüsse/Schuss-% sowie (nur für Torhüter) Gegentore/Fangquote –
-aggregiert über alle seine Spiele hinweg, sortiert nach Toren. Auf der
+aggregiert über alle seine Spiele hinweg, sortiert nach Toren. "Als CSV
+exportieren" lädt genau diese Tabelle als Datei herunter – offenes
+Format statt nur Bildschirm-Ansicht (Datenportabilität, CLAUDE.md
+§5.3). Auf der
 Spielseite selbst zeigen
 zwei weitere Panels, wie sich ein Spiel im Detail entwickelt hat:
 Special Teams (Powerplay/Penalty Kill) und Situations-Splits (Führung/

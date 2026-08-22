@@ -6,11 +6,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Volleyball, Plus } from 'lucide-react';
+import { AlertTriangle, Volleyball, Plus, Download } from 'lucide-react';
 import { useGames } from '../hooks/useGames.js';
 import { useTeams } from '../hooks/useTeams.js';
 import GameCard from '../components/games/GameCard.jsx';
 import Button from '../components/common/Button.jsx';
+import buttonStyles from '../components/common/Button.module.css';
 import styles from './GamesPage.module.css';
 
 export default function GamesPage() {
@@ -127,6 +128,15 @@ export default function GamesPage() {
           >
             <Plus size={16} aria-hidden="true" /> {t('games.newGame')}
           </Button>
+        )}
+        {games.length > 0 && (
+          // Statistik-Architektur Phase 7: reiner GET-Download, daher ein
+          // natives <a> statt eines Button-onClick-Handlers – der Browser
+          // übernimmt Content-Disposition/Dateiname direkt, kein
+          // JS-Blob-Umweg nötig (anders als der POST-basierte PDF-Export).
+          <a href="/api/export/games.csv" className={`${buttonStyles.btn} ${buttonStyles.secondary} ${buttonStyles.md}`}>
+            <Download size={16} aria-hidden="true" /> {t('games.exportCsv')}
+          </a>
         )}
       </div>
 

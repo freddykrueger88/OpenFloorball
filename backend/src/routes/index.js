@@ -36,6 +36,7 @@ import gameEventsRoutes from './gameEvents.js';
 import gameClockRoutes from './gameClock.js';
 import matchLinesRoutes from './matchLines.js';
 import gameVideosRoutes from './gameVideos.js';
+import eventTypeDefinitionsRoutes from './eventTypeDefinitions.js';
 import { assertBoardAccess } from '../utils/boardAccess.js';
 import { assertSessionRead, assertSessionWrite } from '../controllers/trainingSessionsController.js';
 import { assertGameRead, assertGameWrite } from '../controllers/gamesController.js';
@@ -75,6 +76,7 @@ router.use('/games/:id/events', gameEventsRoutes);
 router.use('/games/:id/clock', gameClockRoutes);
 router.use('/games/:id/match-lines', matchLinesRoutes);
 router.use('/games/:id/videos', gameVideosRoutes);
+router.use('/event-types', eventTypeDefinitionsRoutes);
 // GIF-Export braucht großes JSON-Limit (Base64-PNGs) – nur auf diesem Sub-Router
 router.use('/export', express.json({ limit: '50mb' }), exportRoutes);
 // Öffentliche Share-Link-Ansicht – bewusst NICHT hinter authenticate (Issue #16)

@@ -134,23 +134,35 @@ export async function addEvent(req, res) {
       return res.status(400).json(error('Ein Ereignis kann nicht gleichzeitig einem Kader-Spieler und dem Gegner zugeordnet werden'));
     }
 
-    // eventType wird gegen event_type_definitions geprüft statt gegen ein
-    // festes Array (ADR-0001) – neue Typen brauchen dadurch nur einen
-    // INSERT dort, keine Code-Änderung hier.
-    const typeResult = await pool.query(
-      'SELECT 1 FROM event_type_definitions WHERE key = $1 AND active = true',
-      [eventType]
-    );
-    if (typeResult.rows.length === 0) {
-      client.release();
-      return res.status(400).json(error('Ungültiger oder inaktiver Ereignistyp'));
-    }
-
     const gameResult = await pool.query(
       'SELECT user_id, team_id, clock_period, clock_elapsed_seconds, clock_status, clock_started_at, clock_period_minutes FROM games WHERE id = $1',
       [gameId]
     );
     const game = gameResult.rows[0];
+
+    // eventType wird gegen event_type_definitions geprüft statt gegen ein
+    // festes Array (ADR-0001) – neue Typen brauchen dadurch nur einen
+    // INSERT dort, keine Code-Änderung hier. Seit Phase 7 (Custom Events)
+    // zusätzlich ein Scope-Check: ein team-eigener oder persönlicher
+    // Custom-Typ darf nur auf einem Spiel DESSELBEN Teams bzw. desselben
+    // persönlichen Nutzers verwendet werden – sonst könnte ein Ereignis
+    // mit einem für ein fremdes Team sinnvollen Label in einem völlig
+    // anderen Spiel landen (kein Zugriffsverstoß, aber irreführende Daten).
+    // Eingebaute Typen (is_builtin) sind immer erlaubt.
+    const typeResult = await pool.query(
+      'SELECT is_builtin, team_id, user_id FROM event_type_definitions WHERE key = $1 AND active = true',
+      [eventType]
+    );
+    const typeRow = typeResult.rows[0];
+    const typeInScope = typeRow && (
+      typeRow.is_builtin
+      || (typeRow.team_id && typeRow.team_id === game.team_id)
+      || (typeRow.user_id && !game.team_id && typeRow.user_id === req.user.id)
+    );
+    if (!typeInScope) {
+      client.release();
+      return res.status(400).json(error('Ungültiger, inaktiver oder nicht zu diesem Spiel gehörender Ereignistyp'));
+    }
 
     // Derselbe Scope-Check wie matchSquadController.setSquadStatus /
     // linesController.addPlayerToLine, jetzt auch für den optionalen

@@ -14,6 +14,18 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Statistik-Architektur Phase 9 (EPIC 012): Spiel-Insights-Assistent
+  ("KI-Spielanalyse" auf der Spielseite, AI_SYSTEM.md §5.5) – fünfter
+  KI-Assistent, baut auf derselben KI-Provider-Abstraktion wie die
+  bestehenden vier (EPIC 010) auf. Bekommt ausschließlich bereits
+  berechnete Team-Statistiken dieses Spiels (Schuss-/Special-Teams-/
+  Situations-Kennzahlen), keine Rohereignisse, keine Personendaten, und
+  sucht darin nach Mustern/möglichen Trainingsschwerpunkten. "Grundlage
+  anzeigen" macht sichtbar, welche Zahlen tatsächlich an die KI gingen.
+  Damit sind alle 9 Phasen der EPIC-012-Statistik-Architektur
+  umgesetzt (xG v1 bewusst zurückgestellt, siehe Phase 8).
+
+### Added
 - Statistik-Architektur Phase 8 (EPIC 012): Line-Chemie. Neuer Bereich
   "Line-Chemie (Saison)" auf `/lines` zeigt Zeit-auf-dem-Feld und
   Torverhältnis je Line über die gesamte Saison statt nur ein einzelnes

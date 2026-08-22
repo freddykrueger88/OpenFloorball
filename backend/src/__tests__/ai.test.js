@@ -229,6 +229,52 @@ describe('POST /api/ai/knowledge-query', () => {
   });
 });
 
+describe('POST /api/ai/game-insights (Statistik-Architektur Phase 9)', () => {
+  let gameId;
+  let strangerCookie;
+
+  beforeAll(async () => {
+    const gameRes = await request(app).post('/api/games').set('Cookie', user.cookie).send({ opponent: 'Insights-Test-Gegner' });
+    gameId = gameRes.body.data._id;
+    await request(app).post(`/api/games/${gameId}/events`).set('Cookie', user.cookie).send({ eventType: 'goal' });
+
+    const strangerReg = await registerAndLogin('insights-stranger');
+    strangerCookie = strangerReg.cookie;
+  });
+
+  afterEach(async () => {
+    await pool.query(
+      `UPDATE app_config SET ai_provider_base_url = '', ai_provider_api_key = '',
+                              ai_provider_model = '', ai_provider_timeout_ms = 30000`
+    );
+  });
+
+  it('lehnt nicht eingeloggte Anfragen ab', async () => {
+    const res = await request(app).post('/api/ai/game-insights').send({ gameId });
+    expect(res.status).toBe(401);
+  });
+
+  it('lehnt eine fehlende/ungültige gameId ab', async () => {
+    const res = await request(app).post('/api/ai/game-insights').set('Cookie', user.cookie).send({ gameId: 'keine-uuid' });
+    expect(res.status).toBe(422);
+  });
+
+  it('liefert 503, solange kein KI-Anbieter konfiguriert ist', async () => {
+    const res = await request(app).post('/api/ai/game-insights').set('Cookie', user.cookie).send({ gameId });
+    expect(res.status).toBe(503);
+  });
+
+  it('lehnt ein fremdes Spiel mit 404 ab, sobald ein Anbieter konfiguriert ist (kein KI-Aufruf nötig)', async () => {
+    // Provider konfiguriert, aber die Basis-URL muss nicht real erreichbar
+    // sein – assertGameRead schlägt VOR dem eigentlichen KI-Aufruf fehl.
+    await request(app).put('/api/admin/ai-config').set('Cookie', admin.cookie)
+      .send({ baseUrl: 'http://unused-in-this-test:9999/v1', model: 'test-model', timeoutMs: 20000 });
+
+    const res = await request(app).post('/api/ai/game-insights').set('Cookie', strangerCookie).send({ gameId });
+    expect(res.status).toBe(404);
+  });
+});
+
 describe('Admin AI-Config', () => {
   afterEach(async () => {
     // Jeden Test mit einer leeren Konfiguration starten/beenden, damit sich

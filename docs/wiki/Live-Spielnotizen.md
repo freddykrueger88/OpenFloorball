@@ -122,6 +122,10 @@ CSV-Datei – für die Weiterverarbeitung in Excel/Sheets, offenes Format
 statt Bildschirm-Tabelle (siehe auch [Statistiken](./Statistiken.md)
 für den CSV-Export der Saison-Kennzahlen je Spieler).
 
+Ist auf dieser Instanz ein KI-Anbieter konfiguriert, erscheint
+zusätzlich "KI-Spielanalyse" – siehe
+[KI-Assistenten: Spiel-Insights](./KI-Assistenten.md#spiel-insights-im-detail).
+
 ## Match-Kader
 
 Zusätzlich zur Anwesenheit (oben) zeigt jedes Spiel einen

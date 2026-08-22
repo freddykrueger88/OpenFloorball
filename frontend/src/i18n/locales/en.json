@@ -980,7 +980,13 @@
     "knowledgeSourceTypeLibrary": "Library entry",
     "knowledgeInactiveTitle": "AI knowledge assistant is not configured",
     "knowledgeInactiveDesc": "This instance hasn't set up an AI provider yet. Without configuration, this feature stays inactive.",
-    "knowledgeInactiveAdminAction": "Go to settings"
+    "knowledgeInactiveAdminAction": "Go to settings",
+    "insightsButton": "AI game analysis",
+    "insightsFormTitle": "Game insights with AI",
+    "insightsExplainer": "The AI only receives already-calculated team statistics for this game (shot, special teams, and situational metrics) - no raw data, no names. It looks for patterns and suggests possible training focus areas.",
+    "showBasis": "Show basis",
+    "hideBasis": "Hide basis",
+    "close": "Close"
   },
   "dialogs": {
     "newBoard": {

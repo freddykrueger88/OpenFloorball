@@ -980,7 +980,13 @@
     "knowledgeSourceTypeLibrary": "Bibliothekseintrag",
     "knowledgeInactiveTitle": "KI-Wissensassistent ist nicht konfiguriert",
     "knowledgeInactiveDesc": "Diese Instanz hat noch keinen KI-Anbieter eingerichtet. Ohne Konfiguration bleibt diese Funktion inaktiv.",
-    "knowledgeInactiveAdminAction": "Zu den Einstellungen"
+    "knowledgeInactiveAdminAction": "Zu den Einstellungen",
+    "insightsButton": "KI-Spielanalyse",
+    "insightsFormTitle": "Spiel-Insights mit KI",
+    "insightsExplainer": "Die KI erhält ausschließlich bereits berechnete Team-Statistiken dieses Spiels (Schuss-, Special-Teams- und Situations-Kennzahlen) – keine Rohdaten, keine Namen. Sie sucht darin nach Mustern und schlägt mögliche Trainingsschwerpunkte vor.",
+    "showBasis": "Grundlage anzeigen",
+    "hideBasis": "Grundlage ausblenden",
+    "close": "Schließen"
   },
   "dialogs": {
     "newBoard": {

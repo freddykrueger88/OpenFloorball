@@ -631,7 +631,7 @@ für alle künftigen Kennzahlen):
 | **6** | Video-Integration: eigene `game_videos`-Tabelle (ADR-0005), Event→Video-Sprung über `videoId`/`videoTimestampSeconds` | Phase 1 – ✅ umgesetzt |
 | **7** | Custom-Events-UI (Trainer definiert eigene `event_type_definitions`-Zeilen, team-eigen oder persönlich), CSV-Export (Kennzahlen + Spiele) statt eines offenen Report Builders (ADR-0006) | Phase 1 – ✅ umgesetzt |
 | **8** | Advanced Analytics: Line-Chemie (Saison-Aggregation über `calculateLineStats`) – ✅ umgesetzt (2026-08-22). xG-Modell v1/Shot Quality – **No-Go** nach Datenbasis-Check (0 Spiele/Ereignisse in den geprüften Instanzen), zurückgestellt bis reale Nutzungsdaten vorliegen | Phase 3 |
-| **9** | KI/ML-Grundlagen (Pattern Detection, automatische Spiel-Insights) – ausschließlich als nachvollziehbare Vorschläge, nie autoritativ (§5.9/18 `CLAUDE.md`) | Phase 8 |
+| **9** | KI/ML-Grundlagen (Pattern Detection, automatische Spiel-Insights) – ausschließlich als nachvollziehbare Vorschläge, nie autoritativ (§5.9/18 `CLAUDE.md`) – ✅ umgesetzt (2026-08-22, `POST /api/ai/game-insights`, baut auf der EPIC-010-KI-Provider-Abstraktion auf, AI_SYSTEM.md §5.5) | Phase 8 |
 
 ---
 

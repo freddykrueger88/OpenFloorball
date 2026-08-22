@@ -20,7 +20,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Trash2, Send, FileDown, Play, Pause, SkipForward, RotateCcw, Video, Plus } from 'lucide-react';
+import { AlertTriangle, Trash2, Send, FileDown, Play, Pause, SkipForward, RotateCcw, Video, Plus, Sparkles } from 'lucide-react';
 import { useGames } from '../hooks/useGames.js';
 import { useComments } from '../hooks/useComments.js';
 import { useGameEvents } from '../hooks/useGameEvents.js';
@@ -44,6 +44,8 @@ import GoalkeeperStatsSection from '../components/shotTracking/GoalkeeperStatsSe
 import SpecialTeamsStatsSection from '../components/gameFlowStats/SpecialTeamsStatsSection.jsx';
 import SituationalStatsSection from '../components/gameFlowStats/SituationalStatsSection.jsx';
 import GameVideoPanel from '../components/games/GameVideoPanel.jsx';
+import AiGameInsightsModal from '../components/games/AiGameInsightsModal.jsx';
+import { useAiApi } from '../hooks/useAiApi.js';
 import Button from '../components/common/Button.jsx';
 import styles from './GamePage.module.css';
 
@@ -61,6 +63,13 @@ export default function GamePage() {
     eventTypes, error: eventTypesError, fetchEventTypes, createEventType, updateEventType, deleteEventType,
   } = useEventTypeDefinitions();
   const { user } = useAuthStore();
+  // Statistik-Architektur Phase 9 (Spiel-Insights): eigener useAiApi-
+  // Aufruf nur für den Status-Check (AI_SYSTEM.md §2 – der Button
+  // erscheint nur, wenn diese Instanz überhaupt einen KI-Anbieter
+  // konfiguriert hat), analog TrainingsPage.jsx.
+  const { fetchStatus: fetchAiStatus } = useAiApi();
+  const [aiStatus, setAiStatus] = useState(null);
+  const [insightsModalOpen, setInsightsModalOpen] = useState(false);
   // Statistik-Architektur Phase 6: Sprung-Funktion, die GameVideoPanel
   // einmalig über registerJump nach oben meldet (siehe dort) – als Ref
   // statt State, da sie sich bei jedem Video-Fetch neu zusammensetzt und
@@ -142,6 +151,7 @@ export default function GamePage() {
   useEffect(() => { fetchComments().catch(() => {}); }, [fetchComments]);
   useEffect(() => { fetchEvents().catch(() => {}); }, [fetchEvents]);
   useEffect(() => { fetchEventTypes().catch(() => {}); }, [fetchEventTypes]);
+  useEffect(() => { fetchAiStatus().then(setAiStatus).catch(() => {}); }, [fetchAiStatus]);
 
   useEffect(() => {
     if (editingOpponent) opponentInputRef.current?.select();
@@ -531,6 +541,14 @@ export default function GamePage() {
       <Button variant="secondary" size="sm" className={styles.exportReportBtn} onClick={handleExportReport} disabled={exportingReport}>
         <FileDown size={16} aria-hidden="true" /> {exportingReport ? t('games.exportingReport') : t('games.exportReportButton')}
       </Button>
+      {aiStatus?.configured && (
+        <Button variant="secondary" size="sm" className={styles.exportReportBtn} onClick={() => setInsightsModalOpen(true)}>
+          <Sparkles size={16} aria-hidden="true" /> {t('ai.insightsButton')}
+        </Button>
+      )}
+      {insightsModalOpen && (
+        <AiGameInsightsModal gameId={id} onClose={() => setInsightsModalOpen(false)} />
+      )}
 
       {(gameError || notesError || eventsError || reportError || clockError || matchLinesError || eventTypesError) && (
         <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError ?? eventsError ?? reportError ?? clockError ?? matchLinesError ?? eventTypesError}</div>

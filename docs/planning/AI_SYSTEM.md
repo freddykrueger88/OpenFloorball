@@ -218,6 +218,41 @@ Beispiele:
 
 ---
 
+# 5.5 Spiel-Insights-Assistent
+
+> Ergänzt 2026-08-22 (Statistik-Architektur Phase 9, EPIC 012 – siehe
+> `docs/planning/BACKLOG.md`). Nutzt dieselbe KI-Provider-Abstraktion
+> wie 5.1–5.4, keine eigene Anbindung.
+
+Ziel:
+
+Muster in bereits erfassten Spielstatistiken erkennen ("Pattern
+Detection"), ausschließlich als nachvollziehbare Vorschläge (§18).
+
+Eingabe:
+
+Bereits berechnete Team-Aggregate eines einzelnen Spiels
+(`statisticsEngine.js`: Schuss-Statistiken inkl. Zonen, Special
+Teams, Situations-Splits) – explizit KEINE Rohereignisse, KEINE
+Spieler-Namen/-Rückennummern, KEINE Roh-Freitexteingabe des Trainers.
+Der exakte, an die KI gesendete Textblock ist im Frontend über
+"Grundlage anzeigen" einsehbar (Explainable AI, §2/18.3).
+
+Beispiele:
+
+"Auffällig ist eine hohe Schusszahl aus der Distanzzone bei
+gleichzeitig niedriger Schuss-%."
+
+"Das Penalty Kill lag deutlich unter dem Powerplay-Wert."
+
+Nicht erlaubt:
+
+Bewertung, Ranking oder Leistungsprognose einzelner Spieler – die
+Eingabe enthält dafür ohnehin keine Personendaten, die Prompt-Vorlage
+(`prompts/insights.md`) schreibt es zusätzlich explizit vor.
+
+---
+
 # 6. Floorball-Wissensbasis
 
 KI benötigt eine fachliche Grundlage.

@@ -864,6 +864,12 @@ darauf aufbauen, keine Statistik-Insel-Lösungen. Siehe ADR-0001 in
 > Voraussetzung ergänzt. Details/Begründung siehe Gesprächsverlauf
 > dieses Datums bzw. die aktualisierten Abschnitte in
 > `STATISTICS_ANALYTICS_ARCHITECTURE.md`.
+>
+> Stand 2026-08-22: Phasen 1–9 vollständig umgesetzt (xG v1/Shot Quality
+> aus Phase 8 bewusst ausgenommen, siehe dort – No-Go mangels
+> Datenbasis, kein Scope-Abbau). Das ursprünglich für EPIC 012 geplante
+> Fundament ist damit fertig; einzige bewusst nicht enthaltene, künftige
+> Erweiterung ist die Gegner-Entität (siehe unten).
 
 1. Erweiterbares Event-Modell + zentrale Statistics Engine (Fundament) – ✅ umgesetzt
 2. Match-Line/Shift-Tracking (Time on Floor, Line-Statistiken) – ✅ umgesetzt
@@ -888,11 +894,14 @@ darauf aufbauen, keine Statistik-Insel-Lösungen. Siehe ADR-0001 in
    xG v1/Shot Quality bleiben zurückgestellt, bis reale Nutzungsdaten
    vorliegen (verhindert erfundene Präzision, CLAUDE.md-Pflicht). Bei
    Bedarf jederzeit erneut prüfbar, sobald echte Saison-Daten existieren.
-9. KI/ML-Grundlagen (nur als nachvollziehbare Vorschläge). NEU: baut
-   explizit auf der bestehenden KI-Provider-Abstraktion aus EPIC 010
+9. KI/ML-Grundlagen – ✅ umgesetzt (2026-08-22). "Spiel-Insights"
+   (`POST /api/ai/game-insights`, AI_SYSTEM.md §5.5) baut wie geplant
+   auf der bestehenden KI-Provider-Abstraktion aus EPIC 010
    (`aiController.js`/`getAiProvider()`) auf statt einer neuen
-   KI-Anbindung – vermeidet doppelte Infrastruktur, hält
-   KI-Unabhängigkeit (§5.8) an einer Stelle konsistent.
+   KI-Anbindung. Eingabe sind ausschließlich bereits berechnete
+   Team-Aggregate (Schuss-/Special-Teams-/Situations-Statistiken),
+   keine Rohereignisse, keine Personendaten – Grundlage über "Grundlage
+   anzeigen" im UI einsehbar (Explainable AI).
 
 **Vorlauf vor Phase 7 – Assists (✅ umgesetzt):** `game_events.secondary_roster_player_id`
 existiert bereits seit Phase 1 für genau diesen Zweck, `docs/statistics.md`

@@ -14,6 +14,7 @@ let cachedTrainingTemplate = null;
 let cachedTacticsTemplate = null;
 let cachedAnalysisTemplate = null;
 let cachedKnowledgeTemplate = null;
+let cachedInsightsTemplate = null;
 
 function renderTemplate(template, vars) {
   return Object.entries(vars).reduce(
@@ -44,4 +45,10 @@ export function renderAnalysisPrompt(vars) {
 export function renderKnowledgePrompt(vars) {
   if (cachedKnowledgeTemplate === null) cachedKnowledgeTemplate = loadTemplate('knowledge.md');
   return renderTemplate(cachedKnowledgeTemplate, vars);
+}
+
+// Statistik-Architektur Phase 9 (KI/ML-Grundlagen, Spiel-Insights)
+export function renderInsightsPrompt(vars) {
+  if (cachedInsightsTemplate === null) cachedInsightsTemplate = loadTemplate('insights.md');
+  return renderTemplate(cachedInsightsTemplate, vars);
 }

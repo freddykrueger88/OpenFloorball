@@ -881,12 +881,13 @@ darauf aufbauen, keine Statistik-Insel-Lösungen. Siehe ADR-0001 in
    maschinenlesbar verfügbar (CLAUDE.md §5.3 Digitale Souveränität war
    damit schon erfüllt) – CSV ist der tatsächlich fehlende, in
    Excel/Sheets direkt nutzbare Mehrwert.
-8. Advanced Analytics (Line-Chemie, xG erst mit Datenbasis). NEU:
-   erster Task ist ein dokumentierter Datenbasis-Check
-   (Go/No-Go) vor jedem Modellbau – verhindert erfundene Präzision bei
-   zu kleiner Schuss-Stichprobe (CLAUDE.md-Pflicht). Line-Chemie ist
-   davon unabhängig umsetzbar (basiert auf bereits ausreichenden
-   `match_lines`-Daten).
+8. Advanced Analytics – Line-Chemie ✅ umgesetzt (2026-08-22,
+   Saison-Aggregation über die bereits bestehende `calculateLineStats`,
+   `/lines`). Datenbasis-Check für xG durchgeführt: 0 Spiele/
+   game_events in allen geprüften Instanzen dieser Umgebung – **No-Go**,
+   xG v1/Shot Quality bleiben zurückgestellt, bis reale Nutzungsdaten
+   vorliegen (verhindert erfundene Präzision, CLAUDE.md-Pflicht). Bei
+   Bedarf jederzeit erneut prüfbar, sobald echte Saison-Daten existieren.
 9. KI/ML-Grundlagen (nur als nachvollziehbare Vorschläge). NEU: baut
    explizit auf der bestehenden KI-Provider-Abstraktion aus EPIC 010
    (`aiController.js`/`getAiProvider()`) auf statt einer neuen

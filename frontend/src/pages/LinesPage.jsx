@@ -11,6 +11,7 @@ import { useLines } from '../hooks/useLines.js';
 import { useRoster } from '../hooks/useRoster.js';
 import { useTeams } from '../hooks/useTeams.js';
 import Button from '../components/common/Button.jsx';
+import SeasonLineChemieSection from '../components/lineStats/SeasonLineChemieSection.jsx';
 import styles from './LinesPage.module.css';
 
 const TYPE_OPTIONS = ['offense', 'defense', 'special'];
@@ -110,6 +111,8 @@ export default function LinesPage() {
           </p>
         </div>
       </header>
+
+      <SeasonLineChemieSection />
 
       <div className={styles.actionsBar}>
         {creating ? (

@@ -386,7 +386,9 @@
   "lineStats": {
     "title": "Line stats",
     "ariaLabel": "Line stats for this game",
-    "timeUnknown": "unknown"
+    "timeUnknown": "unknown",
+    "seasonTitle": "Line chemistry (season)",
+    "seasonAriaLabel": "Line stats across the whole season"
   },
   "shotZones": {
     "nahzone_zentrum": "Close range – central",

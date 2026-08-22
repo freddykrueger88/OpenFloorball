@@ -14,6 +14,15 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Statistik-Architektur Phase 8 (EPIC 012): Line-Chemie. Neuer Bereich
+  "Line-Chemie (Saison)" auf `/lines` zeigt Zeit-auf-dem-Feld und
+  Torverhältnis je Line über die gesamte Saison statt nur ein einzelnes
+  Spiel – reine Aggregation der bereits bestehenden Formel
+  (`calculateLineStats`), keine neuen Daten nötig. xG v1/Shot Quality
+  bleiben nach einem Datenbasis-Check zurückgestellt (keine ausreichende
+  Schussdaten-Grundlage).
+
+### Added
 - Statistik-Architektur Phase 7 (EPIC 012): Custom Events/Tags + CSV-Export
   (ADR-0006). Trainer können eigene, kurze Ereignistypen anlegen
   (team-eigen oder persönlich, z.B. "Konter") und in der Spiel-Zeitleiste

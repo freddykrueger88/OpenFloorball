@@ -214,6 +214,35 @@ Tore während einer noch offenen Zeile nicht gezählt.
 
 ---
 
+### Line-Chemie (Saison)
+
+> ✅ Umgesetzt (Statistik-Architektur Phase 8, Advanced Analytics).
+
+**Definition:** Dieselben zwei Kennzahlen wie oben (Zeit zusammen,
+Goals For/Against je Line), aber aggregiert über ALLE Spiele des
+Nutzers statt eines einzelnen.
+
+**Formel:** identisch zu `calculateLineStats` oben – die Funktion war
+von Anfang an spielunabhängig gehalten (nimmt beliebige
+`match_lines`/`game_events`-Zeilen entgegen), eine Saison-Aggregation
+ist daher schlicht derselbe Aufruf mit Zeilen aus allen sichtbaren
+Spielen statt nur eines.
+
+**Benötigte Daten:** wie oben, aber `WHERE game_id IN (alle Spiele des
+Nutzers)` statt eines einzelnen `game_id`.
+
+**Einschränkungen:** `now` wird hier bewusst NICHT gesetzt (anders als
+bei der Live-Ansicht eines einzelnen Spiels) – eine gerade offene Zeile
+aus einem laufenden Spiel würde sonst einen vom Abrufzeitpunkt
+abhängigen, nicht reproduzierbaren Wert einfrieren. Sie zählt daher
+erst nach dem nächsten Linienwechsel mit.
+
+**Implementierung:** `matchLinesController.getSeasonLineStats`,
+`frontend/src/components/lineStats/SeasonLineChemieSection.jsx` (auf
+`/lines`).
+
+---
+
 ### Schuss-% (Shot %)
 
 **Definition:** Anteil der Schüsse aufs Tor, die zu einem Treffer

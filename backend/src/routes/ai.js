@@ -9,6 +9,7 @@ import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
   getAiStatus, generateTrainingPlan, generateTacticSuggestion, generateAnalysis, generateKnowledgeAnswer,
+  generateGameInsights,
 } from '../controllers/aiController.js';
 
 const router = Router();
@@ -55,5 +56,14 @@ router.post('/knowledge-query', [
   body('question').trim().notEmpty().isLength({ max: 300 }).withMessage('Frage max. 300 Zeichen'),
   validate,
 ], generateKnowledgeAnswer);
+
+// Statistik-Architektur Phase 9 (KI/ML-Grundlagen, Spiel-Insights) –
+// nimmt bewusst nur eine gameId entgegen, keine Freitext-Eingabe: die
+// eigentlichen Daten kommen serverseitig aus bereits berechneten
+// Statistiken (siehe aiController.generateGameInsights).
+router.post('/game-insights', [
+  body('gameId').isUUID().withMessage('Ungültige Spiel-ID'),
+  validate,
+], generateGameInsights);
 
 export default router;

@@ -213,6 +213,38 @@
   margin-right: var(--space-1);
 }
 
+/* Statistik-Architektur Phase 7: eigene Ereignistypen – bewusst kleiner/
+   unauffälliger als das große, sticky .addForm (das für die Notizen-
+   Eingabe optimiert ist, nicht fürs seltene Anlegen eines neuen Tags). */
+.customTypeWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.customTypeForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.customTypeInput {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface-offset);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  min-width: 160px;
+}
+.customTypeCheckboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
 /* Bewusst groß/prominent – für schnelle Bedienung im Stehen/mit einer
    Hand während eines laufenden Spiels (Mobile First, siehe CLAUDE.md). */
 .addForm {

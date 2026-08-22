@@ -356,10 +356,39 @@
     "clearAriaLabel": "Status von {{name}} zurücksetzen",
     "clearTitle": "Zurücksetzen (nicht entschieden)"
   },
+  "trainingAttendance": {
+    "title": "Anwesenheit",
+    "ariaLabel": "Anwesenheit bei diesem Training",
+    "loading": "Lädt Anwesenheit…",
+    "setStatusAriaLabel": "Status für {{name}} setzen",
+    "statusPresent": "Anwesend",
+    "statusExcused": "Entschuldigt",
+    "statusInjured": "Verletzt",
+    "statusAbsent": "Unentschuldigt",
+    "statusNone": "Nicht erfasst",
+    "clearAriaLabel": "Status von {{name}} zurücksetzen",
+    "clearTitle": "Zurücksetzen (nicht erfasst)"
+  },
+  "playerNotes": {
+    "title": "Spielerentwicklung",
+    "ariaLabel": "Entwicklungsnotizen zu diesem Spieler",
+    "loading": "Lädt Notizen…",
+    "empty": "Noch keine Entwicklungsnotizen.",
+    "placeholder": "Beobachtung notieren…",
+    "addBtn": "Notiz hinzufügen",
+    "editBtn": "Bearbeiten",
+    "editAriaLabel": "Notiz bearbeiten",
+    "saveBtn": "Speichern",
+    "cancelBtn": "Abbrechen",
+    "deleteBtn": "Löschen",
+    "deleteAriaLabel": "Notiz löschen"
+  },
   "lineStats": {
     "title": "Line-Statistiken",
     "ariaLabel": "Line-Statistiken für dieses Spiel",
-    "timeUnknown": "unbekannt"
+    "timeUnknown": "unbekannt",
+    "seasonTitle": "Line-Chemie (Saison)",
+    "seasonAriaLabel": "Line-Statistiken über die gesamte Saison"
   },
   "shotZones": {
     "nahzone_zentrum": "Nahzone Zentrum",
@@ -437,6 +466,7 @@
   },
   "stats": {
     "title": "Statistik",
+    "exportCsv": "Als CSV exportieren",
     "count_one": "{{count}} Kader-Spieler",
     "count_other": "{{count}} Kader-Spieler",
     "noPlayersYet": "Noch keine Kader-Spieler",
@@ -446,6 +476,8 @@
     "colNumber": "Nr.",
     "colTeam": "Team",
     "colGoals": "Tore",
+    "colAssists": "Vorlagen",
+    "colPoints": "Punkte",
     "colPenaltyMinutes": "Strafmin.",
     "colMatchPenalties": "Matchstrafen",
     "colAppearances": "Einsätze",
@@ -453,6 +485,7 @@
     "colShotPercentage": "Schuss-%",
     "colGoalsAgainst": "Gegentore",
     "colSavePercentage": "Fangquote",
+    "colAttendanceRate": "Trainings-%",
     "personal": "Persönlich",
     "trendsLinkAria": "Trends für {{name}} ansehen",
     "comparison": {
@@ -470,7 +503,10 @@
       "season": "Saison",
       "games": "Spiele",
       "goalsPerGame": "Tore pro Spiel",
-      "noGamesYet": "Noch keine datierten Spiele mit Einsatz für diesen Spieler."
+      "noGamesYet": "Noch keine datierten Spiele mit Einsatz für diesen Spieler.",
+      "attendanceTitle": "Trainings-Beteiligung",
+      "trainingsRecorded": "Erfasste Trainings",
+      "attendanceRate": "Beteiligungsquote"
     }
   },
   "news": {
@@ -944,7 +980,13 @@
     "knowledgeSourceTypeLibrary": "Bibliothekseintrag",
     "knowledgeInactiveTitle": "KI-Wissensassistent ist nicht konfiguriert",
     "knowledgeInactiveDesc": "Diese Instanz hat noch keinen KI-Anbieter eingerichtet. Ohne Konfiguration bleibt diese Funktion inaktiv.",
-    "knowledgeInactiveAdminAction": "Zu den Einstellungen"
+    "knowledgeInactiveAdminAction": "Zu den Einstellungen",
+    "insightsButton": "KI-Spielanalyse",
+    "insightsFormTitle": "Spiel-Insights mit KI",
+    "insightsExplainer": "Die KI erhält ausschließlich bereits berechnete Team-Statistiken dieses Spiels (Schuss-, Special-Teams- und Situations-Kennzahlen) – keine Rohdaten, keine Namen. Sie sucht darin nach Mustern und schlägt mögliche Trainingsschwerpunkte vor.",
+    "showBasis": "Grundlage anzeigen",
+    "hideBasis": "Grundlage ausblenden",
+    "close": "Schließen"
   },
   "dialogs": {
     "newBoard": {
@@ -1154,6 +1196,7 @@
     "cancelCreate": "Abbrechen",
     "newGame": "Neues Spiel",
     "newGameAriaLabel": "Neues Spiel anlegen",
+    "exportCsv": "Als CSV exportieren",
     "loadingGames": "Lädt Spiele...",
     "loadingGame": "Lädt Spiel...",
     "cardAriaLabel": "Spiel gegen {{opponent}}",
@@ -1188,6 +1231,12 @@
     "noNotesYet": "Noch keine Notizen – erfasse während des Spiels schnelle Beobachtungen.",
     "deleteNoteAriaLabel": "Notiz löschen",
     "presetsAriaLabel": "Vorlagen für häufige Spielereignisse (IFF-Regelwerk)",
+    "customEventTypesAriaLabel": "Eigene Ereignistypen",
+    "addCustomEventType": "Eigenen Typ hinzufügen",
+    "customEventTypePlaceholder": "Bezeichnung (z.B. \"Konter\")",
+    "customEventTypeRequiresPlayer": "Braucht Zuordnung",
+    "customEventTypeSave": "Speichern",
+    "deleteCustomEventTypeAriaLabel": "Eigenen Ereignistyp „{{label}}“ löschen",
     "presetKickoffQ1": "Anstoß 1. Drittel",
     "presetKickoffQ2": "Anstoß 2. Drittel",
     "presetKickoffQ3": "Anstoß 3. Drittel",
@@ -1211,10 +1260,16 @@
     "shotAttributionLabel": "Zuordnung",
     "shotAttributionGoalkeeperLabel": "Unser Torhüter",
     "shotAttributionGoalkeeperNone": "Keine Angabe",
+    "shotAssistLabel": "Vorlage",
+    "shotAssistNone": "Keine Vorlage",
     "shotPositionLabel": "Position auf dem Feld",
     "shotTypeLabel": "Schusstyp",
     "shotOutcomeLabel": "Ergebnis",
-    "shotSubmit": "Schuss speichern"
+    "shotSubmit": "Schuss speichern",
+    "videoPanelTitle": "🎥 Spielvideo",
+    "videoPanelHint": "Videos zu diesem Spiel hochladen und mit Ereignissen aus der Zeitleiste verknüpfen – auch nachträglich beim Sichten nach dem Spiel.",
+    "videoPanelEmpty": "Noch kein Video zu diesem Spiel – lade die Aufnahme hoch, um Ereignisse damit zu verknüpfen.",
+    "jumpToVideoAriaLabel": "Zur verknüpften Videoposition springen"
   },
   "roster": {
     "title": "Kader",
@@ -1320,7 +1375,11 @@
     "boardFromVideoName": "Aus Video: {{title}}",
     "createdFromVideoNote": "Erstellt aus der Zeichnung im Video „{{title}}“.",
     "createBoardSuccess": "Neues Taktik-Board aus der Video-Zeichnung erstellt.",
-    "createBoardError": "Board konnte nicht erstellt werden. Bitte erneut versuchen."
+    "createBoardError": "Board konnte nicht erstellt werden. Bitte erneut versuchen.",
+    "linkEventPlaceholder": "Ereignis auswählen…",
+    "linkEventSelectAriaLabel": "Ereignis auswählen, das mit der aktuellen Videoposition verknüpft werden soll",
+    "linkEventConfirm": "Aktuelle Position verknüpfen",
+    "unlinkEventAriaLabel": "Verknüpfung mit „{{label}}“ entfernen"
   },
   "tour": {
     "welcomeTitle": "Willkommen bei OpenFloorball!",

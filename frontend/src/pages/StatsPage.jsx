@@ -7,10 +7,11 @@
 import { useEffect, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { AlertTriangle, BarChart3, TrendingUp } from 'lucide-react';
+import { AlertTriangle, BarChart3, TrendingUp, Download } from 'lucide-react';
 import { useTeams } from '../hooks/useTeams.js';
 import { useRosterStats } from '../hooks/useRosterStats.js';
 import PlayerComparisonSection from '../components/stats/PlayerComparisonSection.jsx';
+import buttonStyles from '../components/common/Button.module.css';
 import styles from './StatsPage.module.css';
 
 // Spieler-Vergleich (Statistik-Architektur Phase 4): max. 4 Spalten,
@@ -45,10 +46,17 @@ export default function StatsPage() {
   return (
     <main className={styles.page} id="main-content">
       <header className={styles.header}>
-        <h1 className={styles.title}>{t('stats.title')}</h1>
-        <p className={styles.subtitle}>
-          {stats.length > 0 ? t('stats.count', { count: stats.length }) : t('stats.noPlayersYet')}
-        </p>
+        <div>
+          <h1 className={styles.title}>{t('stats.title')}</h1>
+          <p className={styles.subtitle}>
+            {stats.length > 0 ? t('stats.count', { count: stats.length }) : t('stats.noPlayersYet')}
+          </p>
+        </div>
+        {stats.length > 0 && (
+          <a href="/api/export/roster-stats.csv" className={`${buttonStyles.btn} ${buttonStyles.secondary} ${buttonStyles.md}`}>
+            <Download size={16} aria-hidden="true" /> {t('stats.exportCsv')}
+          </a>
+        )}
       </header>
 
       {error && (
@@ -73,6 +81,8 @@ export default function StatsPage() {
                   <th>{t('stats.colNumber')}</th>
                   <th>{t('stats.colTeam')}</th>
                   <th>{t('stats.colGoals')}</th>
+                  <th>{t('stats.colAssists')}</th>
+                  <th>{t('stats.colPoints')}</th>
                   <th>{t('stats.colPenaltyMinutes')}</th>
                   <th>{t('stats.colMatchPenalties')}</th>
                   <th>{t('stats.colAppearances')}</th>
@@ -80,6 +90,7 @@ export default function StatsPage() {
                   <th>{t('stats.colShotPercentage')}</th>
                   <th>{t('stats.colGoalsAgainst')}</th>
                   <th>{t('stats.colSavePercentage')}</th>
+                  <th>{t('stats.colAttendanceRate')}</th>
                   <th />
                 </tr>
               </thead>
@@ -103,6 +114,8 @@ export default function StatsPage() {
                       <td>{player.jerseyNumber ?? '–'}</td>
                       <td>{player.teamId ? teamName(player.teamId) : t('stats.personal')}</td>
                       <td>{player.goals}</td>
+                      <td>{player.assists}</td>
+                      <td>{player.points}</td>
                       <td>{player.penaltyMinutes}</td>
                       <td>{player.matchPenalties}</td>
                       <td>{player.appearances}</td>
@@ -110,6 +123,7 @@ export default function StatsPage() {
                       <td>{player.shotPercentage ?? '–'}</td>
                       <td>{player.goalsAgainst ?? '–'}</td>
                       <td>{player.savePercentage ?? '–'}</td>
+                      <td>{player.attendanceRate ?? '–'}</td>
                       <td>
                         <Link to={`/stats/${player._id}`} aria-label={t('stats.trendsLinkAria', { name: player.name })}>
                           <TrendingUp size={16} aria-hidden="true" />

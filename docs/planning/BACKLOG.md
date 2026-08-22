@@ -559,6 +559,164 @@ P2
 
 ---
 
+# ISSUE 025
+
+## Gegnerische Spieler nicht automatisch auf dem Feld platzieren
+
+### Beschreibung
+
+Beim Anlegen eines neuen Boards (`boardsController.js` →
+`buildDefaultPlayers`) sowie beim Zurücksetzen/Wechseln des Feldtyps
+im Editor (`usePlayerState.js` → `buildDefaultPlayers`) werden aktuell
+automatisch sowohl die eigene Mannschaft ("home") als auch eine
+vollständige gegnerische Aufstellung ("away") auf dem Feld platziert.
+Das entspricht nicht dem typischen Trainer-Workflow: die meisten
+Taktiken (Spielaufbau, Systeme, Trainingsformen) betreffen zunächst
+nur die eigene Mannschaft. Feedback: die gegnerischen Spieler sollen
+nicht automatisch auf dem Feld stehen.
+
+---
+
+## Aufgaben
+
+* Default beim Anlegen eines neuen Boards/beim Zurücksetzen: nur
+  eigene Mannschaft ("home") + Ball platzieren, keine "away"-Spieler.
+* Zusätzlich (Feedback-Erweiterung): pro Spieler einzeln ein-/
+  ausblendbar machen, nicht nur pauschal die ganze gegnerische
+  Mannschaft. D.h. jeder Token (Home wie Away) bekommt eine
+  Sichtbarkeits-Option statt nur "Gegner an/aus" als Gruppe – z.B. ein
+  Kontextmenü-Eintrag "Ausblenden" pro Spieler-Token plus eine
+  Übersicht/Liste im Editor (ähnlich Layer-Panel, CLAUDE.md Kapitel
+  10.2), über die ausgeblendete Spieler gezielt wieder eingeblendet
+  werden können.
+* Ausgeblendete Spieler bleiben im Datenmodell erhalten (nur
+  `visible: false`/ähnlich), keine Löschung – sonst gehen Name/
+  Zuordnung beim Wiedereinblenden verloren.
+* Bereits gespeicherte Boards nicht verändern (betrifft nur den
+  Default für neue Boards/Resets).
+* Frontend (`fieldConfig.js` → `buildDefaultPlayers`) und Backend
+  (`defaultPositions.js` → `buildDefaultPlayers`) synchron halten
+  (bestehender Duplikations-Hinweis in beiden Dateien beachten).
+
+---
+
+## Technische Überlegungen
+
+* Beide `buildDefaultPlayers`-Implementierungen
+  (`frontend/src/constants/fieldConfig.js`,
+  `backend/src/constants/defaultPositions.js`) müssten um einen
+  Parameter erweitert werden (z.B. `includeAway = false`) statt away
+  hart einzubacken.
+* Sichtbarkeit pro Spieler ist ein neues Feld im Player-Objekt (z.B.
+  `visible`, Default `true` für home, `false` für away) – wirkt sich
+  auf Rendering (Feld), nicht auf Drag&Drop/Positions-Logik aus.
+  Bestehende Boards ohne dieses Feld müssen als "sichtbar" gelten
+  (Fallback `visible !== false`), damit alte Frames unverändert
+  aussehen.
+* `usePlayerState.resetPlayer`/`resetAllPlayers` nutzen dieselbe
+  Funktion für "Zurücksetzen" – Verhalten sollte konsistent bleiben
+  (kein Zurücksetzen, das plötzlich Spieler wieder einblendet, die
+  bewusst ausgeblendet wurden, außer der Nutzer wählt das aktiv).
+* Frame-Animation/Versionierung beachten: Sichtbarkeit ist Teil des
+  Frame-Zustands, muss also pro Szene mit animiert/gespeichert werden
+  können, nicht nur global pro Board.
+* Kein Datenmodell-Wechsel bei `team` nötig – `team: 'away'` existiert
+  bereits, es geht nur um den initial befüllten Default plus die neue
+  Sichtbarkeits-Option pro Spieler.
+
+---
+
+## Akzeptanzkriterien
+
+* Ein neu angelegtes Board zeigt initial nur die eigene Mannschaft
+  (+ Ball), keine gegnerischen Spieler.
+* Jeder einzelne Spieler (Home wie Away) lässt sich unabhängig
+  ein-/ausblenden, nicht nur die gegnerische Mannschaft als Ganzes.
+* Ausgeblendete Spieler lassen sich über eine Übersicht gezielt
+  wieder einblenden, ohne sie neu anlegen zu müssen.
+* Bestehende, bereits gespeicherte Boards mit Gegnern sind von der
+  Änderung nicht betroffen (alle Spieler weiterhin sichtbar).
+* Feldtyp-Wechsel/"Alle zurücksetzen" platziert ebenfalls keine
+  Gegner automatisch.
+
+Priorität:
+
+P1
+
+---
+
+# ISSUE 026
+
+## GDPR-Backup-Export um Spiel- und Trainings-Domäne erweitern
+
+### Beschreibung
+
+`exportUserData.js` (genutzt von `GET /api/user/data` – Art. 15
+Auskunft – und `GET /api/user/export` – ZIP-Backup) deckt aktuell
+Boards, Kader, Lines, Playbooks, Formationsvorlagen und
+Trainingspläne ab, aber weder die gesamte Spiel-Domäne
+(`games`/`game_events`/`game_squad`/`match_lines`, EPIC 012 Phase 1–4)
+noch die mit Statistik-Architektur Phase 5 neu hinzugekommenen
+Trainings-Anwesenheit (`training_attendance`) und
+Spielerentwicklungsnotizen (`player_development_notes`). Datenschutz-
+und Auskunftsrecht sollten den vollen Datenbestand eines Accounts
+abdecken (CLAUDE.md §5.2/§5.3 – Datenportabilität, Recht auf Auskunft).
+
+---
+
+## Aufgaben
+
+* `buildUserExport` um eine `games`-Sektion erweitern (analog
+  `trainingSessions`: eigene Spiele mit `game_events`/`game_squad`/
+  `match_lines`, Referenzierung per Name/Datum statt DB-ID wie beim
+  bestehenden Muster).
+* Trainingspläne-Sektion um `attendance` je Session erweitern
+  (Kader-Spieler-Referenz per Name+Nummer, analog `lines`-Export).
+* Kader-Sektion um `developmentNotes` je Spieler erweitern (nur vom
+  exportierenden Nutzer selbst verfasste Notizen).
+* `importAccount` entsprechend erweitern, damit ein Re-Import nichts
+  von alledem stillschweigend verwirft.
+* Bestehende Backup-Format-Version (`BACKUP_FORMAT`) prüfen, ob eine
+  neue Versionsnummer nötig ist oder additive Felder ausreichen.
+* Die Datenkategorien-Liste auf `/privacy`
+  (`frontend/src/pages/PrivacyPage.jsx`,
+  `privacyPage.dataCategories.*`) nennt bisher nur Konto/Boards/
+  Einstellungen – Kader, Spiele, Trainingsdaten (inkl. der neuen
+  Trainings-Anwesenheit/Spielerentwicklungsnotizen) fehlen dort
+  komplett. Gehört zum selben Auskunfts-/Transparenz-Thema wie der
+  Export oben, sollte gemeinsam nachgezogen werden statt Einzelfelder
+  isoliert zu ergänzen.
+
+---
+
+## Technische Überlegungen
+
+* Games/game_events sind der größere, unabhängige Teil dieser Lücke –
+  existierte bereits vor Statistik-Architektur Phase 5 und sollte
+  gemeinsam mit der neuen Trainings-Anwesenheit/-Notizen nachgezogen
+  werden, nicht isoliert (siehe Anmerkung in
+  `docs/planning/STATISTICS_ANALYTICS_ARCHITECTURE.md` Abschnitt 8.7).
+* Live-Spielstand/Statistiken sind aus `game_events` abgeleitet
+  (`statisticsEngine.js`) – ein Re-Import müsste nur die Rohereignisse
+  zurückspielen, nicht abgeleitete Werte.
+
+---
+
+## Akzeptanzkriterien
+
+* Art. 15-Auskunft (`GET /api/user/data`) enthält alle personenbezogenen
+  Daten des Accounts, inklusive Spiele und Trainings-Anwesenheit/
+  -Notizen.
+* Ein ZIP-Export lässt sich in einen neuen Account re-importieren,
+  ohne dass Spiele, Anwesenheit oder Entwicklungsnotizen verloren
+  gehen.
+
+Priorität:
+
+P2
+
+---
+
 # EPIC 009 – Nach MVP
 
 Priorität:
@@ -700,15 +858,68 @@ darauf aufbauen, keine Statistik-Insel-Lösungen. Siehe ADR-0001 in
 
 ## Phasen (Kurzfassung, Details im Architektur-Dokument)
 
-1. Erweiterbares Event-Modell + zentrale Statistics Engine (Fundament)
-2. Match-Line/Shift-Tracking (Time on Floor, Line-Statistiken)
-3. Shot Tracking + Shot Map + Torhüter-Basis-Statistiken
-4. Special Teams, Situations-Splits, Spieler-Vergleich
-5. Trainings-Analytics/Spielerentwicklung (separate Domäne)
-6. Video↔Event-Verknüpfung
-7. Custom Events/Tags, Report Builder
-8. Advanced Analytics (xG erst mit Datenbasis, Line-Chemie)
-9. KI/ML-Grundlagen (nur als nachvollziehbare Vorschläge)
+> Phasenplanungs-Review 2026-08-21 (nach Abschluss Phase 6): Reihenfolge
+> und Fundament bestätigt, keine Umstrukturierung nötig. Phase 7 im
+> Zuschnitt präzisiert, Phase 8/9 um je eine zuvor implizite
+> Voraussetzung ergänzt. Details/Begründung siehe Gesprächsverlauf
+> dieses Datums bzw. die aktualisierten Abschnitte in
+> `STATISTICS_ANALYTICS_ARCHITECTURE.md`.
+>
+> Stand 2026-08-22: Phasen 1–9 vollständig umgesetzt (xG v1/Shot Quality
+> aus Phase 8 bewusst ausgenommen, siehe dort – No-Go mangels
+> Datenbasis, kein Scope-Abbau). Das ursprünglich für EPIC 012 geplante
+> Fundament ist damit fertig; einzige bewusst nicht enthaltene, künftige
+> Erweiterung ist die Gegner-Entität (siehe unten).
+
+1. Erweiterbares Event-Modell + zentrale Statistics Engine (Fundament) – ✅ umgesetzt
+2. Match-Line/Shift-Tracking (Time on Floor, Line-Statistiken) – ✅ umgesetzt
+3. Shot Tracking + Shot Map + Torhüter-Basis-Statistiken – ✅ umgesetzt
+4. Special Teams, Situations-Splits, Spieler-Vergleich – ✅ umgesetzt
+5. Trainings-Analytics/Spielerentwicklung (separate Domäne) – ✅ umgesetzt
+6. Video↔Event-Verknüpfung – ✅ umgesetzt
+7. Assists (Vorlauf, s.u.) + Custom Events/Tags + CSV-Export – ✅
+   umgesetzt (ADR-0006). Ersetzt das zuvor vage "Report Builder"-Ziel
+   durch einen konkret abgrenzbaren CSV-Export (Saison-Kennzahlen +
+   Spiele/Endstände) – ein freier Report-Baukasten hätte ohne
+   konkreten Use Case unbegrenzten Scope riskiert. Bewusst KEIN
+   zusätzlicher JSON-Export: dieselben Daten sind über
+   `GET /api/roster/stats`/`GET /api/games` bereits vollständig
+   maschinenlesbar verfügbar (CLAUDE.md §5.3 Digitale Souveränität war
+   damit schon erfüllt) – CSV ist der tatsächlich fehlende, in
+   Excel/Sheets direkt nutzbare Mehrwert.
+8. Advanced Analytics – Line-Chemie ✅ umgesetzt (2026-08-22,
+   Saison-Aggregation über die bereits bestehende `calculateLineStats`,
+   `/lines`). Datenbasis-Check für xG durchgeführt: 0 Spiele/
+   game_events in allen geprüften Instanzen dieser Umgebung – **No-Go**,
+   xG v1/Shot Quality bleiben zurückgestellt, bis reale Nutzungsdaten
+   vorliegen (verhindert erfundene Präzision, CLAUDE.md-Pflicht). Bei
+   Bedarf jederzeit erneut prüfbar, sobald echte Saison-Daten existieren.
+9. KI/ML-Grundlagen – ✅ umgesetzt (2026-08-22). "Spiel-Insights"
+   (`POST /api/ai/game-insights`, AI_SYSTEM.md §5.5) baut wie geplant
+   auf der bestehenden KI-Provider-Abstraktion aus EPIC 010
+   (`aiController.js`/`getAiProvider()`) auf statt einer neuen
+   KI-Anbindung. Eingabe sind ausschließlich bereits berechnete
+   Team-Aggregate (Schuss-/Special-Teams-/Situations-Statistiken),
+   keine Rohereignisse, keine Personendaten – Grundlage über "Grundlage
+   anzeigen" im UI einsehbar (Explainable AI).
+
+**Vorlauf vor Phase 7 – Assists (✅ umgesetzt):** `game_events.secondary_roster_player_id`
+existiert bereits seit Phase 1 für genau diesen Zweck, `docs/statistics.md`
+dokumentiert die Formel seit Phase 1 als "möglich, noch nicht
+ausgewertet" – aber keine der Phasen 1–9 hatte je eine Assist-UI als
+Aufgabe zugewiesen. Kleine, in sich abgeschlossene Ergänzung (kein
+neues Schema): Zweitspieler-Auswahl beim Tor-/Schuss-Erfassen +
+`points = goals + assists` zur Anzeigezeit.
+
+**Bewusst nicht Teil dieser Phasen (P2, künftiges, separates
+Backlog-Item):** eine strukturierte Gegner-Entität (`opponents`-Tabelle
+statt Freitext auf `games.opponent`) samt Saison-/Wettbewerbs-Gruppierung
+von Spielen. Fachlich näher an der Spielverwaltung (`games`) als an der
+Statistik-Engine – wurde deshalb bewusst nicht künstlich als Phase 10
+in diese Epic aufgenommen, obwohl CLAUDE.md §8 "Gegneranalyse" für
+Leistungszentren/Nationalteams nennt. Sichtbar dokumentiert statt
+stillschweigend vergessen, siehe `STATISTICS_ANALYTICS_ARCHITECTURE.md`
+Abschnitt 8.4.
 
 ---
 
@@ -718,6 +929,9 @@ darauf aufbauen, keine Statistik-Insel-Lösungen. Siehe ADR-0001 in
 * Kein Ersatz für Trainer-Entscheidungen (Human First, §5.9).
 * Keine Hockey-Geometrie 1:1 übernehmen – floorball-eigene
   Zonen-Definitionen.
+* Kein freier "Report Builder" ohne konkreten Use Case (Review
+  2026-08-21) – stattdessen fester, aber vollständiger CSV-Export
+  (ADR-0006).
 
 ---
 

@@ -62,7 +62,9 @@ export async function apiFetch(url, options = {}, offlineMeta = {}) {
     if (res.status === 401 && !isAuthEndpoint && !alreadyOnLogin) {
       window.location.href = '/login';
     }
-    throw new Error(json.message ?? `HTTP ${res.status}`);
+    const err = new Error(json.message ?? `HTTP ${res.status}`);
+    err.status = res.status;
+    throw err;
   }
 
   return json.data;

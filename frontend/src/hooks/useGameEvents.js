@@ -56,8 +56,26 @@ export function useGameEvents(gameId) {
     }
   }, [basePath]);
 
+  // linkEventVideo (Statistik-Architektur Phase 6): einziger nachträglicher
+  // Änderungspfad an einem bestehenden Ereignis, siehe
+  // gameEventsController.linkEventVideo – videoId=null löst die
+  // Verknüpfung wieder.
+  const linkEventVideo = useCallback(async (eventId, videoId, videoTimestampSeconds = null) => {
+    try {
+      const updated = await apiFetch(`${basePath}/${eventId}/video-link`, {
+        method: 'PUT',
+        body: JSON.stringify({ videoId, videoTimestampSeconds }),
+      });
+      setEvents((prev) => prev.map((e) => (e._id === eventId ? updated : e)));
+      return updated;
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, [basePath]);
+
   return {
     events, loading, error,
-    fetchEvents, addEvent, deleteEvent,
+    fetchEvents, addEvent, deleteEvent, linkEventVideo,
   };
 }

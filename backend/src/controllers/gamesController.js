@@ -19,6 +19,7 @@ import { success, created, error } from '../utils/apiResponse.js';
 import { getUserTeamIds, assertTeamAccess } from '../utils/teamAccess.js';
 import { deleteCommentsForResource } from './commentsController.js';
 import { deleteRsvpsForResource } from './rsvpsController.js';
+import { deleteVideosForGame } from './gameVideosController.js';
 
 const MAX_GAMES = 30;
 
@@ -170,6 +171,10 @@ export async function deleteGame(req, res) {
     if (!(await assertGameWrite(req.params.id, req.user.id))) {
       return res.status(404).json(error('Spiel nicht gefunden'));
     }
+    // Video-Dateien VOR dem harten Löschen einsammeln (Statistik-Architektur
+    // Phase 6) – game_videos-ZEILEN räumt der ON DELETE CASCADE unten von
+    // selbst auf, die DATEIEN auf Disk kennt der CASCADE nicht.
+    await deleteVideosForGame(req.params.id);
     await pool.query('DELETE FROM games WHERE id = $1', [req.params.id]);
     // games werden hart gelöscht (kein Soft-Delete wie bei Boards) – Notizen
     // (comments mit resource_type='game') hier explizit aufräumen, sonst

@@ -53,12 +53,52 @@ goals = SUM(game_events WHERE event_type = 'goal' AND is_opponent = false
 
 **Einschränkungen:** Nicht zuordenbare Tore (kein `roster_player_id`)
 fließen NICHT in diese Zahl ein – sie erhöhen nur den Team-Spielstand.
-Kein Assist-Konzept vorhanden vor Phase 1 – ab Phase 1 technisch
-möglich (`secondary_roster_player_id`), aber noch nicht in einer
-Statistikseite ausgewertet (siehe unten).
 
 **Implementierung:** `backend/src/controllers/rosterController.js`
 (`getRosterStats`).
+
+---
+
+### Assists und Punkte pro Spieler (Saison)
+
+> ✅ Umgesetzt (Phasenplanungs-Review 2026-08-21). `secondary_roster_player_id`
+> existierte bereits seit Phase 1 für genau diesen Zweck, wurde aber nie
+> ausgewertet – siehe Review-Notiz in `docs/planning/BACKLOG.md`
+> (EPIC 012).
+
+**Definition:** Anzahl Tore, bei denen dieser Spieler als Vorlagengeber
+(Assist) hinterlegt wurde; Punkte = Tore + Assists.
+
+**Formel:**
+```
+assists = SUM(game_events WHERE event_type = 'goal' AND is_opponent = false
+              GROUP BY secondary_roster_player_id)
+points  = goals + assists   -- zur Anzeigezeit berechnet, keine eigene Spalte
+```
+
+Das `AND is_opponent = false` ist zwingend: `secondary_roster_player_id`
+hat bei einem Gegner-Ereignis eine andere Bedeutung ("unser Torhüter",
+siehe ADR-0003) und darf nicht als Assist mitgezählt werden.
+
+**Benötigte Daten:** `game_events.secondary_roster_player_id` auf einem
+`event_type='goal'`-Ereignis. Erfassbar über zwei Wege:
+1. Direkt beim einfachen "Tor"-Preset (API unterstützt
+   `secondaryRosterPlayerId` seit Phase 1, aktuell kein UI-Feld dafür –
+   bewusst, siehe unten).
+2. Über "Schuss erfassen" (Statistik-Architektur Phase 3) bei
+   `outcome='goal'`: die Assist-Auswahl im `ShotEntryPanel.jsx`. Das
+   Companion-Goal-Event (ADR-0002) kopiert `secondary_roster_player_id`
+   seither mit, da diese Kennzahl aus `event_type='goal'` liest, nicht
+   aus `shot`.
+
+**Einschränkungen:** Bewusst KEIN Assist-Feld beim schnellen "Tor"-Preset
+in `GamePage.jsx` – dieser Pfad bleibt absichtlich der schnelle,
+detailfreie Weg (gleiches Prinzip wie beim Schuss-Tracking). Ein Assist
+lässt sich nur über "Schuss erfassen" eingeben.
+
+**Implementierung:** `backend/src/controllers/rosterController.js`
+(`getRosterStats`, `getRosterPlayerGameLog`),
+`frontend/src/components/shotTracking/ShotEntryPanel.jsx`.
 
 ---
 
@@ -171,6 +211,35 @@ kein Fehler). Bei einer offenen Zeile gilt dieselbe "unbekannt ≠
 Tore während einer noch offenen Zeile nicht gezählt.
 
 **Implementierung:** wie oben, `calculateLineStats`.
+
+---
+
+### Line-Chemie (Saison)
+
+> ✅ Umgesetzt (Statistik-Architektur Phase 8, Advanced Analytics).
+
+**Definition:** Dieselben zwei Kennzahlen wie oben (Zeit zusammen,
+Goals For/Against je Line), aber aggregiert über ALLE Spiele des
+Nutzers statt eines einzelnen.
+
+**Formel:** identisch zu `calculateLineStats` oben – die Funktion war
+von Anfang an spielunabhängig gehalten (nimmt beliebige
+`match_lines`/`game_events`-Zeilen entgegen), eine Saison-Aggregation
+ist daher schlicht derselbe Aufruf mit Zeilen aus allen sichtbaren
+Spielen statt nur eines.
+
+**Benötigte Daten:** wie oben, aber `WHERE game_id IN (alle Spiele des
+Nutzers)` statt eines einzelnen `game_id`.
+
+**Einschränkungen:** `now` wird hier bewusst NICHT gesetzt (anders als
+bei der Live-Ansicht eines einzelnen Spiels) – eine gerade offene Zeile
+aus einem laufenden Spiel würde sonst einen vom Abrufzeitpunkt
+abhängigen, nicht reproduzierbaren Wert einfrieren. Sie zählt daher
+erst nach dem nächsten Linienwechsel mit.
+
+**Implementierung:** `matchLinesController.getSeasonLineStats`,
+`frontend/src/components/lineStats/SeasonLineChemieSection.jsx` (auf
+`/lines`).
 
 ---
 
@@ -357,29 +426,6 @@ Saison-Kennzahlen (`GET /api/roster/stats`) – keine neue Formel,
 keine neue Backend-Route. Bis zu 4 Spieler gleichzeitig als
 transponierte Tabelle gegenübergestellt (`StatsPage.jsx`,
 `PlayerComparisonSection.jsx`).
-
----
-
-## Ab Phase 1 möglich, noch nicht auf einer Statistikseite ausgewertet
-
-### Assists
-
-**Formel:** `COUNT(game_events WHERE event_type = 'goal' AND secondary_roster_player_id = :playerId)`
-
-**Benötigte Daten:** `game_events.secondary_roster_player_id`
-(Phase 1 Spalte) – noch keine UI, um beim Tor-Erfassen einen
-Zweitspieler auszuwählen. **Hinweis (seit Phase 3):**
-`secondary_roster_player_id` hat inzwischen zwei Bedeutungen je nach
-`is_opponent` – bei `is_opponent=false` künftig "Assist" (hier
-beschrieben, noch ungenutzt), bei `is_opponent=true` bereits
-umgesetzt "unser Torhüter" (siehe Torhüter-Fangquote unten). Keine
-Kollision, da ein Ereignis nie beides gleichzeitig sein kann.
-
-### Punkte (Points)
-
-**Formel:** `goals + assists` – **wird nicht als eigene Spalte
-gespeichert**, sondern zur Anzeigezeit aus den beiden obigen Werten
-addiert (Anforderung §58: keine redundanten Felder).
 
 ---
 

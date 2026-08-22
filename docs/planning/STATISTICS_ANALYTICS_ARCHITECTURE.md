@@ -4,9 +4,11 @@
 
 ## Statistik- und Performance-Analytics: Bestandsaufnahme, Gap-Analyse, Zielarchitektur
 
-> Status: Analyse abgeschlossen (2026-08-10). Phase 1 (Commit `f5f2ef6`),
-> Phase 2 (Match-Line/Shift-Tracking) und Phase 3 (Schuss-Tracking,
-> Shot Map, Zonen-Taxonomie, Torhüter-Statistiken) umgesetzt. Alle
+> Status: Analyse abgeschlossen (2026-08-10). Phase 1–6 umgesetzt (siehe
+> Roadmap-Tabelle in Abschnitt 11 für Details je Phase); Phase 7–9 noch
+> offen. Dieser Absatz wurde bei früheren Phasen nicht konsequent
+> mitgepflegt – Einzelheiten je Phase daher **immer** über die
+> Roadmap-Tabelle prüfen, nicht über diesen einleitenden Absatz. Alle
 > weiteren Abschnitte noch NICHT implementiert außer explizit als
 > "umgesetzt" markiert. Dieses Dokument ist die kanonische Quelle für
 > die Statistik-/Analytics-Domäne und wird mit jeder Phase
@@ -407,9 +409,14 @@ von Live-Spielen erhalten).
 ## 8.4 Was bewusst NICHT gebaut wird (Phase 1)
 
 - **Keine `opponents`-Tabelle.** `games.opponent` bleibt Freitext – ein
-  strukturiertes Gegner-Profil (Abschnitt 46/47 der Anforderung) ist
-  ein eigenständiges, späteres Feature (siehe Roadmap Phase 4), nicht
-  Teil des Kern-Event-Modells.
+  strukturiertes Gegner-Profil samt Saison-/Wettbewerbs-Gruppierung von
+  Spielen (Abschnitt 46/47 der Anforderung) ist bewusst **kein Teil der
+  9 EPIC-012-Phasen** (Roadmap-Tabelle, Abschnitt 11) – dafür fehlt in
+  keiner der neun Phasen ein Bezug. Bleibt ein eigenständiges, mögliches
+  künftiges Backlog-Item außerhalb dieser Statistik-Architektur (z.B.
+  als Teil einer künftigen "Spielverwaltung"-Erweiterung), kein
+  Bestandteil des Kern-Event-Modells. Siehe Phasenplanungs-Review vom
+  2026-08-21 in `docs/planning/BACKLOG.md`.
 - **Kein gespeicherter Score.** Bleibt abgeleitet – nur die
   *Berechnung* wird zentralisiert (Statistics Engine, Abschnitt 10),
   nicht die Persistenz geändert.
@@ -485,6 +492,50 @@ game_events
 ├── createdBy                   UUID
 └── createdAt                   TIMESTAMPTZ
 ```
+
+## 8.7 Trainings-Analytics/Spielerentwicklung (Phase 5)
+
+Anders als Phase 1–4 (Match-Events) eine eigene, kleinere Domäne ohne
+Bezug zu `game_events`/`event_type_definitions` – Grundlage sind
+`training_sessions`/`roster_players`, nicht `games`.
+
+`training_attendance` (NEU): tatsächliche Anwesenheit bei einem
+Training, strukturell identisch zu `game_squad` (echte Junction,
+`UNIQUE (session_id, roster_player_id)`, `ON DELETE CASCADE` an beiden
+FKs), aber mit trainings-eigenen Status-Werten (`present`, `excused`,
+`absent`, `injured` statt `playing`/`reserve`/…). Bewusst getrennt von
+RSVP (`rsvps`, Selbstauskunft VOR dem Termin) – ein Spieler kann
+zugesagt haben und trotzdem nicht erschienen sein, das eine ersetzt
+das andere nicht.
+
+`player_development_notes` (NEU): freie, zeitgestempelte
+Beobachtungsnotizen eines Coaches zu einem Kader-Spieler, optional mit
+`training_session_id`-Kontext (`ON DELETE SET NULL` – die Notiz
+überlebt das Löschen des Trainings). Bewusst NICHT über die
+bestehende, polymorphe `comments`-Tabelle (dort für Boards/Trainings/
+Spiele, mit "jedes Team-Mitglied liest mit") – Entwicklungsnotizen
+sind personenbezogene Daten ÜBER einen Spieler (oft minderjährig),
+keine Diskussion ZU einer Ressource, daher ein eigener, restriktiverer
+Zugriff (nur coach/owner, nie `member`, siehe
+`playerDevelopmentNotesController.js`).
+
+Ableitungen: `GET /api/roster/stats` liefert zusätzlich
+`trainingsRecorded`/`trainingsPresent`/`attendanceRate` je Spieler
+(analog `appearances` aus `game_squad`, `null` statt `0` ohne ein
+einziges erfasstes Training – "unbekannt ≠ 0", siehe Abschnitt 10).
+`GET /api/roster/:id/training-log` liefert den Trainings-für-Training-
+Verlauf für Last-5/Last-10/Season-Trends im Frontend, exakt analog
+`game-log` aus Phase 4.
+
+Bewusst NICHT Teil dieser Phase: Aufnahme in den GDPR-Backup-Export
+(`exportUserData.js`) – der Export deckt aktuell die gesamte
+Spiel-Domäne (`games`/`game_events`/`game_squad`) ebenfalls nicht ab;
+Trainings-Anwesenheit/Entwicklungsnotizen konsistent zu diesem
+bestehenden Stand zu halten statt isoliert vorzuziehen. Nachgezogen
+werden sollte das gemeinsam mit der Spiel-Domäne, nicht separat –
+offener Folgepunkt, siehe `docs/planning/BACKLOG.md`.
+
+---
 
 ## Welche der in der Anforderung vorgeschlagenen "Grundtypen" werden wie behandelt
 
@@ -576,11 +627,11 @@ für alle künftigen Kennzahlen):
 | **2** | `match_lines`, Time-on-Floor/Shift-Zahlen, Line-Statistiken (Goals For/Against, Zeit zusammen) | Phase 1 – ✅ umgesetzt |
 | **3** | Shot Tracking (UI + `shot`-Events mit x/y/outcome/shotType), Shot Map, floorball-eigene Zonen-Definition, einfache Torhüter-Statistiken | Phase 1 – ✅ umgesetzt |
 | **4** | Special Teams (PP/PK, aus Strafen+Uhr abgeleitet), Situations-Splits (Score-State, Periode), Spieler-Vergleich, Trends | Phase 1–3 – ✅ umgesetzt (ADR-0004) |
-| **5** | Trainings-Analytics/Spielerentwicklung (eigene Domäne, niedrigere Priorität für dieses Dokument) | – |
-| **6** | Video-Integration: `game_id` an `board_videos` bzw. neue Verknüpfungstabelle, Event→Video-Sprung über `videoTimestampSeconds` | Phase 1 |
-| **7** | Custom-Events-UI (Trainer definiert eigene `event_type_definitions`-Zeilen), Report Builder | Phase 1 |
-| **8** | Advanced Analytics: xG-Modell v1 (erst mit ausreichender Datenbasis), Line-Chemie, Shot Quality – Modellversionierung dokumentiert | Phase 3 |
-| **9** | KI/ML-Grundlagen (Pattern Detection, automatische Spiel-Insights) – ausschließlich als nachvollziehbare Vorschläge, nie autoritativ (§5.9/18 `CLAUDE.md`) | Phase 8 |
+| **5** | Trainings-Analytics/Spielerentwicklung (eigene Domäne, niedrigere Priorität für dieses Dokument) | – ✅ umgesetzt |
+| **6** | Video-Integration: eigene `game_videos`-Tabelle (ADR-0005), Event→Video-Sprung über `videoId`/`videoTimestampSeconds` | Phase 1 – ✅ umgesetzt |
+| **7** | Custom-Events-UI (Trainer definiert eigene `event_type_definitions`-Zeilen, team-eigen oder persönlich), CSV-Export (Kennzahlen + Spiele) statt eines offenen Report Builders (ADR-0006) | Phase 1 – ✅ umgesetzt |
+| **8** | Advanced Analytics: Line-Chemie (Saison-Aggregation über `calculateLineStats`) – ✅ umgesetzt (2026-08-22). xG-Modell v1/Shot Quality – **No-Go** nach Datenbasis-Check (0 Spiele/Ereignisse in den geprüften Instanzen), zurückgestellt bis reale Nutzungsdaten vorliegen | Phase 3 |
+| **9** | KI/ML-Grundlagen (Pattern Detection, automatische Spiel-Insights) – ausschließlich als nachvollziehbare Vorschläge, nie autoritativ (§5.9/18 `CLAUDE.md`) – ✅ umgesetzt (2026-08-22, `POST /api/ai/game-insights`, baut auf der EPIC-010-KI-Provider-Abstraktion auf, AI_SYSTEM.md §5.5) | Phase 8 |
 
 ---
 

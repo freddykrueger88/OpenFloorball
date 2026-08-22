@@ -10,6 +10,7 @@ import {
   getLines, createLine, updateLine, deleteLine,
   addPlayerToLine, removePlayerFromLine, setLineActive,
 } from '../controllers/linesController.js';
+import { getSeasonLineStats } from '../controllers/matchLinesController.js';
 
 const router = Router();
 
@@ -19,6 +20,11 @@ const idParam = param('id').isUUID().withMessage('Ungültige Line-ID');
 const rosterPlayerIdParam = param('rosterPlayerId').isUUID().withMessage('Ungültige Spieler-ID');
 
 router.get   ('/',    getLines);
+// Statistik-Architektur Phase 8 (Line-Chemie): VOR /:id-Routen, damit
+// "season-stats" nicht als Line-ID interpretiert wird (hier zwar keine
+// GET /:id-Route vorhanden, aber konsistent mit dem Muster in
+// roster.js/gameEvents.js, wo genau das ein Thema war).
+router.get   ('/season-stats', getSeasonLineStats);
 router.post  ('/',    [
   body('name').trim().notEmpty().withMessage('Name ist erforderlich').isLength({ max: 40 }),
   body('color').optional().matches(/^#[0-9a-fA-F]{6}$/).withMessage('Farbe muss ein Hex-Code sein'),

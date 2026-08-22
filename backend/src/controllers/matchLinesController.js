@@ -10,6 +10,7 @@ import pool from '../db/pool.js';
 import logger from '../utils/logger.js';
 import { success, created, error } from '../utils/apiResponse.js';
 import { assertGameRead, assertGameWrite } from './gamesController.js';
+import { getUserTeamIds } from '../utils/teamAccess.js';
 import { calculateLineStats } from '../services/statisticsEngine.js';
 
 function toApiMatchLine(row) {
@@ -64,6 +65,41 @@ export async function getLineStats(req, res) {
     res.json(success(stats));
   } catch (err) {
     logger.error('[getLineStats]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// GET /api/lines/season-stats – Line-Chemie (Statistik-Architektur
+// Phase 8, Advanced Analytics): dieselbe calculateLineStats-Formel wie
+// getLineStats oben, aber über ALLE Spiele des Nutzers hinweg statt
+// eines einzelnen – die Funktion war dafür bereits von Anfang an
+// ausgelegt (siehe Kommentar an calculateLineStats zu `now`). Bewusst
+// `now` NICHT gesetzt (Default null): eine gerade offene Zeile aus
+// einem laufenden Spiel würde bei einer Saison-Aggregation sonst einen
+// nicht reproduzierbaren, vom Abrufzeitpunkt abhängigen Wert einfrieren
+// – hier zählt nur, was bereits abgeschlossen ist.
+export async function getSeasonLineStats(req, res) {
+  try {
+    const teamIds = await getUserTeamIds(req.user.id);
+    const [matchLinesResult, eventsResult] = await Promise.all([
+      pool.query(
+        `SELECT ml.* FROM match_lines ml
+         JOIN games g ON g.id = ml.game_id
+         WHERE g.user_id = $1 OR g.team_id = ANY($2::uuid[])
+         ORDER BY ml.started_at ASC`,
+        [req.user.id, teamIds]
+      ),
+      pool.query(
+        `SELECT ge.* FROM game_events ge
+         JOIN games g ON g.id = ge.game_id
+         WHERE ge.event_type = 'goal' AND (g.user_id = $1 OR g.team_id = ANY($2::uuid[]))`,
+        [req.user.id, teamIds]
+      ),
+    ]);
+    const stats = calculateLineStats(matchLinesResult.rows, eventsResult.rows);
+    res.json(success(stats));
+  } catch (err) {
+    logger.error('[getSeasonLineStats]', err);
     res.status(500).json(error('Interner Serverfehler'));
   }
 }

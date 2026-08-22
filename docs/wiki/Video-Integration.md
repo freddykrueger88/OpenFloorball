@@ -3,6 +3,17 @@
 Bis zu 5 kurze Videoclips pro Board (z. B. eine konkrete Spielsituation
 des Gegners), abspielbar über den nativen Browser-Player.
 
+Dieselbe Zeichnen-/Trimmen-/Marken-Funktionalität steht auch für
+**Spielvideos** zur Verfügung (Video direkt an ein Spiel statt an ein
+Board gehängt, mit eigener Speicherung/Zugriffsrecht über den
+[Team-Zugriff des Spiels](./Live-Spielnotizen.md) statt Board-
+Kollaboratoren) – siehe
+[Live-Spielnotizen: Spielvideos und Video-Verknüpfung](./Live-Spielnotizen.md#spielvideos-und-video-verknüpfung)
+für die zusätzliche Möglichkeit, eine Videoposition mit einem Ereignis
+aus der Spiel-Zeitleiste zu verknüpfen. Die restliche Beschreibung auf
+dieser Seite (Upload-Grenzen, Zeichnen, Trimmen, Marken, "Video →
+Taktik-Board") gilt für beide gleichermaßen.
+
 ## Upload und Wiedergabe
 
 | Grenze | Wert |
@@ -39,9 +50,11 @@ Zeichnung (Pfeile/Freihand), kein Video-Standbild.
 
 Videos liegen als Dateien auf der Festplatte (`VIDEOS_DIR`, Docker-
 Volume), nicht als Datenbank-Blob – analog zu den temporären
-Export-Dateien. Löschen des Boards entfernt auch die zugehörigen
-Videodateien.
+Export-Dateien. Löschen des Boards (bzw. bei Spielvideos: Löschen des
+Spiels) entfernt auch die zugehörigen Videodateien.
 
 ## Verwandte Seiten
 
 - [Export & Teilen](./Export.md)
+- [Live-Spielnotizen](./Live-Spielnotizen.md) – Spielvideos und
+  Ereignis-Verknüpfung

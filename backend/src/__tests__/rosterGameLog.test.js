@@ -74,6 +74,22 @@ describe('GET /api/roster/:id/game-log', () => {
     expect(game2Entry).toMatchObject({ opponent: 'Verlauf-Gegner-2', goals: 2, penaltyMinutes: 0 });
   });
 
+  it('zählt Assists getrennt je Spiel (Phasenplanungs-Review 2026-08-21)', async () => {
+    const scorerRes = await request(app).post('/api/roster').set('Cookie', owner.cookie).send({ name: 'GameLog-Torschütze', teamId });
+    const scorerId = scorerRes.body.data._id;
+    const gameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Verlauf-Assist-Test', teamId, playedAt: '2026-04-01' });
+    const gameId = gameRes.body.data._id;
+    await request(app).put(`/api/games/${gameId}/squad/${playerId}`).set('Cookie', owner.cookie).send({ status: 'playing' });
+
+    await request(app).post(`/api/games/${gameId}/events`).set('Cookie', owner.cookie)
+      .send({ eventType: 'goal', rosterPlayerId: scorerId, secondaryRosterPlayerId: playerId });
+
+    const res = await request(app).get(`/api/roster/${playerId}/game-log`).set('Cookie', owner.cookie);
+    const entry = res.body.data.find((g) => g.gameId === gameId);
+    expect(entry.assists).toBe(1);
+    expect(entry.goals).toBe(0);
+  });
+
   it('schließt Spiele aus, in denen der Spieler nicht status=playing hat', async () => {
     const gameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Verlauf-Reserve-Test', teamId, playedAt: '2026-02-01' });
     const gameId = gameRes.body.data._id;

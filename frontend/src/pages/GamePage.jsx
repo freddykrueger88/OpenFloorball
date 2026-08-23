@@ -20,10 +20,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Trash2, Send, FileDown, Play, Pause, SkipForward, RotateCcw } from 'lucide-react';
+import { AlertTriangle, Trash2, Send, FileDown, Play, Pause, SkipForward, RotateCcw, Video, Plus, Sparkles } from 'lucide-react';
 import { useGames } from '../hooks/useGames.js';
 import { useComments } from '../hooks/useComments.js';
 import { useGameEvents } from '../hooks/useGameEvents.js';
+import { useEventTypeDefinitions } from '../hooks/useEventTypeDefinitions.js';
+import useAuthStore from '../store/authStore.js';
 import { useRoster } from '../hooks/useRoster.js';
 import { useLines } from '../hooks/useLines.js';
 import { usePdfExport } from '../hooks/usePdfExport.js';
@@ -41,6 +43,9 @@ import ShotStatsSection from '../components/shotTracking/ShotStatsSection.jsx';
 import GoalkeeperStatsSection from '../components/shotTracking/GoalkeeperStatsSection.jsx';
 import SpecialTeamsStatsSection from '../components/gameFlowStats/SpecialTeamsStatsSection.jsx';
 import SituationalStatsSection from '../components/gameFlowStats/SituationalStatsSection.jsx';
+import GameVideoPanel from '../components/games/GameVideoPanel.jsx';
+import AiGameInsightsModal from '../components/games/AiGameInsightsModal.jsx';
+import { useAiApi } from '../hooks/useAiApi.js';
 import Button from '../components/common/Button.jsx';
 import styles from './GamePage.module.css';
 
@@ -50,7 +55,26 @@ export default function GamePage() {
   const { fetchGame, updateGame } = useGames();
   const { exporting: exportingReport, error: reportError, exportGameReport } = usePdfExport();
   const { comments: notes, loading: notesLoading, error: notesError, fetchComments, addComment, deleteComment } = useComments('games', id);
-  const { events, loading: eventsLoading, error: eventsError, fetchEvents, addEvent, deleteEvent } = useGameEvents(id);
+  const { events, loading: eventsLoading, error: eventsError, fetchEvents, addEvent, deleteEvent, linkEventVideo } = useGameEvents(id);
+  // Statistik-Architektur Phase 7 (Custom Events/Tags): eventTypes ist
+  // NICHT spielgebunden geladen (der Hook kennt kein gameId), Filterung
+  // auf "für DIESES Spiel nutzbar" passiert unten in customTypesForGame.
+  const {
+    eventTypes, error: eventTypesError, fetchEventTypes, createEventType, updateEventType, deleteEventType,
+  } = useEventTypeDefinitions();
+  const { user } = useAuthStore();
+  // Statistik-Architektur Phase 9 (Spiel-Insights): eigener useAiApi-
+  // Aufruf nur für den Status-Check (AI_SYSTEM.md §2 – der Button
+  // erscheint nur, wenn diese Instanz überhaupt einen KI-Anbieter
+  // konfiguriert hat), analog TrainingsPage.jsx.
+  const { fetchStatus: fetchAiStatus } = useAiApi();
+  const [aiStatus, setAiStatus] = useState(null);
+  const [insightsModalOpen, setInsightsModalOpen] = useState(false);
+  // Statistik-Architektur Phase 6: Sprung-Funktion, die GameVideoPanel
+  // einmalig über registerJump nach oben meldet (siehe dort) – als Ref
+  // statt State, da sie sich bei jedem Video-Fetch neu zusammensetzt und
+  // selbst keinen Re-Render der Seite auslösen soll.
+  const jumpToVideoRef = useRef(null);
   const { error: clockError, start: startClock, pause: pauseClock, nextPeriod: nextClockPeriod, reset: resetClock } = useGameClock();
   // IFF-Regelwerk 2026: auch Torhüter dürfen inzwischen Tore erzielen –
   // die Zuordnungs-Auswahl (Tor/Strafzeiten/Matchstrafe) filtert Rollen
@@ -85,6 +109,11 @@ export default function GamePage() {
   // Attribution-Auswahl, da es zusätzliche Felder (Position/Schusstyp/
   // Ergebnis) braucht.
   const [shotEntryOpen, setShotEntryOpen] = useState(false);
+  // Statistik-Architektur Phase 7: Inline-Formular für einen neuen
+  // eigenen Ereignistyp, direkt unter den PRESETS-Buttons.
+  const [addingCustomType, setAddingCustomType] = useState(false);
+  const [newTypeLabel, setNewTypeLabel] = useState('');
+  const [newTypeRequiresPlayer, setNewTypeRequiresPlayer] = useState(false);
   // Spieluhr (Roadmap-Audit): tickt nur zur Anzeige, während die Uhr
   // läuft – der Server kennt nur Start-/Pausepunkte, die Restzeit wird
   // rein clientseitig aus clockElapsedSeconds/clockStartedAt berechnet.
@@ -121,6 +150,8 @@ export default function GamePage() {
   useEffect(() => { load(); }, [load]);
   useEffect(() => { fetchComments().catch(() => {}); }, [fetchComments]);
   useEffect(() => { fetchEvents().catch(() => {}); }, [fetchEvents]);
+  useEffect(() => { fetchEventTypes().catch(() => {}); }, [fetchEventTypes]);
+  useEffect(() => { fetchAiStatus().then(setAiStatus).catch(() => {}); }, [fetchAiStatus]);
 
   useEffect(() => {
     if (editingOpponent) opponentInputRef.current?.select();
@@ -246,6 +277,45 @@ export default function GamePage() {
   const squadForGame = rosterPlayers.filter((p) => (game.teamId ? p.teamId === game.teamId : !p.teamId));
   const linesForGame = lines.filter((l) => (game.teamId ? l.teamId === game.teamId : !l.teamId));
 
+  // Statistik-Architektur Phase 7 (Custom Events/Tags): dieselbe Scope-
+  // Regel wie serverseitig in gameEventsController.addEvent – team-eigene
+  // Typen nur bei einem Spiel desselben Teams, persönliche nur bei einem
+  // eigenen, nicht team-geteilten Spiel. `active` filtert deaktivierte
+  // Typen aus der Anzeige (bleiben aber für bereits erfasste Ereignisse
+  // gültig, siehe eventLabel unten, das ALLE eventTypes durchsucht, nicht
+  // nur customTypesForGame).
+  const customTypesForGame = eventTypes.filter((t) => !t.isBuiltin && t.active && (
+    game.teamId ? t.teamId === game.teamId : t.userId === user?.id
+  ));
+  const customTypeLabel = (t) => t && (i18n.language === 'en' ? t.labelEn : t.labelDe);
+
+  const handleCreateCustomType = async (e) => {
+    e.preventDefault();
+    if (!newTypeLabel.trim()) return;
+    try {
+      await createEventType({ label: newTypeLabel.trim(), requiresPlayer: newTypeRequiresPlayer, teamId: game.teamId ?? null });
+      setNewTypeLabel('');
+      setNewTypeRequiresPlayer(false);
+      setAddingCustomType(false);
+    } catch {
+      // Fehler über eventTypesError
+    }
+  };
+
+  // Löschen bevorzugt (analog game_events: "bei Tippfehler löschen und neu
+  // erfassen") – nur wenn der Typ bereits in einem Spiel verwendet wurde,
+  // lehnt der Server mit 400 ab; in diesem Fall automatisch deaktivieren
+  // statt den Coach mit einem Sackgassen-Fehler allein zu lassen.
+  const handleDeleteCustomType = async (key) => {
+    try {
+      await deleteEventType(key);
+    } catch (err) {
+      if (err.status === 400) {
+        try { await updateEventType(key, { active: false }); } catch { /* Fehler über eventTypesError */ }
+      }
+    }
+  };
+
   // Live-Spielstand (Phase C): rein abgeleitet aus den bereits
   // strukturierten Tor-Ereignissen, kein eigenes Score-Feld auf `games`
   // nötig. "Ohne Angabe" bei der Zuordnung zählt als eigenes Tor (nur
@@ -299,6 +369,13 @@ export default function GamePage() {
     setOpenAttributionPreset(null);
   };
 
+  // Anzeige-Text für den gerade offenen Attribution-Picker – entweder ein
+  // fester Preset (PRESETS) oder ein eigener Ereignistyp (Phase 7).
+  const openAttributionLabel = () => (
+    PRESETS.find((p) => p.type === openAttributionPreset)?.text
+    ?? customTypeLabel(customTypesForGame.find((ct) => ct.key === openAttributionPreset))
+  );
+
   // Rekonstruiert das Anzeige-Label eines Ereignisses zur Anzeigezeit aus
   // eventType + Zuordnung, statt es (wie früher) als fertigen String zu
   // speichern – dadurch zeigt ein vor einem Sprachwechsel erfasstes
@@ -314,17 +391,32 @@ export default function GamePage() {
       base = `${t('games.shotEntryTitle')} (${outcomeLabel})`;
     } else {
       const preset = PRESETS.find((p) => p.type === evt.eventType);
-      base = preset?.text ?? evt.eventType;
+      // Custom-Typ (Phase 7): über ALLE geladenen eventTypes gesucht, nicht
+      // nur customTypesForGame – ein inzwischen deaktivierter oder aus dem
+      // Scope gefallener Typ muss für bereits erfasste, ältere Ereignisse
+      // trotzdem noch sein Label zeigen.
+      const customType = eventTypes.find((et) => et.key === evt.eventType);
+      base = preset?.text ?? (customType ? customTypeLabel(customType) : evt.eventType);
     }
+    // Assist (Phasenplanungs-Review 2026-08-21): nur bei eigenem Tor
+    // relevant, secondaryRosterPlayerId bedeutet bei Gegner-Schüssen
+    // stattdessen "unser Torhüter" (ADR-0003) – hier bewusst nicht
+    // mitgelabelt.
+    const assistSuffix = (!evt.isOpponent && evt.eventType === 'shot' && evt.outcome === 'goal' && evt.secondaryRosterPlayerId)
+      ? (() => {
+          const assister = squadForGame.find((p) => p._id === evt.secondaryRosterPlayerId);
+          return assister ? ` (${t('games.shotAssistLabel')}: ${assister.name})` : '';
+        })()
+      : '';
     if (evt.isOpponent) return `${base} – ${t('games.attributionOpponent')}`;
     if (evt.rosterPlayerId) {
       const player = squadForGame.find((p) => p._id === evt.rosterPlayerId);
       if (player) {
         const label = player.jerseyNumber != null ? `#${player.jerseyNumber} ${player.name}` : player.name;
-        return `${base} – ${label}`;
+        return `${base} – ${label}${assistSuffix}`;
       }
     }
-    return base;
+    return `${base}${assistSuffix}`;
   };
 
   // Companion-Goal-Events (Phase 3, ADR-0002) aus der Zeitleiste
@@ -341,7 +433,10 @@ export default function GamePage() {
   // gemeinsamen, chronologisch sortierten Zeitleiste zusammengeführt –
   // Anzeige bleibt für den Trainer wie zuvor eine einzige Liste.
   const timelineItems = [
-    ...events.filter((e) => !companionGoalIds.has(e._id)).map((e) => ({ kind: 'event', id: e._id, createdAt: e.createdAt, email: e.email, label: eventLabel(e) })),
+    ...events.filter((e) => !companionGoalIds.has(e._id)).map((e) => ({
+      kind: 'event', id: e._id, createdAt: e.createdAt, email: e.email, label: eventLabel(e),
+      videoId: e.videoId, videoTimestampSeconds: e.videoTimestampSeconds,
+    })),
     ...notes.map((n) => ({ kind: 'note', id: n._id, createdAt: n.createdAt, email: n.email, label: n.text })),
   ].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
   const timelineNewestFirst = [...timelineItems].reverse();
@@ -349,6 +444,17 @@ export default function GamePage() {
   const handleDeleteTimelineItem = (item) => (
     item.kind === 'event' ? deleteEvent(item.id) : deleteComment(item.id)
   );
+
+  // Statistik-Architektur Phase 6: Video-Verknüpfung ans GameVideoPanel
+  // durchgereicht (siehe dort und VideoAnnotationOverlay.jsx). Companion-
+  // Goal-Events bewusst mit dabei (nicht wie in timelineItems gefiltert) –
+  // ein Video-Link auf das schlanke Companion-Tor wäre zwar unüblich,
+  // aber nicht falsch; die Filterung dort ist rein eine Anzeige-Dopplung,
+  // kein Verknüpfungs-Verbot.
+  const linkableEvents = events.map((e) => ({ _id: e._id, label: eventLabel(e), videoId: e.videoId, videoTimestampSeconds: e.videoTimestampSeconds }));
+  const handleLinkEvent = (eventId, videoId, timestamp) => linkEventVideo(eventId, videoId, timestamp);
+  const handleUnlinkEvent = (eventId) => linkEventVideo(eventId, null, null);
+  const handleJumpToVideo = (videoId, timestamp) => jumpToVideoRef.current?.(videoId, timestamp);
 
   return (
     <main className={styles.page} id="main-content">
@@ -435,9 +541,17 @@ export default function GamePage() {
       <Button variant="secondary" size="sm" className={styles.exportReportBtn} onClick={handleExportReport} disabled={exportingReport}>
         <FileDown size={16} aria-hidden="true" /> {exportingReport ? t('games.exportingReport') : t('games.exportReportButton')}
       </Button>
+      {aiStatus?.configured && (
+        <Button variant="secondary" size="sm" className={styles.exportReportBtn} onClick={() => setInsightsModalOpen(true)}>
+          <Sparkles size={16} aria-hidden="true" /> {t('ai.insightsButton')}
+        </Button>
+      )}
+      {insightsModalOpen && (
+        <AiGameInsightsModal gameId={id} onClose={() => setInsightsModalOpen(false)} />
+      )}
 
-      {(gameError || notesError || eventsError || reportError || clockError || matchLinesError) && (
-        <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError ?? eventsError ?? reportError ?? clockError ?? matchLinesError}</div>
+      {(gameError || notesError || eventsError || reportError || clockError || matchLinesError || eventTypesError) && (
+        <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {gameError ?? notesError ?? eventsError ?? reportError ?? clockError ?? matchLinesError ?? eventTypesError}</div>
       )}
 
       <RsvpSection resourceKind="games" resourceId={id} teamId={game.teamId} />
@@ -474,6 +588,15 @@ export default function GamePage() {
       <SpecialTeamsStatsSection gameId={id} events={events} />
       <SituationalStatsSection gameId={id} events={events} />
 
+      <GameVideoPanel
+        gameId={id}
+        canEdit
+        linkableEvents={linkableEvents}
+        onLinkEvent={handleLinkEvent}
+        onUnlinkEvent={handleUnlinkEvent}
+        registerJump={(fn) => { jumpToVideoRef.current = fn; }}
+      />
+
       {/* Statistik-Architektur Phase 3: Schuss-Tracking ist additiv zum
           bestehenden "Tor"-Preset unten (bleibt unverändert als schnelle
           Alternative erhalten) – eigener Umschalt-Button statt Teil der
@@ -507,8 +630,71 @@ export default function GamePage() {
           ))}
         </div>
 
+        {/* Statistik-Architektur Phase 7: eigene Ereignistypen, getrennt
+            von den festen IFF-Presets oben – team-eigen oder persönlich,
+            je nachdem ob dieses Spiel team-geteilt ist (siehe
+            customTypesForGame). */}
+        <div className={styles.presetsRow} role="group" aria-label={t('games.customEventTypesAriaLabel')}>
+          {customTypesForGame.map((ct) => (
+            <span key={ct.key} className={styles.customTypeWrap}>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                aria-expanded={ct.requiresPlayer ? openAttributionPreset === ct.key : undefined}
+                onClick={() => (ct.requiresPlayer
+                  ? setOpenAttributionPreset((current) => (current === ct.key ? null : ct.key))
+                  : handleAddPreset(ct.key))}
+              >
+                {customTypeLabel(ct)}
+              </Button>
+              <Button
+                type="button"
+                variant="danger"
+                size="sm"
+                iconOnly
+                onClick={() => handleDeleteCustomType(ct.key)}
+                aria-label={t('games.deleteCustomEventTypeAriaLabel', { label: customTypeLabel(ct) })}
+              >
+                <Trash2 size={14} aria-hidden="true" />
+              </Button>
+            </span>
+          ))}
+          {addingCustomType ? (
+            <form className={styles.customTypeForm} onSubmit={handleCreateCustomType}>
+              <input
+                autoFocus
+                className={styles.customTypeInput}
+                value={newTypeLabel}
+                onChange={(e) => setNewTypeLabel(e.target.value)}
+                placeholder={t('games.customEventTypePlaceholder')}
+                maxLength={50}
+                aria-label={t('games.customEventTypePlaceholder')}
+              />
+              <label className={styles.customTypeCheckboxLabel}>
+                <input
+                  type="checkbox"
+                  checked={newTypeRequiresPlayer}
+                  onChange={(e) => setNewTypeRequiresPlayer(e.target.checked)}
+                />
+                {t('games.customEventTypeRequiresPlayer')}
+              </label>
+              <Button type="submit" variant="primary" size="sm" disabled={!newTypeLabel.trim()}>
+                {t('games.customEventTypeSave')}
+              </Button>
+              <Button type="button" variant="secondary" size="sm" onClick={() => setAddingCustomType(false)}>
+                {t('video.cancel')}
+              </Button>
+            </form>
+          ) : (
+            <Button type="button" variant="secondary" size="sm" onClick={() => setAddingCustomType(true)}>
+              <Plus size={16} aria-hidden="true" /> {t('games.addCustomEventType')}
+            </Button>
+          )}
+        </div>
+
         {openAttributionPreset && (
-          <div className={styles.attributionPicker} role="group" aria-label={t('games.attributionAriaLabel', { event: PRESETS.find((p) => p.type === openAttributionPreset)?.text })}>
+          <div className={styles.attributionPicker} role="group" aria-label={t('games.attributionAriaLabel', { event: openAttributionLabel() })}>
             {squadForGame.map((player) => (
               <Button
                 key={player._id}
@@ -561,6 +747,18 @@ export default function GamePage() {
                 </span>
                 <span className={styles.noteText}>{item.label}</span>
                 {game.teamId && <span className={styles.noteAuthor}>{item.email}</span>}
+                {item.kind === 'event' && item.videoId && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    iconOnly
+                    onClick={() => handleJumpToVideo(item.videoId, item.videoTimestampSeconds ?? 0)}
+                    aria-label={t('games.jumpToVideoAriaLabel')}
+                    title={t('games.jumpToVideoAriaLabel')}
+                  >
+                    <Video size={16} aria-hidden="true" />
+                  </Button>
+                )}
                 <Button
                   variant="danger"
                   size="sm"

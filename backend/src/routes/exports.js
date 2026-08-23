@@ -6,6 +6,7 @@ import { authenticate } from '../middleware/auth.js';
 import { startGifExport, startMp4Export, getExportStatus, downloadExport } from '../controllers/exportController.js';
 import { exportPdf, exportGameReport } from '../controllers/pdfExportController.js';
 import { createFrameShare } from '../controllers/shareController.js';
+import { exportRosterStatsCsv, exportGamesCsv } from '../controllers/csvExportController.js';
 
 const router = Router();
 
@@ -16,6 +17,10 @@ router.post('/gif',            startGifExport);
 router.post('/mp4',            startMp4Export);
 router.post('/pdf',            exportPdf);
 router.post('/game-report',    exportGameReport);
+// Statistik-Architektur Phase 7: CSV-Export (Datenportabilität, offenes
+// Format, CLAUDE.md §5.3) – GET, da rein lesend, kein Body nötig.
+router.get('/roster-stats.csv', exportRosterStatsCsv);
+router.get('/games.csv',        exportGamesCsv);
 router.get('/status/:id',      getExportStatus);
 router.get('/download/:id',    downloadExport);
 // Einzel-Frame-Share nutzt denselben Router wie GIF/MP4, weil hier bereits

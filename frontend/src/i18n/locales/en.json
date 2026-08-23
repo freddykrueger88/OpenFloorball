@@ -230,7 +230,10 @@
     "scheduleType": {
       "game": "Game",
       "training": "Training"
-    }
+    },
+    "coachesHeading": "Who coaches where",
+    "coachesHint": "Visible only to organization admins – head/assistant coaches across all teams of the club, informational only.",
+    "coachesEmpty": "No coaches recorded yet in this organization's teams."
   },
   "accessibility": {
     "skipToContent": "Skip to content",
@@ -356,10 +359,39 @@
     "clearAriaLabel": "Reset status for {{name}}",
     "clearTitle": "Reset (not decided)"
   },
+  "trainingAttendance": {
+    "title": "Attendance",
+    "ariaLabel": "Attendance for this training",
+    "loading": "Loading attendance…",
+    "setStatusAriaLabel": "Set status for {{name}}",
+    "statusPresent": "Present",
+    "statusExcused": "Excused",
+    "statusInjured": "Injured",
+    "statusAbsent": "Absent",
+    "statusNone": "Not recorded",
+    "clearAriaLabel": "Reset status for {{name}}",
+    "clearTitle": "Reset (not recorded)"
+  },
+  "playerNotes": {
+    "title": "Player development",
+    "ariaLabel": "Development notes for this player",
+    "loading": "Loading notes…",
+    "empty": "No development notes yet.",
+    "placeholder": "Note an observation…",
+    "addBtn": "Add note",
+    "editBtn": "Edit",
+    "editAriaLabel": "Edit note",
+    "saveBtn": "Save",
+    "cancelBtn": "Cancel",
+    "deleteBtn": "Delete",
+    "deleteAriaLabel": "Delete note"
+  },
   "lineStats": {
     "title": "Line stats",
     "ariaLabel": "Line stats for this game",
-    "timeUnknown": "unknown"
+    "timeUnknown": "unknown",
+    "seasonTitle": "Line chemistry (season)",
+    "seasonAriaLabel": "Line stats across the whole season"
   },
   "shotZones": {
     "nahzone_zentrum": "Close range – central",
@@ -437,6 +469,7 @@
   },
   "stats": {
     "title": "Stats",
+    "exportCsv": "Export as CSV",
     "count_one": "{{count}} roster player",
     "count_other": "{{count}} roster players",
     "noPlayersYet": "No roster players yet",
@@ -446,6 +479,8 @@
     "colNumber": "No.",
     "colTeam": "Team",
     "colGoals": "Goals",
+    "colAssists": "Assists",
+    "colPoints": "Points",
     "colPenaltyMinutes": "Pen. min.",
     "colMatchPenalties": "Match penalties",
     "colAppearances": "Appearances",
@@ -453,6 +488,7 @@
     "colShotPercentage": "Shot %",
     "colGoalsAgainst": "Goals against",
     "colSavePercentage": "Save %",
+    "colAttendanceRate": "Attendance %",
     "personal": "Personal",
     "trendsLinkAria": "View trends for {{name}}",
     "comparison": {
@@ -470,7 +506,10 @@
       "season": "Season",
       "games": "Games",
       "goalsPerGame": "Goals per game",
-      "noGamesYet": "No dated games with an appearance for this player yet."
+      "noGamesYet": "No dated games with an appearance for this player yet.",
+      "attendanceTitle": "Training attendance",
+      "trainingsRecorded": "Trainings recorded",
+      "attendanceRate": "Attendance rate"
     }
   },
   "news": {
@@ -944,7 +983,13 @@
     "knowledgeSourceTypeLibrary": "Library entry",
     "knowledgeInactiveTitle": "AI knowledge assistant is not configured",
     "knowledgeInactiveDesc": "This instance hasn't set up an AI provider yet. Without configuration, this feature stays inactive.",
-    "knowledgeInactiveAdminAction": "Go to settings"
+    "knowledgeInactiveAdminAction": "Go to settings",
+    "insightsButton": "AI game analysis",
+    "insightsFormTitle": "Game insights with AI",
+    "insightsExplainer": "The AI only receives already-calculated team statistics for this game (shot, special teams, and situational metrics) - no raw data, no names. It looks for patterns and suggests possible training focus areas.",
+    "showBasis": "Show basis",
+    "hideBasis": "Hide basis",
+    "close": "Close"
   },
   "dialogs": {
     "newBoard": {
@@ -1069,7 +1114,10 @@
     "noBoardsInFilter": "No boards in this playbook",
     "teamAriaLabel": "Team to share this playbook with",
     "personalOption": "Personal (not shared)",
-    "teamBadgeFallback": "Team"
+    "teamBadgeFallback": "Team",
+    "orgBadgeFallback": "Organization",
+    "teamOptgroup": "Team",
+    "orgOptgroup": "Organization (all teams)"
   },
   "trainings": {
     "count_one": "{{count}} training session",
@@ -1154,6 +1202,7 @@
     "cancelCreate": "Cancel",
     "newGame": "New game",
     "newGameAriaLabel": "Create new game",
+    "exportCsv": "Export as CSV",
     "loadingGames": "Loading games...",
     "loadingGame": "Loading game...",
     "cardAriaLabel": "Game vs. {{opponent}}",
@@ -1188,6 +1237,12 @@
     "noNotesYet": "No notes yet – capture quick observations while the game is on.",
     "deleteNoteAriaLabel": "Delete note",
     "presetsAriaLabel": "Presets for common game events (IFF rules)",
+    "customEventTypesAriaLabel": "Custom event types",
+    "addCustomEventType": "Add custom type",
+    "customEventTypePlaceholder": "Label (e.g. \"Counterattack\")",
+    "customEventTypeRequiresPlayer": "Needs attribution",
+    "customEventTypeSave": "Save",
+    "deleteCustomEventTypeAriaLabel": "Delete custom event type \"{{label}}\"",
     "presetKickoffQ1": "Kickoff 1st period",
     "presetKickoffQ2": "Kickoff 2nd period",
     "presetKickoffQ3": "Kickoff 3rd period",
@@ -1211,10 +1266,16 @@
     "shotAttributionLabel": "Attribution",
     "shotAttributionGoalkeeperLabel": "Our goalkeeper",
     "shotAttributionGoalkeeperNone": "Not specified",
+    "shotAssistLabel": "Assist",
+    "shotAssistNone": "No assist",
     "shotPositionLabel": "Position on the field",
     "shotTypeLabel": "Shot type",
     "shotOutcomeLabel": "Outcome",
-    "shotSubmit": "Save shot"
+    "shotSubmit": "Save shot",
+    "videoPanelTitle": "🎥 Match video",
+    "videoPanelHint": "Upload video for this game and link it to events from the timeline – even after the fact while reviewing footage.",
+    "videoPanelEmpty": "No video for this game yet – upload the recording to start linking events to it.",
+    "jumpToVideoAriaLabel": "Jump to the linked video position"
   },
   "roster": {
     "title": "Roster",
@@ -1320,7 +1381,11 @@
     "boardFromVideoName": "From video: {{title}}",
     "createdFromVideoNote": "Created from the drawing on video \"{{title}}\".",
     "createBoardSuccess": "New tactic board created from the video drawing.",
-    "createBoardError": "Couldn't create the board. Please try again."
+    "createBoardError": "Couldn't create the board. Please try again.",
+    "linkEventPlaceholder": "Select event…",
+    "linkEventSelectAriaLabel": "Select the event to link to the current video position",
+    "linkEventConfirm": "Link current position",
+    "unlinkEventAriaLabel": "Remove link to \"{{label}}\""
   },
   "tour": {
     "welcomeTitle": "Welcome to OpenFloorball!",

@@ -19,6 +19,7 @@ router.get   ('/:id', [param('id').isUUID().withMessage('Ungültige Playbook-ID'
 router.post  ('/', [
   body('name').trim().notEmpty().withMessage('Name ist erforderlich').isLength({ max: 40 }),
   body('teamId').optional({ nullable: true }).isUUID().withMessage('Ungültige Team-ID'),
+  body('organizationId').optional({ nullable: true }).isUUID().withMessage('Ungültige Vereins-ID'),
   validate,
 ], createPlaybook);
 router.put   ('/:id', [

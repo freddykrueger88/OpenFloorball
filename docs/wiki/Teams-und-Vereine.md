@@ -38,6 +38,19 @@ Hallenbelegung/Terminkollisionen zwischen mehreren Sparten wie
 1. Herren und U15). Kein neuer Bearbeitungsweg – ändern bleibt weiter
 Sache des jeweiligen Teams. Für einfache Mitglieder unsichtbar.
 
+Ebenfalls admin-only: "Wer ist wo Trainer" – eine Übersicht aller
+Cheftrainer/Co-Trainer über alle Teams des Vereins hinweg, je Team
+gruppiert. Rein informativ (z.B. um zu sehen, wer in mehreren Sparten
+gleichzeitig trainiert), kein neuer Bearbeitungsweg an fremden Teams.
+
+## Vereinsweit geteilte Playbooks
+
+Ein [Playbook](./Playbooks.md) kann statt einem einzelnen Team einem
+ganzen Verein zugeordnet werden (nur Vereins-Admins) – sichtbar dann
+für jedes Mitglied irgendeines Teams dieses Vereins, unabhängig davon,
+in welcher Sparte. Praktisch für eine vereinsweite Übungssammlung, die
+nicht an eine einzelne Mannschaft gebunden sein soll.
+
 ## Was NICHT team-gebunden ist
 
 Boards sind bewusst **kein** Teil des Team-/Vereinsmodells. Wer an
@@ -48,7 +61,9 @@ können dagegen: Kader-Einträge, Lines, Spiele, Playbooks,
 Formationsvorlagen und Trainingspläne (jeweils optional, per
 `teamId`). Ist ein Spiel oder eine Trainingseinheit team-geteilt,
 steht dort automatisch auch die [Anwesenheitsliste (RSVP)](./Live-Spielnotizen.md#anwesenheit-rsvp)
-für die ganze Mannschaft zur Verfügung.
+für die ganze Mannschaft zur Verfügung. Playbooks können statt eines
+einzelnen Teams alternativ (nicht zusätzlich) einem ganzen Verein
+zugeordnet werden, siehe oben "Vereinsweit geteilte Playbooks".
 
 ## Verwandte Seiten
 

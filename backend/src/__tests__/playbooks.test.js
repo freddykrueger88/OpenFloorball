@@ -165,3 +165,93 @@ describe('PUT /api/playbooks/:id', () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe('Vereinsweit geteilte Playbooks (EPIC 011)', () => {
+  let orgAdmin;
+  let orgMember; // organization_members-Mitglied, aber KEIN Team des Vereins
+  let teamMemberNoOrg; // team_members-Mitglied eines Vereins-Teams, aber KEIN organization_members-Eintrag
+  let stranger;
+  let orgId;
+  let teamId;
+  let playbookId;
+
+  beforeAll(async () => {
+    orgAdmin = await registerAndLogin('org-admin');
+    orgMember = await registerAndLogin('org-member');
+    teamMemberNoOrg = await registerAndLogin('team-member-no-org');
+    stranger = await registerAndLogin('stranger');
+
+    const orgRes = await request(app).post('/api/organizations').set('Cookie', orgAdmin.cookie).send({ name: 'EPIC011-Playbooks-Verein' });
+    orgId = orgRes.body.data._id;
+    await request(app).post(`/api/organizations/${orgId}/members`).set('Cookie', orgAdmin.cookie)
+      .send({ email: orgMember.email, role: 'member' });
+
+    const teamRes = await request(app).post('/api/teams').set('Cookie', orgAdmin.cookie).send({ name: 'EPIC011-Playbooks-Team', organizationId: orgId });
+    teamId = teamRes.body.data._id;
+    await request(app).post(`/api/teams/${teamId}/members`).set('Cookie', orgAdmin.cookie)
+      .send({ email: teamMemberNoOrg.email, role: 'member' });
+  });
+
+  it('erlaubt einem Vereins-Admin, ein vereinsweites Playbook anzulegen', async () => {
+    const res = await request(app)
+      .post('/api/playbooks')
+      .set('Cookie', orgAdmin.cookie)
+      .send({ name: 'Vereinsweite Übungssammlung', organizationId: orgId });
+    expect(res.status).toBe(201);
+    expect(res.body.data.organizationId).toBe(orgId);
+    expect(res.body.data.teamId).toBeNull();
+    playbookId = res.body.data._id;
+  });
+
+  it('lehnt teamId UND organizationId gleichzeitig mit 400 ab', async () => {
+    const res = await request(app)
+      .post('/api/playbooks')
+      .set('Cookie', orgAdmin.cookie)
+      .send({ name: 'Ungültig', teamId, organizationId: orgId });
+    expect(res.status).toBe(400);
+  });
+
+  it('lehnt ein einfaches Vereinsmitglied (kein Admin) beim Anlegen mit 404 ab', async () => {
+    const res = await request(app)
+      .post('/api/playbooks')
+      .set('Cookie', orgMember.cookie)
+      .send({ name: 'Sollte nicht klappen', organizationId: orgId });
+    expect(res.status).toBe(404);
+  });
+
+  it('macht das vereinsweite Playbook für ein Team-Mitglied eines Vereins-Teams sichtbar, auch ohne eigene organization_members-Zeile', async () => {
+    const listRes = await request(app).get('/api/playbooks').set('Cookie', teamMemberNoOrg.cookie);
+    expect(listRes.status).toBe(200);
+    expect(listRes.body.data.some((p) => p._id === playbookId)).toBe(true);
+
+    const getRes = await request(app).get(`/api/playbooks/${playbookId}`).set('Cookie', teamMemberNoOrg.cookie);
+    expect(getRes.status).toBe(200);
+  });
+
+  it('macht das vereinsweite Playbook für ein einfaches organization_members-Mitglied ohne Team sichtbar', async () => {
+    const res = await request(app).get(`/api/playbooks/${playbookId}`).set('Cookie', orgMember.cookie);
+    expect(res.status).toBe(200);
+  });
+
+  it('bleibt für einen Fremden ohne jede Beziehung zum Verein unsichtbar (404)', async () => {
+    const res = await request(app).get(`/api/playbooks/${playbookId}`).set('Cookie', stranger.cookie);
+    expect(res.status).toBe(404);
+  });
+
+  it('lehnt das Umbenennen durch ein Team-Mitglied (kein Vereins-Admin) mit 404 ab – Team-Coach-Recht reicht hier nicht', async () => {
+    const res = await request(app)
+      .put(`/api/playbooks/${playbookId}`)
+      .set('Cookie', teamMemberNoOrg.cookie)
+      .send({ name: 'Sollte nicht klappen' });
+    expect(res.status).toBe(404);
+  });
+
+  it('erlaubt dem Vereins-Admin das Umbenennen', async () => {
+    const res = await request(app)
+      .put(`/api/playbooks/${playbookId}`)
+      .set('Cookie', orgAdmin.cookie)
+      .send({ name: 'Umbenannt' });
+    expect(res.status).toBe(200);
+    expect(res.body.data.name).toBe('Umbenannt');
+  });
+});

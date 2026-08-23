@@ -41,8 +41,12 @@ export function useAiApi() {
   const generateKnowledgeAnswer = useCallback((params) =>
     request(() => apiFetch(`${BASE}/knowledge-query`, { method: 'POST', body: JSON.stringify(params) })), [request]);
 
+  // Statistik-Architektur Phase 9 (Spiel-Insights)
+  const generateGameInsights = useCallback((params) =>
+    request(() => apiFetch(`${BASE}/game-insights`, { method: 'POST', body: JSON.stringify(params) })), [request]);
+
   return {
     loading, error, fetchStatus, generateTrainingPlan, generateTacticSuggestion, generateAnalysis,
-    generateKnowledgeAnswer,
+    generateKnowledgeAnswer, generateGameInsights,
   };
 }

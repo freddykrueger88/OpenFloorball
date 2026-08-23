@@ -614,6 +614,216 @@ Nachteile:
 
 ---
 
+# ADR-0005: Video-Integration – eigene `game_videos`-Tabelle statt `game_id` an `board_videos`
+
+## Datum
+
+2026-08-21
+
+---
+
+## Status
+
+Akzeptiert
+
+---
+
+## Kontext
+
+Phase 6 verbindet Match-Videos mit `game_events` ("Event → Video
+springen", `videoTimestampSeconds` existiert seit Phase 1 als
+vorbereitete, bis dahin ungenutzte Spalte). Board-Videos
+(`board_videos`) und Spiele/Ereignisse (`games`/`game_events`) waren
+bis Phase 6 vollständig getrennte Subsysteme ohne jede Verbindung.
+
+Die Roadmap (`STATISTICS_ANALYTICS_ARCHITECTURE.md`, Abschnitt 11)
+nannte zwei mögliche Wege: `game_id` an `board_videos` anhängen, oder
+eine neue Verknüpfungstabelle. Beide Wege mussten gegen die in
+Abschnitt 5 desselben Dokuments festgehaltenen Muster geprüft werden:
+
+* Vorlagen-Ressourcen (`roster_players`, `lines`, `board_videos`)
+  scopen direkt über `team_id`/`board_id`.
+* Spielbezogene Ressourcen (`game_events`, `game_squad`, `match_lines`)
+  scopen transitiv über `game_id` und nutzen `assertGameRead`/
+  `assertGameWrite`, nicht `assertBoardAccess`.
+
+`board_videos` gehört klar zur ersten Gruppe (Board-Zugriffsmodell:
+Owner + Kollaboratoren mit read/write), Spiel-Videos klar zur
+zweiten (Team-Zugriffsmodell: Owner + Team-Mitglieder mit
+member/coach-Rollen). Diese beiden Zugriffsmodelle sind strukturell
+unterschiedlich genug, dass ein gemeinsamer Controller sie hätte
+verzweigen müssen.
+
+---
+
+## Entscheidung
+
+1. **Neue, eigenständige Tabelle `game_videos`**, strukturell
+   identisch zu `board_videos` (gleiche Spalten: Zeichnungs-Überlagerung,
+   Trim-Grenzen, Szenen-Marken, gleiche Disk-Ablage über `VIDEOS_DIR`),
+   aber mit `game_id` statt `board_id` und darüber transitivem
+   Team-Scoping über `assertGameRead`/`assertGameWrite` statt
+   `assertBoardAccess`. Eigener Controller
+   (`gameVideosController.js`), der `videoController.js` bewusst
+   spiegelt statt eine gemeinsame Abstraktion einzuführen – folgt dem
+   bestehenden, in Abschnitt 5 der Architektur-Doku dokumentierten
+   Muster "Zugriffsprüfung pro Controller dupliziert, kein
+   Refactoring nebenbei".
+2. **`game_events.video_id`** (neu, `ON DELETE SET NULL`) referenziert
+   `game_videos(id)` und macht damit erst eindeutig, zu WELCHEM Video
+   ein `video_timestamp_seconds` gehört – ein Spiel kann mehrere
+   Videos haben (z.B. erste/zweite Halbzeit, mehrere Kamerawinkel).
+3. **Ein neuer, bewusst eng begrenzter Endpunkt**
+   `PUT /api/games/:id/events/:eventId/video-link` erlaubt das
+   nachträgliche Setzen/Entfernen NUR von `videoId`/
+   `videoTimestampSeconds` an einem bereits bestehenden Ereignis –
+   eine gezielte Ausnahme vom Grundsatz "kein Edit-Endpunkt für
+   Ereignisse, bei Tippfehler löschen und neu erfassen"
+   (`game_events`-Tabellenkommentar in `db/migrate.js`). Begründung:
+   die Architektur-Doku fordert explizit, dass eine Video-Verknüpfung
+   sowohl live als auch NACHTRÄGLICH beim Video-Review nach dem Spiel
+   möglich sein muss – "löschen und neu erfassen" würde hier
+   bedeuten, ein korrektes Tor-/Strafe-Ereignis zu löschen, nur um
+   einen Video-Link zu ändern. Alle anderen Ereignisfelder
+   (`eventType`, Zuordnung, `outcome`, …) bleiben weiterhin
+   unveränderlich.
+
+---
+
+## Begründung
+
+* Konsistent mit dem bereits etablierten Scoping-Muster für
+  spielbezogene Ressourcen (kein neuer Präzedenzfall).
+* Kein Vermischen zweier unterschiedlicher Zugriffsmodelle in einem
+  Controller.
+* `board_videos` bleibt unverändert (kein Risiko für bestehende
+  Board-Video-Funktionalität).
+* `VideoAnnotationOverlay.jsx` (Zeichnen/Trimmen/Marken) bleibt
+  vollständig wiederverwendbar für Spiel-Videos – die
+  Ereignis-Verknüpfung ist dort ein rein optionaler Zusatz
+  (`linkableEvents`/`onLinkEvent`/`onUnlinkEvent`/`onSeekReady`),
+  Board-Nutzung bleibt unverändert.
+
+---
+
+## Folgen
+
+* Zwei strukturell sehr ähnliche Tabellen/Controller
+  (`board_videos`/`videoController.js` und
+  `game_videos`/`gameVideosController.js`) existieren bewusst
+  parallel statt einer gemeinsamen Abstraktion – etwas Duplikation,
+  aber klar getrennte, unabhängig veränderbare Zugriffsmodelle. Sollte
+  künftig ein drittes Video-Trägerobjekt hinzukommen, ist an dieser
+  Stelle eine Abstraktion neu zu bewerten.
+* `game_events` hat mit `video_id` erstmals eine Fremdschlüssel-Spalte
+  auf eine andere Ressource als `roster_players`/`games` selbst –
+  unproblematisch, da `ON DELETE SET NULL` das Ereignis von der
+  Videodatei entkoppelt hält.
+
+---
+
+# ADR-0006: Custom Events – persönlicher Scope über `user_id`, "Report Builder" ersetzt durch CSV-Export
+
+## Datum
+
+2026-08-22
+
+---
+
+## Status
+
+Akzeptiert
+
+---
+
+## Kontext
+
+Phase 7 sollte laut ursprünglicher Roadmap "Custom-Events-UI (Trainer
+definiert eigene `event_type_definitions`-Zeilen)" und einen "Report
+Builder" liefern. Die Phasenplanungs-Review vom 2026-08-21 hatte den
+Report-Builder-Teil bereits als zu vage/scope-riskant markiert und eine
+Ersetzung durch einen konkret abgegrenzten Export vorgeschlagen; beim
+tatsächlichen Bauen der Custom-Events-UI kam eine zweite, in der Review
+noch nicht erkannte Lücke hinzu: `event_type_definitions.team_id` (seit
+Phase 1) deckt nur team-geteilte Custom-Typen ab. Für persönliche
+(nicht team-geteilte) Nutzer – überall sonst im Repo als "team_id NULL,
+sonst user_id" unterstützt (`roster_players`, `formation_templates`,
+`lines`, `playbooks`, `games`) – gab es keine Möglichkeit, eigene Typen
+anzulegen, ohne sie versehentlich global (für alle Nutzer sichtbar) zu
+machen.
+
+Zusätzlich fiel beim Bauen der `addEvent`-Validierung auf: die
+bestehende Prüfung `SELECT 1 FROM event_type_definitions WHERE key=$1
+AND active=true` prüfte nur Existenz/Aktivierung eines Typs, nicht
+dessen Scope – ein team-eigener oder persönlicher Custom-Typ hätte
+serverseitig auf JEDEM beliebigen Spiel verwendet werden können, nicht
+nur auf einem Spiel desselben Teams/Nutzers.
+
+---
+
+## Entscheidung
+
+1. **Neue Spalte `event_type_definitions.user_id`** (nullable, `ON
+   DELETE CASCADE`), analog zum bestehenden Personal/Team-Muster.
+   Eingebaute Typen haben weiterhin `team_id = NULL, user_id = NULL`.
+2. **Scope-Validierung in `addEvent`** ergänzt: ein Custom-Typ ist nur
+   auf einem Spiel desselben Teams (`team_id` stimmt überein) bzw. bei
+   einem eigenen, nicht team-geteilten Spiel (`user_id` stimmt mit dem
+   anfragenden Nutzer überein) gültig – eingebaute Typen bleiben immer
+   erlaubt.
+3. **`key` wird serverseitig generiert** (`custom_<uuid>`) statt vom
+   Client vorgeschlagen – vermeidet Kollisionen im global über alle
+   Teams/Nutzer geteilten PRIMARY-KEY-Namensraum dieser Tabelle.
+4. **Bewusst schlanke Custom-Typen**: nur Bezeichnung (ein Feld, kein
+   DE/EN-Formular – Nutzerinhalt wird im gesamten Repo nie übersetzt)
+   und optional "braucht Zuordnung". Kein Icon-/Farb-Picker, keine
+   `requires_secondary_player`/`-position`/`-outcome`/`-strength_state`-
+   UI – diese Spalten existieren zwar in der Tabelle, werden aber von
+   keinem bestehenden Frontend-Code gelesen, auch nicht für die 10
+   eingebauten Typen.
+5. **"Report Builder" ersetzt durch zwei CSV-Endpunkte**
+   (`GET /api/export/roster-stats.csv`, `GET /api/export/games.csv`).
+   Bewusst **kein** zusätzlicher JSON-Export: dieselben Daten sind über
+   `GET /api/roster/stats`/`GET /api/games` bereits vollständig
+   maschinenlesbar verfügbar – CLAUDE.md §5.3 (Digitale Souveränität,
+   offene Formate) war damit schon erfüllt. CSV ist der tatsächlich
+   fehlende, in Excel/Sheets direkt nutzbare Mehrwert (siehe
+   "Export ausbauen" in der Wettbewerbs-Analyse,
+   `STATISTICS_ANALYTICS_ARCHITECTURE.md` Abschnitt 7). Kein neues
+   npm-Paket für die CSV-Serialisierung (`utils/csv.js`, ~20 Zeilen,
+   RFC 4180) – unnötige Abhängigkeit für eine derart kleine, stabile
+   Aufgabe (CLAUDE.md §5.4/23).
+
+---
+
+## Begründung
+
+* Konsistent mit dem im gesamten Repo etablierten Personal/Team-Muster
+  statt einer Sonderregel nur für `event_type_definitions`.
+* Schließt eine Dateninkonsistenz-Lücke (fremder Custom-Typ auf
+  falschem Spiel), bevor sie in Produktivdaten sichtbar werden konnte
+  (Feature war zu diesem Zeitpunkt noch nicht ausgeliefert).
+* Ein bewusst kleiner Funktionsumfang für Custom-Typen entspricht der
+  "Custom Events/Tags"-Formulierung der ursprünglichen Roadmap – kein
+  zweites, generalisiertes Schuss-Tracking-Formular ohne belegten
+  Bedarf.
+
+---
+
+## Folgen
+
+* `event_type_definitions` hat jetzt zwei mögliche Scope-Dimensionen
+  (`team_id`, `user_id`) zusätzlich zu `is_builtin` – bei künftigen
+  Änderungen an dieser Tabelle immer beide Fälle bedenken, nicht nur
+  den team-geteilten (der bis Phase 7 der einzig gebaute war).
+* Ein Custom-Typ kann nicht gelöscht werden, sobald er in einem Spiel
+  verwendet wurde (FK-Schutz durch `game_events_event_type_fkey`,
+  bestehend seit ADR-0001) – die UI fängt das ab und deaktiviert
+  stattdessen automatisch (`active = false`), statt den Coach mit einem
+  Sackgassen-Fehler allein zu lassen.
+
+---
+
 # Regel
 
 Architekturentscheidungen werden nicht vergessen.

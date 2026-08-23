@@ -33,7 +33,7 @@ export default function OrganizationPage() {
   const {
     error: orgError,
     fetchOrganization, renameOrganization, deleteOrganization,
-    fetchMembers, inviteMember, updateMemberRole, removeMember, fetchSchedule,
+    fetchMembers, inviteMember, updateMemberRole, removeMember, fetchSchedule, fetchCoaches,
   } = useOrganizations();
   const { teams, fetchTeams, createTeam } = useTeams();
 
@@ -46,6 +46,7 @@ export default function OrganizationPage() {
   const [inviteForm,     setInviteForm    ] = useState({ email: '', role: 'member' });
   const [newTeamName,    setNewTeamName   ] = useState('');
   const [schedule,       setSchedule      ] = useState([]);
+  const [coaches,        setCoaches       ] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -70,6 +71,10 @@ export default function OrganizationPage() {
   useEffect(() => {
     if (isAdmin) fetchSchedule(id).then(setSchedule).catch(() => {});
   }, [isAdmin, fetchSchedule, id]);
+
+  useEffect(() => {
+    if (isAdmin) fetchCoaches(id).then(setCoaches).catch(() => {});
+  }, [isAdmin, fetchCoaches, id]);
 
   const commitName = async () => {
     setEditingName(false);
@@ -299,6 +304,28 @@ export default function OrganizationPage() {
                     <div className={pageStyles.teamRowContent}>
                       <span>{item.date} · {item.teamName} · {item.title}</span>
                       <span className={styles.roleBadge}>{t(`organization.scheduleType.${item.type}`)}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+
+        {isAdmin && (
+          <section className={styles.section}>
+            <h2>{t('organization.coachesHeading')}</h2>
+            <p className={styles.hint}>{t('organization.coachesHint')}</p>
+
+            {coaches.length === 0 ? (
+              <p className={styles.hint}>{t('organization.coachesEmpty')}</p>
+            ) : (
+              <ul className={styles.teamList} role="list">
+                {coaches.map((c) => (
+                  <li key={`${c.teamId}-${c.userId}`} className={styles.teamRow}>
+                    <div className={pageStyles.teamRowContent}>
+                      <span>{c.teamName} · {c.email}</span>
+                      <span className={styles.roleBadge}>{t(`settings.teams.role.${c.role}`)}</span>
                     </div>
                   </li>
                 ))}

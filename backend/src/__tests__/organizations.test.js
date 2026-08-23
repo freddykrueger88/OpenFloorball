@@ -189,6 +189,44 @@ describe('Vereinsweite Termin-Übersicht (EPIC 011)', () => {
   });
 });
 
+describe('"Wer ist wo Trainer" (EPIC 011)', () => {
+  it('Admin sieht owner/coach je Team des Vereins, nicht aber einfache member', async () => {
+    const coachesAdmin = await registerAndLogin('coaches-admin');
+    const teamCoach = await registerAndLogin('coaches-coach');
+    const teamPlayer = await registerAndLogin('coaches-player');
+    const orgRes = await request(app).post('/api/organizations').set('Cookie', coachesAdmin.cookie).send({ name: 'Verein mit Trainern' });
+    const orgId = orgRes.body.data._id;
+
+    const teamA = await request(app).post('/api/teams').set('Cookie', coachesAdmin.cookie).send({ name: '1. Herren', organizationId: orgId });
+    const teamAId = teamA.body.data._id;
+    await request(app).post(`/api/teams/${teamAId}/members`).set('Cookie', coachesAdmin.cookie).send({ email: teamCoach.email, role: 'coach' });
+    await request(app).post(`/api/teams/${teamAId}/members`).set('Cookie', coachesAdmin.cookie).send({ email: teamPlayer.email, role: 'member' });
+
+    const res = await request(app).get(`/api/organizations/${orgId}/coaches`).set('Cookie', coachesAdmin.cookie);
+    expect(res.status).toBe(200);
+    // coachesAdmin selbst ist als Team-Ersteller automatisch 'owner'.
+    const emails = res.body.data.map((c) => c.email);
+    expect(emails).toContain(coachesAdmin.email);
+    expect(emails).toContain(teamCoach.email);
+    expect(emails).not.toContain(teamPlayer.email);
+    expect(res.body.data.find((c) => c.email === teamCoach.email)).toMatchObject({ teamName: '1. Herren', role: 'coach' });
+  });
+
+  it('Nicht-Admin-Mitglied und Fremder bekommen 404', async () => {
+    const coachesAdmin = await registerAndLogin('coaches-admin2');
+    const coachesMember = await registerAndLogin('coaches-member2');
+    const orgRes = await request(app).post('/api/organizations').set('Cookie', coachesAdmin.cookie).send({ name: 'Verein für Coaches-404-Check' });
+    const orgId = orgRes.body.data._id;
+    await request(app).post(`/api/organizations/${orgId}/members`).set('Cookie', coachesAdmin.cookie).send({ email: coachesMember.email });
+
+    const asMember = await request(app).get(`/api/organizations/${orgId}/coaches`).set('Cookie', coachesMember.cookie);
+    expect(asMember.status).toBe(404);
+
+    const asStranger = await request(app).get(`/api/organizations/${orgId}/coaches`).set('Cookie', stranger.cookie);
+    expect(asStranger.status).toBe(404);
+  });
+});
+
 describe('Bugfix: Ersteller-Account-Löschung darf den Verein nicht mitreißen', () => {
   // organizations.created_by ist reine Provenienz, nicht die eigentliche
   // Berechtigung (die läuft über organization_members.role='admin').

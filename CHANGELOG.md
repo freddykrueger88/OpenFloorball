@@ -14,6 +14,75 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- EPIC 011 (Vereinsebene): vereinsweit geteilte Playbooks und
+  Org-Admin-Übersicht "Wer ist wo Trainer" – die beiden zuvor offenen
+  Bausteine dieser Epic. Ein Playbook kann jetzt statt eines einzelnen
+  Teams alternativ einem ganzen Verein zugeordnet werden (nur
+  Vereins-Admins dürfen anlegen; sichtbar für jedes Mitglied
+  irgendeines Teams des Vereins, ohne eigene Vereinsmitgliedschaft
+  nötig). Neue admin-only Übersicht zeigt Cheftrainer/Co-Trainer über
+  alle Teams des Vereins hinweg (`GET /api/organizations/:id/coaches`).
+
+### Added
+- Statistik-Architektur Phase 9 (EPIC 012): Spiel-Insights-Assistent
+  ("KI-Spielanalyse" auf der Spielseite, AI_SYSTEM.md §5.5) – fünfter
+  KI-Assistent, baut auf derselben KI-Provider-Abstraktion wie die
+  bestehenden vier (EPIC 010) auf. Bekommt ausschließlich bereits
+  berechnete Team-Statistiken dieses Spiels (Schuss-/Special-Teams-/
+  Situations-Kennzahlen), keine Rohereignisse, keine Personendaten, und
+  sucht darin nach Mustern/möglichen Trainingsschwerpunkten. "Grundlage
+  anzeigen" macht sichtbar, welche Zahlen tatsächlich an die KI gingen.
+  Damit sind alle 9 Phasen der EPIC-012-Statistik-Architektur
+  umgesetzt (xG v1 bewusst zurückgestellt, siehe Phase 8).
+
+### Added
+- Statistik-Architektur Phase 8 (EPIC 012): Line-Chemie. Neuer Bereich
+  "Line-Chemie (Saison)" auf `/lines` zeigt Zeit-auf-dem-Feld und
+  Torverhältnis je Line über die gesamte Saison statt nur ein einzelnes
+  Spiel – reine Aggregation der bereits bestehenden Formel
+  (`calculateLineStats`), keine neuen Daten nötig. xG v1/Shot Quality
+  bleiben nach einem Datenbasis-Check zurückgestellt (keine ausreichende
+  Schussdaten-Grundlage).
+
+### Added
+- Statistik-Architektur Phase 7 (EPIC 012): Custom Events/Tags + CSV-Export
+  (ADR-0006). Trainer können eigene, kurze Ereignistypen anlegen
+  (team-eigen oder persönlich, z.B. "Konter") und in der Spiel-Zeitleiste
+  taggen – inklusive Video-Verknüpfung wie bei den eingebauten Typen.
+  Auf `/stats` und `/games` lassen sich die Saison-Kennzahlen bzw. die
+  Spieleliste zusätzlich als CSV-Datei exportieren (Excel/Sheets-fähig).
+
+### Added
+- Statistik-Architektur, Phasenplanungs-Review 2026-08-21 (EPIC 012):
+  Vorlagen (Assists) und Punkte. Das Datenfeld dafür existierte bereits
+  seit Phase 1, wurde aber nie über eine UI befüllt – jetzt über "Schuss
+  erfassen" bei eigenem Tor auswählbar (Kader-Spieler außer dem
+  Torschützen selbst). Neue Spalten "Vorlagen"/"Punkte" in der
+  Statistik-Übersicht, im Spieler-Vergleich und auf der Trends-Seite
+  (Last-5/Last-10/Saison). Bewusst nicht beim schnellen "Tor"-Preset,
+  um die Live-Eingabe nicht zu verlangsamen.
+- Statistik-Architektur Phase 6 (EPIC 012): Video-Integration. Bis zu 5
+  Videos direkt an ein Spiel hängbar (neue `game_videos`-Tabelle, ADR-0005
+  in `docs/planning/DECISIONS.md`), mit derselben Zeichnen-/Trimmen-/
+  Marken-Funktionalität wie bei Board-Videos. Zusätzlich lässt sich die
+  aktuelle Videoposition mit einem bereits erfassten Ereignis aus der
+  Spiel-Zeitleiste verknüpfen (live oder nachträglich beim Video-Review)
+  – ein verknüpftes Ereignis springt per Klick zur passenden Stelle im
+  Video.
+
+### Added
+- Statistik-Architektur Phase 5 (EPIC 012): Trainings-Analytics/
+  Spielerentwicklung. Tatsächliche Trainings-Anwesenheit je
+  Kader-Spieler (präsent/entschuldigt/unentschuldigt/verletzt,
+  unabhängig von RSVP) direkt auf der Trainings-Seite erfassbar. Freie,
+  zeitgestempelte Spielerentwicklungsnotizen eines Coaches (nur coach/
+  owner, nie 'member', da personenbezogene Daten über einen Spieler)
+  auf der Trends-Seite eines Spielers. Trainings-Beteiligungsquote
+  (erfasste Trainings/Anwesenheits-%) in der Statistik-Übersicht und
+  als Last-5/Last-10/Saison-Trend, analog zum bestehenden
+  Spiel-Trend-Muster aus Phase 4.
+
+### Added
 - Statistik-Architektur Phase 4 (EPIC 012): Special Teams (Powerplay-%/
   Penalty-Kill-%, abgeleitet aus Strafen + Spieluhr, mit dokumentierten
   Vereinfachungen statt erfundener Präzision, siehe ADR-0004),

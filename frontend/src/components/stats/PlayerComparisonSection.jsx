@@ -9,7 +9,7 @@ import Button from '../common/Button.jsx';
 import styles from './PlayerComparisonSection.module.css';
 
 const METRIC_KEYS = [
-  'goals', 'penaltyMinutes', 'matchPenalties', 'appearances',
+  'goals', 'assists', 'points', 'penaltyMinutes', 'matchPenalties', 'appearances',
   'shots', 'shotPercentage', 'goalsAgainst', 'savePercentage',
 ];
 

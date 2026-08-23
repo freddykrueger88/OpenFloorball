@@ -7,7 +7,7 @@ import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
   getOrganizations, getOrganization, createOrganization, updateOrganization, deleteOrganization,
-  getMembers, inviteMember, updateMemberRole, removeMember, getSchedule,
+  getMembers, inviteMember, updateMemberRole, removeMember, getSchedule, getCoaches,
 } from '../controllers/organizationsController.js';
 
 const router = Router();
@@ -36,5 +36,6 @@ router.put   ('/:id/members/:memberId',    [validateOrgId, validateMemberId, val
 router.delete('/:id/members/:memberId',    [validateOrgId, validateMemberId, validate], removeMember);
 
 router.get   ('/:id/schedule',             [validateOrgId, validate], getSchedule);
+router.get   ('/:id/coaches',              [validateOrgId, validate], getCoaches);
 
 export default router;

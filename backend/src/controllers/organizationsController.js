@@ -46,6 +46,16 @@ function toDateString(date) {
   return `${y}-${m}-${d}`;
 }
 
+function toApiCoachEntry(row) {
+  return {
+    teamId:   row.team_id,
+    teamName: row.team_name,
+    userId:   row.user_id,
+    email:    row.email,
+    role:     row.role,
+  };
+}
+
 function toApiScheduleItem(row) {
   return {
     _id:      row.id,
@@ -319,6 +329,36 @@ export async function getSchedule(req, res) {
     res.json(success(result.rows.map(toApiScheduleItem)));
   } catch (err) {
     logger.error('[getSchedule]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// GET /api/organizations/:id/coaches – "Wer ist wo Trainer" (EPIC 011
+// "Vereinsebene als Koordinationsschicht", offener Punkt aus der
+// Ausgangslage). Admin-only, rein lesend, wie getSchedule – zeigt für
+// jedes Team des Vereins dessen owner/coach-Mitglieder (nicht 'member',
+// das wäre reine Spieler-/Zuschauerrolle und für die Koordinationsfrage
+// "wer trainiert wo" nicht relevant). Kein neuer Bearbeitungsweg an
+// fremden Teams – identisch zum bereits akzeptierten Muster von
+// getSchedule.
+export async function getCoaches(req, res) {
+  try {
+    const role = await getOrgRole(req.params.id, req.user.id);
+    if (role !== 'admin') {
+      return res.status(404).json(error('Verein nicht gefunden'));
+    }
+    const result = await pool.query(
+      `SELECT t.id AS team_id, t.name AS team_name, tm.user_id, tm.role, u.email
+       FROM teams t
+       JOIN team_members tm ON tm.team_id = t.id
+       JOIN users u ON u.id = tm.user_id
+       WHERE t.organization_id = $1 AND tm.role IN ('owner', 'coach')
+       ORDER BY t.name ASC, tm.role ASC, u.email ASC`,
+      [req.params.id]
+    );
+    res.json(success(result.rows.map(toApiCoachEntry)));
+  } catch (err) {
+    logger.error('[getCoaches]', err);
     res.status(500).json(error('Interner Serverfehler'));
   }
 }

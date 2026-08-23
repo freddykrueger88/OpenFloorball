@@ -155,6 +155,60 @@ describe('GET /api/games/:id/match-lines/stats', () => {
   });
 });
 
+describe('GET /api/lines/season-stats (Statistik-Architektur Phase 8: Line-Chemie)', () => {
+  it('aggregiert Line-Statistiken über mehrere Spiele hinweg', async () => {
+    const game1Res = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Season-Test-1', teamId });
+    const game1Id = game1Res.body.data._id;
+    const game2Res = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Season-Test-2', teamId });
+    const game2Id = game2Res.body.data._id;
+
+    // Spiel 1: Line A aktiv, ein eigenes Tor, danach Line B (schließt A).
+    await request(app).post(`/api/games/${game1Id}/match-lines`).set('Cookie', owner.cookie).send({ lineId: lineA });
+    await request(app).post(`/api/games/${game1Id}/events`).set('Cookie', owner.cookie).send({ eventType: 'goal' });
+    await request(app).post(`/api/games/${game1Id}/match-lines`).set('Cookie', owner.cookie).send({ lineId: lineB });
+
+    // Spiel 2: erneut Line A, ein Gegentor, danach Line B (schließt A).
+    await request(app).post(`/api/games/${game2Id}/match-lines`).set('Cookie', owner.cookie).send({ lineId: lineA });
+    await request(app).post(`/api/games/${game2Id}/events`).set('Cookie', owner.cookie).send({ eventType: 'goal', isOpponent: true });
+    await request(app).post(`/api/games/${game2Id}/match-lines`).set('Cookie', owner.cookie).send({ lineId: lineB });
+
+    const res = await request(app).get('/api/lines/season-stats').set('Cookie', owner.cookie);
+    expect(res.status).toBe(200);
+    const lineAStats = res.body.data.find((l) => l.lineId === lineA);
+    expect(lineAStats.goalsFor).toBe(1);
+    expect(lineAStats.goalsAgainst).toBe(1);
+    // totalSeconds ist bekannt, weil beide neuen Zeilen hier durch Line B
+    // abgelöst (geschlossen) wurden – hasOpenShift wird NICHT auf false
+    // geprüft, da lineA aus einem früheren Test in dieser Datei
+    // (GET .../match-lines/stats) noch eine separate, absichtlich offen
+    // gelassene Zeile in einem anderen Spiel hat; calculateLineStats
+    // gruppiert über ALLE Spiele hinweg, das ist hier korrektes Verhalten.
+    expect(lineAStats.totalSeconds).not.toBeNull();
+  });
+
+  it('lässt eine noch offene Zeile aus einem laufenden Spiel bewusst unberücksichtigt ("unbekannt ≠ 0")', async () => {
+    const openGameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Season-Open-Test', teamId });
+    const openGameId = openGameRes.body.data._id;
+    const openLine = await createLine(owner.cookie, 'Offene-Season-Line', teamId);
+
+    await request(app).post(`/api/games/${openGameId}/match-lines`).set('Cookie', owner.cookie).send({ lineId: openLine });
+    await request(app).post(`/api/games/${openGameId}/events`).set('Cookie', owner.cookie).send({ eventType: 'goal' });
+    // Bewusst NICHT geschlossen (keine zweite Line aktiviert).
+
+    const res = await request(app).get('/api/lines/season-stats').set('Cookie', owner.cookie);
+    const stats = res.body.data.find((l) => l.lineId === openLine);
+    expect(stats.totalSeconds).toBeNull();
+    expect(stats.goalsFor).toBe(0); // Tor während der offenen Zeile zählt hier bewusst nicht
+    expect(stats.hasOpenShift).toBe(true);
+  });
+
+  it('lehnt einen Fremden mit leerer Liste statt fremden Daten ab', async () => {
+    const res = await request(app).get('/api/lines/season-stats').set('Cookie', stranger.cookie);
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual([]);
+  });
+});
+
 describe('Cascade-Aufräumen', () => {
   it('löscht match_lines-Zeilen, wenn das Spiel gelöscht wird', async () => {
     const tempGameRes = await request(app).post('/api/games').set('Cookie', owner.cookie).send({ opponent: 'Cascade-Test', teamId });

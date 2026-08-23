@@ -46,13 +46,27 @@ Das heißt:
 - Das Gesamt-Kontingent an Trainingseinheiten pro Nutzer liegt bei
   200 (auch für Serien).
 
-## Anwesenheit (RSVP)
+## Zusage vor dem Termin (RSVP)
 
 Bei einer team-geteilten Trainingseinheit erscheint über den
 Kommentaren ein "Anwesenheit"-Bereich – identisch zum RSVP-Bereich auf
 der [Spielseite](./Live-Spielnotizen.md#anwesenheit-rsvp): jedes
 Team-Mitglied sieht die volle Team-Liste und antwortet für sich selbst
 mit Zusage/Absage/Unsicher, optional mit Absagegrund.
+
+## Tatsächliche Anwesenheit
+
+Unabhängig von der RSVP-Zusage (die nur eine Selbstauskunft VOR dem
+Termin ist) kann der Coach direkt auf der Trainingsseite für jeden
+Kader-Spieler festhalten, wer tatsächlich da war: **Anwesend**,
+**Entschuldigt**, **Unentschuldigt** oder **Verletzt**. Ein Klick auf
+den jeweiligen Status setzt ihn, ein weiterer Klick auf das
+Zurücksetzen-Symbol macht ihn wieder rückgängig ("nicht erfasst").
+
+Diese Anwesenheit fließt in die [Spieler-Statistiken](./Statistiken.md)
+ein (Beteiligungsquote, Last-5/Last-10/Saison-Trend) – die RSVP-Zusage
+selbst wird dort nicht ausgewertet, da sie nur eine Absicht, keine
+belegte Anwesenheit ist.
 
 ## Verwandt
 

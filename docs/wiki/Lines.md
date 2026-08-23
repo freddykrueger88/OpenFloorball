@@ -53,6 +53,18 @@ Zusätzlich entsteht dabei ein strukturierter Datensatz, aus dem die
 zusammen, Torverhältnis je Line) berechnet werden – die Taktik-Vorlage
 selbst (`is_active` oben) bleibt davon unberührt.
 
+## Line-Chemie (Saison)
+
+Direkt auf `/lines` zeigt der Bereich "Line-Chemie (Saison)" dieselben
+Kennzahlen wie die [Line-Statistiken](./Live-Spielnotizen.md#line-statistiken)
+auf der Spielseite, aber über **alle Spiele hinweg aggregiert** – so
+lässt sich erkennen, welche Line über die ganze Saison betrachtet am
+erfolgreichsten war, nicht nur in einem einzelnen Spiel. Sortiert nach
+Tordifferenz. Eine gerade laufende (noch nicht durch einen Wechsel
+abgeschlossene) Zeit-auf-dem-Feld-Phase in einem aktuell laufenden
+Spiel fließt bewusst nicht ein – erst nach dem nächsten Linienwechsel
+zählt sie mit, damit die Saison-Zahl nicht vom Abrufzeitpunkt abhängt.
+
 ## Im Board-Editor
 
 Im Board-Editor gibt es zwischen "Zeichnen" und "Formationen" ebenfalls

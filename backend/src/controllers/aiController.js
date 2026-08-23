@@ -8,11 +8,16 @@
  */
 import { getAiProvider } from '../services/ai/aiProvider.js';
 import {
-  renderTrainingPrompt, renderTacticsPrompt, renderAnalysisPrompt, renderKnowledgePrompt,
+  renderTrainingPrompt, renderTacticsPrompt, renderAnalysisPrompt, renderKnowledgePrompt, renderInsightsPrompt,
 } from '../services/ai/promptLoader.js';
 import { findRelevantItems } from '../services/ai/knowledgeRetrieval.js';
 import { success, error } from '../utils/apiResponse.js';
 import logger from '../utils/logger.js';
+import pool from '../db/pool.js';
+import { assertGameRead } from './gamesController.js';
+import {
+  calculateMatchScore, calculateShotStats, calculateSpecialTeamsStats, calculateSituationalStats,
+} from '../services/statisticsEngine.js';
 
 const SYSTEM_PROMPT = 'Du folgst den Anweisungen und Regeln aus der folgenden Vorlage exakt.';
 const AI_DISCLAIMER = 'Von KI generiert – bitte vor dem Einsatz prüfen und anpassen.';
@@ -109,6 +114,99 @@ export async function generateAnalysis(req, res) {
     }));
   } catch (err) {
     logger.error('[generateAnalysis]', err);
+    res.status(502).json(error('KI-Anbieter konnte keinen Vorschlag liefern, bitte später erneut versuchen'));
+  }
+}
+
+// formatStatsSummary – wandelt die bereits an anderer Stelle berechneten,
+// zentralen Kennzahlen (statisticsEngine.js, dieselben Funktionen wie
+// ShotStatsSection/SpecialTeamsStatsSection/SituationalStatsSection im
+// Frontend) in einen lesbaren deutschen Textblock für den Prompt um.
+// Bewusst NUR Team-Aggregate, keine roster_player_id/Namen – siehe
+// prompts/insights.md Sicherheitsregeln. "Unbekannt ≠ 0": eine Sektion
+// ohne Datengrundlage wird explizit als solche benannt statt 0%/leere
+// Werte zu zeigen, die die KI sonst als echtes Muster fehldeuten könnte.
+export function formatStatsSummary(events, periodMinutes) {
+  const shot = calculateShotStats(events);
+  const special = calculateSpecialTeamsStats(events, { periodMinutes });
+  const situational = calculateSituationalStats(events);
+
+  const lines = [];
+
+  lines.push('Schuss-Statistiken:');
+  if (shot.shots === 0) {
+    lines.push('- Kein Schuss-Tracking für dieses Spiel erfasst.');
+  } else {
+    lines.push(`- Schüsse gesamt: ${shot.shots} (${shot.shotsOnGoal} aufs Tor, ${shot.goals} Tore, ${shot.saves} gehalten, ${shot.misses} verfehlt, ${shot.blocks} geblockt)`);
+    lines.push(`- Schuss-%: ${shot.shotPercentage ?? 'unbekannt (keine Schüsse aufs Tor)'}`);
+    if (shot.byZone.length > 0) {
+      const zoneText = shot.byZone.map((z) => `${z.zone ?? 'unbekannte Zone'} (${z.shots} Schüsse, ${z.goals} Tore)`).join(', ');
+      lines.push(`- Nach Zone: ${zoneText}`);
+    }
+  }
+
+  lines.push('');
+  lines.push('Special Teams:');
+  if (special.powerPlay.opportunities === 0 && special.penaltyKill.opportunities === 0) {
+    lines.push('- Keine Powerplay-/Unterzahl-Situationen in diesem Spiel.');
+  } else {
+    lines.push(`- Powerplay: ${special.powerPlay.opportunities} Gelegenheiten, ${special.powerPlay.goals} Tore (${special.powerPlay.percentage ?? 'unbekannt'}%)`);
+    lines.push(`- Penalty Kill: ${special.penaltyKill.opportunities} Gelegenheiten, ${special.penaltyKill.goalsAgainst} Gegentore (${special.penaltyKill.percentage ?? 'unbekannt'}% gehalten)`);
+  }
+
+  lines.push('');
+  lines.push('Nach Spielstand (Ereignisse, während dieser Zustand galt):');
+  for (const bucket of situational.byScoreState) {
+    const stateLabel = { leading: 'In Führung', trailing: 'Im Rückstand', tied: 'Unentschieden' }[bucket.scoreState];
+    lines.push(`- ${stateLabel}: ${bucket.ownGoals} eigene Tore, ${bucket.opponentGoals} Gegentore, ${bucket.shots} Schüsse (Schuss-% ${bucket.shotPercentage ?? 'unbekannt'})`);
+  }
+
+  return lines.join('\n');
+}
+
+// POST /api/ai/game-insights – Statistik-Architektur Phase 9 (KI/ML-
+// Grundlagen, "Pattern Detection, automatische Spiel-Insights").
+// Wiederverwendet bewusst dieselbe KI-Provider-Abstraktion wie die
+// anderen drei Entwurfs-Assistenten (EPIC 010) statt einer neuen
+// KI-Anbindung – siehe Phasenplanungs-Review 2026-08-21 in
+// docs/planning/BACKLOG.md. Eingabe sind ausschließlich bereits
+// berechnete Team-Aggregate aus statisticsEngine.js, keine Rohereignisse
+// und keine Personendaten (siehe formatStatsSummary/prompts/insights.md).
+export async function generateGameInsights(req, res) {
+  try {
+    const provider = await getAiProvider();
+    if (!provider) {
+      return res.status(503).json(error('KI-Assistent ist auf dieser Instanz nicht konfiguriert'));
+    }
+
+    const { gameId } = req.body;
+    if (!(await assertGameRead(gameId, req.user.id))) {
+      return res.status(404).json(error('Spiel nicht gefunden'));
+    }
+
+    const gameResult = await pool.query('SELECT opponent, clock_period_minutes FROM games WHERE id = $1', [gameId]);
+    const game = gameResult.rows[0];
+    const eventsResult = await pool.query('SELECT * FROM game_events WHERE game_id = $1', [gameId]);
+    const events = eventsResult.rows;
+
+    const { ownGoals, opponentGoals } = calculateMatchScore(events);
+    const statsSummary = formatStatsSummary(events, game.clock_period_minutes ?? 20);
+    const userPrompt = renderInsightsPrompt({
+      opponent: game.opponent?.trim() || 'unbekannt',
+      finalScore: `${ownGoals} : ${opponentGoals}`,
+      statsSummary,
+    });
+
+    const { text, model } = await provider.generate({ systemPrompt: SYSTEM_PROMPT, userPrompt });
+    res.json(success({
+      insightsText: text,
+      statsSummary,
+      model,
+      generatedAt: new Date().toISOString(),
+      disclaimer: 'Von KI generiert – bitte vor dem Einsatz prüfen und anpassen.',
+    }));
+  } catch (err) {
+    logger.error('[generateGameInsights]', err);
     res.status(502).json(error('KI-Anbieter konnte keinen Vorschlag liefern, bitte später erneut versuchen'));
   }
 }

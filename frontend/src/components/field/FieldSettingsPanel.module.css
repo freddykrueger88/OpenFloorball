@@ -42,3 +42,16 @@
   font-size: var(--text-sm);
   cursor: pointer;
 }
+
+.positionGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.positionLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}

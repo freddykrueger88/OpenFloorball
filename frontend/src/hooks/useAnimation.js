@@ -27,7 +27,10 @@ function interpolatePlayers(fromPlayers = [], toPlayers = [], t) {
   return fromPlayers.map((p) => {
     const target = toMap.get(p.id);
     if (!target) return p; // Spieler existiert im Ziel-Frame nicht → unverändert
-    return { ...p, x: lerp(p.x, target.x, t), y: lerp(p.y, target.y, t) };
+    // Sichtbarkeit (Issue 025) wird wie Zeichen-Elemente hart auf den
+    // Zielwert umgeschaltet statt über t interpoliert – ein Boolean lässt
+    // sich nicht weich tweenen.
+    return { ...p, x: lerp(p.x, target.x, t), y: lerp(p.y, target.y, t), visible: target.visible !== false };
   });
 }
 

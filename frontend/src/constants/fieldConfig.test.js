@@ -37,4 +37,19 @@ describe('buildDefaultPlayers', () => {
       expect(balls).toHaveLength(1);
     }
   });
+
+  it('enthält standardmäßig auch die gegnerische Aufstellung', () => {
+    const players = buildDefaultPlayers('large');
+    expect(players.some((p) => p.team === 'away')).toBe(true);
+  });
+
+  // Issue 025: neue Boards sollen nur die eigene Mannschaft zeigen.
+  it('lässt die gegnerische Aufstellung bei includeAway:false weg', () => {
+    for (const fieldType of ['large', 'small', 'street', '3v3']) {
+      const players = buildDefaultPlayers(fieldType, { includeAway: false });
+      expect(players.some((p) => p.team === 'away')).toBe(false);
+      expect(players.some((p) => p.team === 'home')).toBe(true);
+      expect(players.some((p) => p.team === 'ball')).toBe(true);
+    }
+  });
 });

@@ -8,7 +8,7 @@
  * Verhaltens-Einstellungen.
  */
 import { useTranslation } from 'react-i18next';
-import { Lightbulb, Handshake } from 'lucide-react';
+import { Lightbulb, Handshake, Eye } from 'lucide-react';
 import FieldNamesBar from './FieldNamesBar.jsx';
 import Button from '../common/Button.jsx';
 import styles from './FieldSettingsPanel.module.css';
@@ -25,8 +25,13 @@ export default function FieldSettingsPanel({
   onRequestFieldTypeChange,
   onOpenShare,
   showShareButton,
+  players = [],
+  onToggleVisibility,
 }) {
   const { t } = useTranslation();
+  // Issue 025: Übersicht zum gezielten Wiedereinblenden – nur sichtbar,
+  // wenn es überhaupt ausgeblendete Spieler gibt (kein leerer Abschnitt).
+  const hiddenPlayers = players.filter((p) => p.team !== 'ball' && p.visible === false);
 
   return (
     <section className={styles.panel} aria-label={t('boardEditor.tabs.settings')}>
@@ -71,6 +76,28 @@ export default function FieldSettingsPanel({
           <Handshake size={16} aria-hidden="true" />
           <span>{t('boardShare.openLabel')}</span>
         </Button>
+      )}
+
+      {hiddenPlayers.length > 0 && (
+        <div className={styles.positionGroup} role="group" aria-label={t('field.hiddenPlayersLabel')}>
+          <span className={styles.positionLabel}>{t('field.hiddenPlayersLabel')}:</span>
+          {hiddenPlayers.map((p) => {
+            const label = `${p.role}${p.name ? ` – ${p.name}` : ''} (${p.team === 'home' ? t('teams.home') : t('teams.away')})`;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                className={styles.toggleBtn}
+                onClick={() => onToggleVisibility?.(p.id)}
+                aria-label={t('field.showPlayerAriaLabel', { name: label })}
+                title={t('field.showPlayerTitle')}
+              >
+                <Eye size={16} aria-hidden="true" />
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </div>
       )}
     </section>
   );

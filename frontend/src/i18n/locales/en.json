@@ -54,7 +54,14 @@
     "namePlaceholder": "Enter name…",
     "resetPositionTitle": "Reset player to starting position",
     "resetPosition": "Reset position",
-    "ballLabel": "Ball"
+    "ballLabel": "Ball",
+    "hidePlayer": "Hide",
+    "hidePlayerTitle": "Hide this player on the field",
+    "showPlayer": "Show",
+    "showPlayerTitle": "Show this player again",
+    "showPlayerAriaLabel": "Show {{name}} again",
+    "hiddenPlayersLabel": "Hidden players",
+    "hiddenSuffix": "(hidden)"
   },
   "teams": {
     "home": "Home Team",

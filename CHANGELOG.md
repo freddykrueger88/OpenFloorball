@@ -13,6 +13,16 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Changed
+- Issue 025: Neue Boards zeigen standardmäßig nur noch die eigene
+  Mannschaft + Ball, keine automatische gegnerische Aufstellung mehr
+  (die meisten Taktiken – Spielaufbau, Systeme, Trainingsformen –
+  betreffen zunächst nur das eigene Team, eine volle gegnerische
+  Aufstellung war unnötiges Rauschen). Stattdessen lässt sich jeder
+  Spieler (eigenes wie gegnerisches Team) einzeln ein-/ausblenden,
+  über den Spieler-Info-Panel-Button oder gesammelt im
+  Einstellungen-Tab ("Ausgeblendete Spieler").
+
 ### Added
 - Strukturierte Gegner-Entität (ADR-0007): Spiele gegen denselben
   Gegner werden jetzt automatisch verknüpft (per Name, team- bzw.

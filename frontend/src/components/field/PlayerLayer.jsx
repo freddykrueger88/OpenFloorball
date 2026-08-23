@@ -58,6 +58,10 @@ export default function PlayerLayer({
             />
           );
         }
+        // Issue 025: Sichtbarkeit pro Spieler – fehlendes Feld gilt als
+        // sichtbar (bestehende Boards ohne dieses Feld unverändert).
+        if (p.visible === false) return null;
+
         const color = p.team === 'home' ? homeColor : awayColor;
         return (
           <PlayerToken

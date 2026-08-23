@@ -3,13 +3,13 @@
  * Erscheint rechts/unten neben dem Feld
  */
 import { useTranslation } from 'react-i18next';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { POSITION_HINTS } from '../../constants/positionHints.js';
 import Button from '../common/Button.jsx';
 import styles from './PlayerInfoPanel.module.css';
 
 export default function PlayerInfoPanel({
-  player, onClose, onReset, onNameChange, rosterPlayers, onAssignRoster,
+  player, onClose, onReset, onNameChange, onToggleVisibility, rosterPlayers, onAssignRoster,
 }) {
   const { t, i18n } = useTranslation();
 
@@ -97,6 +97,18 @@ export default function PlayerInfoPanel({
           title={t('field.resetPositionTitle')}
         >
           <RefreshCw size={16} aria-hidden="true" /> {t('field.resetPosition')}
+        </Button>
+        {/* Issue 025: Sichtbarkeit pro Spieler statt nur pauschal "Gegner an/aus" */}
+        <Button
+          variant="secondary"
+          size="md"
+          className={styles.resetBtn}
+          onClick={() => onToggleVisibility?.(player.id)}
+          title={player.visible === false ? t('field.showPlayerTitle') : t('field.hidePlayerTitle')}
+        >
+          {player.visible === false
+            ? <><Eye size={16} aria-hidden="true" /> {t('field.showPlayer')}</>
+            : <><EyeOff size={16} aria-hidden="true" /> {t('field.hidePlayer')}</>}
         </Button>
       </div>
     </aside>

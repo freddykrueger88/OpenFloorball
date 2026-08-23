@@ -52,9 +52,10 @@ describe('Board CRUD', () => {
       .set('Cookie', userA.cookie);
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
-    expect(res.body.data[0].players).toHaveLength(13); // Großfeld: 6 Heim + 6 Auswärts + Ball
+    // Issue 025: nur noch die eigene Mannschaft + Ball, kein Auswärts-Team automatisch.
+    expect(res.body.data[0].players).toHaveLength(7); // Großfeld: 6 Heim + Ball
     expect(res.body.data[0].players.some((p) => p.team === 'home' && p.role === 'TW')).toBe(true);
-    expect(res.body.data[0].players.some((p) => p.team === 'away' && p.role === 'TW')).toBe(true);
+    expect(res.body.data[0].players.some((p) => p.team === 'away')).toBe(false);
   });
 
   it('platziert im ersten Frame einen beweglichen Ball am Feldmittelpunkt (ROADMAP-Backlog)', async () => {
@@ -76,7 +77,7 @@ describe('Board CRUD', () => {
       .get(`/api/boards/${createRes.body.data._id}/frames`)
       .set('Cookie', userA.cookie);
     expect(framesRes.body.data).toHaveLength(1);
-    expect(framesRes.body.data[0].players).toHaveLength(9); // Kleinfeld: 4 Heim + 4 Auswärts + Ball
+    expect(framesRes.body.data[0].players).toHaveLength(5); // Kleinfeld: 4 Heim + Ball, kein Auswärts
 
     await request(app).delete(`/api/boards/${createRes.body.data._id}`).set('Cookie', userA.cookie);
   });

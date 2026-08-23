@@ -186,13 +186,17 @@ const DEFAULT_POSITIONS_BY_FIELD = {
 };
 
 /**
- * Baut das Standard-Spieler-Array (home+away) für einen Feldtyp auf –
- * genutzt beim Anlegen des ersten Frames eines neuen Boards.
+ * Baut das Standard-Spieler-Array (home, optional +away) für einen
+ * Feldtyp auf – genutzt beim Anlegen des ersten Frames eines neuen
+ * Boards. `includeAway` (Issue 025) steuert, ob die gegnerische
+ * Aufstellung mit aufgenommen wird – Default `true`, damit bestehende
+ * Aufrufer (Einzelspieler-Reset-Lookup gegen vorhandene Away-Ids)
+ * unverändert funktionieren; neue Boards rufen explizit mit `false`.
  */
-export function buildDefaultPlayers(fieldType) {
+export function buildDefaultPlayers(fieldType, { includeAway = true } = {}) {
   const positions = DEFAULT_POSITIONS_BY_FIELD[fieldType] ?? DEFAULT_POSITIONS_BY_FIELD.large;
   const home = (positions.home ?? []).map((p) => ({ ...p, team: 'home' }));
-  const away = (positions.away ?? []).map((p) => ({ ...p, team: 'away' }));
+  const away = includeAway ? (positions.away ?? []).map((p) => ({ ...p, team: 'away' })) : [];
   return ensureBall([...home, ...away], fieldType);
 }
 

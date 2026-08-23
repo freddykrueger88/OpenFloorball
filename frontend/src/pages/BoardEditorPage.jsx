@@ -235,6 +235,15 @@ export default function BoardEditorPage() {
     drawing.setPlayersRaw((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)));
   }, [drawing]);
 
+  // Issue 025: Sichtbarkeit pro Spieler statt nur pauschal "Gegner an/aus".
+  // Fehlendes visible-Feld gilt als sichtbar (p.visible !== false), damit
+  // bestehende Boards ohne dieses Feld unverändert aussehen.
+  const handleToggleVisibility = useCallback((id) => {
+    drawing.setPlayersRaw((prev) => prev.map((p) => (
+      p.id === id ? { ...p, visible: p.visible === false ? true : false } : p
+    )));
+  }, [drawing]);
+
   // Issue #53 – Spieler direkt aus dem zentralen Kader zuweisen (Name +
   // Rückennummer), rein optional, ersetzt nicht die freie Eingabe
   const handleAssignRoster = useCallback((id, rosterPlayer) => {
@@ -706,6 +715,7 @@ export default function BoardEditorPage() {
                   onClose={() => handleSelectPlayer(null)}
                   onReset={handleResetPlayerPosition}
                   onNameChange={handleNameChange}
+                  onToggleVisibility={handleToggleVisibility}
                   rosterPlayers={roster.rosterPlayers}
                   onAssignRoster={handleAssignRoster}
                 />
@@ -852,6 +862,8 @@ export default function BoardEditorPage() {
                   onRequestFieldTypeChange={canEdit ? handleRequestFieldTypeChange : undefined}
                   onOpenShare={() => setShowShareModal(true)}
                   showShareButton={board?.accessLevel === 'owner'}
+                  players={drawing.players}
+                  onToggleVisibility={handleToggleVisibility}
                 />
               ),
             },

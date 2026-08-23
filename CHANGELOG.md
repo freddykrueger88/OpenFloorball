@@ -13,6 +13,16 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- Issue 027 (Phase 1, erster Schritt): Schwedisch als dritte Sprache
+  (`sv`) – bislang ein KI-generierter Rohentwurf, noch ohne
+  muttersprachliche Prüfung. Außerdem neue Übersetzungs-Infrastruktur
+  für die Community: [docs/TRANSLATING.md](docs/TRANSLATING.md)
+  (Schritt-für-Schritt-Anleitung, Fachbegriff-Glossar), ein
+  GitHub-Issue-Template "🌍 Übersetzung beitragen", und
+  `locales.test.js` prüft jetzt automatisch jede registrierte Sprache
+  auf fehlende/leere Schlüssel statt nur de/en fest zu verdrahten.
+
 ### Changed
 - Issue 025: Neue Boards zeigen standardmäßig nur noch die eigene
   Mannschaft + Ball, keine automatische gegnerische Aufstellung mehr

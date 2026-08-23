@@ -42,6 +42,11 @@ Repository und werden dort kontinuierlich aktualisiert:
 Phase 1 (erweiterbares Event-Modell) noch nicht umgesetzt.
 
 **Feature-Ideen:**
+- Europaweite Sprachunterstützung (Backlog-ISSUE 027) – Oberfläche
+  bisher nur Deutsch/Englisch; Phase 1 priorisiert die floorball-
+  stärksten Nationen außerhalb DACH (Schwedisch, Finnisch, Tschechisch,
+  Slowakisch), jede Übersetzung braucht muttersprachliches Review vor
+  Merge.
 - Native App-Store-Präsenz (Google Play + Apple App Store) – App ist
   schon eine installierbare PWA (vite-plugin-pwa), naheliegender Weg
   wäre ein Wrapper wie Capacitor/Trusted Web Activity statt einer

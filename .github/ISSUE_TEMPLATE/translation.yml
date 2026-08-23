@@ -1,0 +1,55 @@
+name: "🌍 Übersetzung beitragen"
+description: "Eine neue Sprache übernehmen oder eine bestehende Übersetzung korrigieren"
+title: "[Übersetzung] "
+labels: ["i18n", "help wanted"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🌍 Übersetzung beitragen
+        Danke, dass du OpenFloorball in eine weitere Sprache bringen willst!
+        Die Schritt-für-Schritt-Anleitung samt Fachbegriff-Hinweisen steht
+        in [`docs/TRANSLATING.md`](https://github.com/freddykrueger88/OpenFloorball/blob/main/docs/TRANSLATING.md).
+  - type: input
+    id: language
+    attributes:
+      label: "Sprache"
+      placeholder: "z. B. Finnisch (fi), Tschechisch (cs), Slowakisch (sk)"
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: "Art des Beitrags"
+      options:
+        - "Neue Sprache von Grund auf"
+        - "Bestehenden KI-Entwurf muttersprachlich prüfen/korrigieren (z. B. sv.json)"
+        - "Korrektur/Verbesserung an einer bereits gemergten Sprache"
+    validations:
+      required: true
+  - type: dropdown
+    id: native
+    attributes:
+      label: "Bist du Muttersprachler:in dieser Sprache?"
+      options:
+        - "Ja"
+        - "Nein, aber ich habe Zugriff auf muttersprachliche Prüfung"
+        - "Nein"
+    validations:
+      required: true
+  - type: dropdown
+    id: floorball
+    attributes:
+      label: "Floorball-Bezug"
+      options:
+        - "Aktive:r Spieler:in"
+        - "Trainer:in"
+        - "Vereinsmitglied/Funktionär:in"
+        - "Kein direkter Floorball-Bezug"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: "Sonstiges"
+      placeholder: "Besonderheiten deiner Sprache (z. B. komplexere Pluralformen), Zeitrahmen, offene Fragen …"

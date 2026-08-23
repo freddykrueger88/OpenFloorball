@@ -81,6 +81,12 @@ Beispiele:
 * bessere Formulierungen
 * Fachbegriffe
 
+Konkrete Schritt-für-Schritt-Anleitung inkl. Prioritätsliste (welche
+Sprache fehlt am dringendsten) und automatischem Vollständigkeits-Check:
+siehe [docs/TRANSLATING.md](docs/TRANSLATING.md). Für eine neue Sprache
+oder eine Korrektur bitte das Issue-Template "🌍 Übersetzung beitragen"
+verwenden.
+
 ---
 
 # 4. Vor einer größeren Änderung

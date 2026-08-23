@@ -13,7 +13,26 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Fixed
+- Backend-Transaktionsmails (Passwort-Reset, Team-/Vereins-/Board-
+  Einladungen, Admin-Benachrichtigung bei Neuregistrierung) waren hart
+  auf Deutsch codiert, obwohl die Sprachpräferenz pro Nutzer bereits in
+  `settings.preferences_json.language` gespeichert wird – jetzt DE/EN
+  je nach Empfänger-Einstellung (neuer Helfer
+  `backend/src/utils/emailLanguage.js`, Fallback 'de'). Bei Einladungen
+  an eine E-Mail-Adresse ohne bestehenden Account ist die Sprache
+  naturgemäß unbekannt und bleibt Deutsch.
+- Die generische Erfolgsmeldung beim Passwort-Reset-Formular
+  (`ForgotPasswordPage.jsx`) kam bisher unübersetzt direkt aus der
+  (deutschen) Backend-Antwort – zeigt jetzt den lokalisierten Text aus
+  dem Frontend-i18n (neuer Schlüssel `auth.forgotPasswordSuccess`).
+
 ### Added
+- README jetzt zweisprachig: `README.en.md` neu, beide Dateien
+  verlinken sich gegenseitig (🇩🇪/🇬🇧-Toggle oben, wie bei
+  `docs/TRANSLATING.md`). Die tiefergehende Wiki-/Planning-Dokumentation
+  bleibt vorerst Deutsch-only, im englischen README transparent
+  vermerkt.
 - Issue 027 (Phase 1, erster Schritt): Schwedisch als dritte Sprache
   (`sv`) – bislang ein KI-generierter Rohentwurf, noch ohne
   muttersprachliche Prüfung. Außerdem neue Übersetzungs-Infrastruktur

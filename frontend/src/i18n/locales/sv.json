@@ -275,6 +275,7 @@
     "forgotPasswordSubmit": "Begär länk",
     "forgotPasswordSending": "Skickar…",
     "forgotPasswordError": "Begäran misslyckades. Försök igen.",
+    "forgotPasswordSuccess": "Om det finns ett konto för den här e-postadressen har ett meddelande med en återställningslänk skickats.",
     "backToLogin": "Tillbaka till inloggning",
     "resetPasswordTitle": "Ange nytt lösenord",
     "resetPasswordNewLabel": "Nytt lösenord",

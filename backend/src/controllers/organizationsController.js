@@ -11,6 +11,7 @@
 import pool from '../db/pool.js';
 import logger from '../utils/logger.js';
 import { sendMail } from '../utils/mailer.js';
+import { resolveEmailLanguage } from '../utils/emailLanguage.js';
 import { getOrgRole } from '../utils/organizationAccess.js';
 import { success, created, error } from '../utils/apiResponse.js';
 
@@ -199,7 +200,13 @@ export async function inviteMember(req, res) {
     const org = orgResult.rows[0];
 
     const { email, role = 'member' } = req.body;
-    const userResult = await pool.query('SELECT id, email FROM users WHERE email = $1', [email.trim().toLowerCase()]);
+    const userResult = await pool.query(
+      `SELECT u.id, u.email, s.preferences_json->>'language' AS language
+       FROM users u
+       LEFT JOIN settings s ON s.user_id = u.id
+       WHERE u.email = $1`,
+      [email.trim().toLowerCase()]
+    );
     if (userResult.rows.length === 0) {
       return res.status(404).json(error('Kein Nutzer mit dieser E-Mail-Adresse gefunden'));
     }
@@ -223,10 +230,19 @@ export async function inviteMember(req, res) {
     );
 
     const appUrl = (process.env.CORS_ORIGIN || '').replace(/\/$/, '');
+    const INVITE_EMAIL_TEXT = {
+      de: {
+        subject: `OpenFloorball: Einladung zum Verein "${org.name}"`,
+        text: `Du wurdest zum Verein "${org.name}" hinzugefügt.\n\n${appUrl ? `${appUrl}/settings` : 'Öffne die OpenFloorball-App'}, um es zu sehen.`,
+      },
+      en: {
+        subject: `OpenFloorball: Invitation to organization "${org.name}"`,
+        text: `You've been added to the organization "${org.name}".\n\n${appUrl ? `${appUrl}/settings` : 'Open the OpenFloorball app'} to see it.`,
+      },
+    };
     sendMail({
       to: targetUser.email,
-      subject: `OpenFloorball: Einladung zum Verein "${org.name}"`,
-      text: `Du wurdest zum Verein "${org.name}" hinzugefügt.\n\n${appUrl ? `${appUrl}/settings` : 'Öffne die OpenFloorball-App'}, um es zu sehen.`,
+      ...INVITE_EMAIL_TEXT[resolveEmailLanguage(targetUser.language)],
     });
 
     res.status(201).json(created(toApiMember({ ...result.rows[0], email: targetUser.email })));

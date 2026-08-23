@@ -23,7 +23,7 @@ export default function PlayerAccessibleList({ players = [], onSelectPlayer, sel
           >
             {p.team === 'ball'
               ? t('field.ballLabel')
-              : `${p.role}${p.name ? ` – ${p.name}` : ''} (${p.team === 'home' ? t('teams.home') : t('teams.away')})`}
+              : `${p.role}${p.name ? ` – ${p.name}` : ''} (${p.team === 'home' ? t('teams.home') : t('teams.away')})${p.visible === false ? ` ${t('field.hiddenSuffix')}` : ''}`}
           </button>
         </li>
       ))}

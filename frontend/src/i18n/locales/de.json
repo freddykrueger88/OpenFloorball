@@ -54,7 +54,14 @@
     "namePlaceholder": "Name eingeben…",
     "resetPositionTitle": "Spieler zur Ausgangsposition zurücksetzen",
     "resetPosition": "Position zurücksetzen",
-    "ballLabel": "Ball"
+    "ballLabel": "Ball",
+    "hidePlayer": "Ausblenden",
+    "hidePlayerTitle": "Diesen Spieler auf dem Feld ausblenden",
+    "showPlayer": "Einblenden",
+    "showPlayerTitle": "Diesen Spieler wieder einblenden",
+    "showPlayerAriaLabel": "{{name}} wieder einblenden",
+    "hiddenPlayersLabel": "Ausgeblendete Spieler",
+    "hiddenSuffix": "(ausgeblendet)"
   },
   "teams": {
     "home": "Heimteam",

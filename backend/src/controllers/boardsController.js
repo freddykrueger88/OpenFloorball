@@ -153,7 +153,11 @@ export async function createBoard(req, res) {
     );
     const board = result.rows[0];
 
-    const dataJson = { label: '', players: buildDefaultPlayers(fieldType), elements: [] };
+    // Issue 025: neue Boards zeigen standardmäßig nur die eigene
+    // Mannschaft – die meisten Taktiken (Spielaufbau, Systeme,
+    // Trainingsformen) betreffen zunächst nur das eigene Team, eine
+    // volle gegnerische Aufstellung war unnötiges Rauschen.
+    const dataJson = { label: '', players: buildDefaultPlayers(fieldType, { includeAway: false }), elements: [] };
     await client.query(
       `INSERT INTO frames (board_id, order_index, data_json, duration_ms)
        VALUES ($1, 0, $2::jsonb, 1000)`,

@@ -116,9 +116,19 @@ export function useOrganizations() {
     }
   }, []);
 
+  // "Wer ist wo Trainer" (EPIC 011) – admin-only, siehe organizationsController.getCoaches.
+  const fetchCoaches = useCallback(async (orgId) => {
+    try {
+      return await apiFetch(`/api/organizations/${orgId}/coaches`);
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  }, []);
+
   return {
     organizations, loading, error,
     fetchOrganizations, fetchOrganization, createOrganization, renameOrganization, deleteOrganization,
-    fetchMembers, inviteMember, updateMemberRole, removeMember, fetchSchedule,
+    fetchMembers, inviteMember, updateMemberRole, removeMember, fetchSchedule, fetchCoaches,
   };
 }

@@ -788,12 +788,22 @@ Priorität:
 
 P3
 
-Status: erster Baustein umgesetzt (2026-08-10) – Vereins-Dashboard
-zeigt jetzt eine gebündelte, admin-only Übersicht anstehender
-Spiele+Trainings aller Teams des Vereins (`GET
-/api/organizations/:id/schedule`, rein lesend). Offen: vereinsweit
-geteilte Übungsbibliothek/Playbooks, Org-Admin-Übersicht "wer ist wo
-Trainer".
+Status: alle drei ursprünglich geplanten Bausteine umgesetzt.
+Vereins-Dashboard zeigt eine gebündelte, admin-only Übersicht
+anstehender Spiele+Trainings aller Teams des Vereins (2026-08-10,
+`GET /api/organizations/:id/schedule`, rein lesend). Vereinsweit
+geteilte Playbooks (2026-08-22, `playbooks.organization_id`, nur
+Vereins-Admins dürfen anlegen, sichtbar für jedes Mitglied irgendeines
+Teams des Vereins – siehe `docs/wiki/Playbooks.md`). Org-Admin-
+Übersicht "wer ist wo Trainer" (2026-08-22,
+`GET /api/organizations/:id/coaches`, admin-only, rein lesend).
+"Vereinsweit geteilte Übungsbibliothek" bewusst NICHT als Erweiterung
+der bereits bestehenden, instanzweit ÖFFENTLICHEN Community-Bibliothek
+(`library_entries`, EPIC 010) umgesetzt – das wäre eine andere,
+breitere Sichtbarkeit gewesen als "nur dieser eine Verein" und hätte
+das bereits ausgelieferte öffentliche Feature riskant vermischt.
+Playbooks (Board-Sammlungen) waren der bereits etablierte, strukturell
+passende Träger für "geteilt, aber nicht öffentlich".
 
 ---
 

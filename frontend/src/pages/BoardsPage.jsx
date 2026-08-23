@@ -10,6 +10,7 @@ import { useBoardsApi } from '../hooks/useBoardsApi.js';
 import { useSettings } from '../hooks/useSettings.js';
 import { usePlaybooks } from '../hooks/usePlaybooks.js';
 import { useTeams } from '../hooks/useTeams.js';
+import { useOrganizations } from '../hooks/useOrganizations.js';
 import { useAiApi } from '../hooks/useAiApi.js';
 import BoardCard from '../components/boards/BoardCard.jsx';
 import BoardPostcard from '../components/boards/BoardPostcard.jsx';
@@ -35,6 +36,10 @@ export default function BoardsPage() {
   // team-geteilt statt rein persönlich anzulegen (analog Roster/Trainings).
   const { teams, fetchTeams } = useTeams();
   const teamsICanShareWith = teams.filter((tm) => tm.role === 'owner' || tm.role === 'coach');
+  // EPIC 011: vereinsweit geteilte Playbooks – nur Vereins-Admins dürfen
+  // welche anlegen (analog teamsICanShareWith oben, siehe
+  // playbooksController.createPlaybook).
+  const { organizations, fetchOrganizations } = useOrganizations();
   // EPIC 010 – KI-Taktik-/Analyseassistent: Buttons nur sichtbar, wenn
   // diese Instanz überhaupt einen KI-Anbieter konfiguriert hat.
   const { fetchStatus: fetchAiStatus } = useAiApi();
@@ -69,6 +74,7 @@ export default function BoardsPage() {
   useEffect(() => { load(); }, [load]);
   useEffect(() => { fetchPlaybooks(); }, [fetchPlaybooks]);
   useEffect(() => { fetchTeams().catch(() => {}); }, [fetchTeams]);
+  useEffect(() => { fetchOrganizations().catch(() => {}); }, [fetchOrganizations]);
   useEffect(() => { fetchAiStatus().then(setAiStatus).catch(() => {}); }, [fetchAiStatus]);
 
   const filteredBoards = useMemo(() => {
@@ -240,6 +246,7 @@ export default function BoardsPage() {
           onDeletePlaybook={handleDeletePlaybook}
           canAddPlaybook={canAddPlaybook}
           teams={teamsICanShareWith}
+          organizations={organizations}
         />
       )}
 

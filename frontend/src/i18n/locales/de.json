@@ -230,7 +230,10 @@
     "scheduleType": {
       "game": "Spiel",
       "training": "Training"
-    }
+    },
+    "coachesHeading": "Wer ist wo Trainer",
+    "coachesHint": "Nur für Vereinsadmins sichtbar – Cheftrainer/Co-Trainer über alle Teams des Vereins hinweg, rein informativ.",
+    "coachesEmpty": "Noch keine Trainer in den Teams dieses Vereins hinterlegt."
   },
   "accessibility": {
     "skipToContent": "Zum Inhalt springen",
@@ -1111,7 +1114,10 @@
     "noBoardsInFilter": "Keine Spielfelder in diesem Playbook",
     "teamAriaLabel": "Team, mit dem dieses Playbook geteilt wird",
     "personalOption": "Persönlich (nicht geteilt)",
-    "teamBadgeFallback": "Team"
+    "teamBadgeFallback": "Team",
+    "orgBadgeFallback": "Verein",
+    "teamOptgroup": "Team",
+    "orgOptgroup": "Verein (alle Teams)"
   },
   "trainings": {
     "count_one": "{{count}} Trainingseinheit",

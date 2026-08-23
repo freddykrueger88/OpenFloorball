@@ -4,18 +4,29 @@
  */
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Users } from 'lucide-react';
+import { X, Users, Building2 } from 'lucide-react';
 import styles from './PlaybookFilterBar.module.css';
+
+// EPIC 011: ein Playbook hat genau einen Scope (persönlich/Team/Verein) –
+// eine einzelne Auswahl statt zweier getrennter Dropdowns, Wert bewusst
+// mit "team:"/"org:"-Präfix codiert (direkt als option value, siehe
+// unten) statt zweier paralleler States, damit nicht aus Versehen beide
+// gleichzeitig gesetzt bleiben können.
+function decodeScope(value) {
+  if (value.startsWith('team:')) return { teamId: value.slice(5), organizationId: null };
+  if (value.startsWith('org:')) return { teamId: null, organizationId: value.slice(4) };
+  return { teamId: null, organizationId: null };
+}
 
 export default function PlaybookFilterBar({
   playbooks, boards, activeFilter, onFilterChange,
   onCreatePlaybook, onRenamePlaybook, onDeletePlaybook, canAddPlaybook,
-  teams = [],
+  teams = [], organizations = [],
 }) {
   const { t } = useTranslation();
   const [creating, setCreating] = useState(false);
   const [name,     setName    ] = useState('');
-  const [teamId,   setTeamId  ] = useState('');
+  const [scope,    setScope   ] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editName,  setEditName ] = useState('');
   const inputRef = useRef(null);
@@ -23,6 +34,11 @@ export default function PlaybookFilterBar({
   useEffect(() => { if (creating) inputRef.current?.focus(); }, [creating]);
 
   const unassignedCount = boards.filter((b) => !b.playbookId).length;
+  // Nur Vereins-Admins dürfen ein vereinsweites Playbook anlegen (siehe
+  // playbooksController.createPlaybook) – `organizations` enthält hier
+  // bewusst ALLE Vereine des Nutzers (auch als einfaches Mitglied, für
+  // die Badge-Namensauflösung unten), die Anlegen-Auswahl filtert selbst.
+  const organizationsICanShareWith = organizations.filter((org) => org.role === 'admin');
 
   const startEditing = (pb) => {
     setEditingId(pb._id);
@@ -40,12 +56,13 @@ export default function PlaybookFilterBar({
     const trimmed = name.trim();
     if (trimmed) {
       try {
-        const newPlaybook = await onCreatePlaybook(trimmed, teamId === '' ? null : teamId);
+        const { teamId, organizationId } = decodeScope(scope);
+        const newPlaybook = await onCreatePlaybook(trimmed, teamId, organizationId);
         onFilterChange(newPlaybook._id);
       } catch { /* Fehler bereits im Hook gesetzt */ }
     }
     setName('');
-    setTeamId('');
+    setScope('');
     setCreating(false);
   };
 
@@ -100,6 +117,11 @@ export default function PlaybookFilterBar({
                   <Users size={14} aria-hidden="true" />
                 </span>
               )}
+              {pb.organizationId && (
+                <span className={styles.teamBadge} title={organizations.find((o) => o._id === pb.organizationId)?.name ?? t('playbooks.orgBadgeFallback')}>
+                  <Building2 size={14} aria-hidden="true" />
+                </span>
+              )}
             </button>
           )}
           <button
@@ -133,17 +155,28 @@ export default function PlaybookFilterBar({
             placeholder={t('playbooks.newNamePlaceholder')}
             aria-label={t('playbooks.newNameAriaLabel')}
           />
-          {teams.length > 0 && (
+          {(teams.length > 0 || organizationsICanShareWith.length > 0) && (
             <select
               className={styles.newTeamSelect}
-              value={teamId}
-              onChange={(e) => setTeamId(e.target.value)}
+              value={scope}
+              onChange={(e) => setScope(e.target.value)}
               aria-label={t('playbooks.teamAriaLabel')}
             >
               <option value="">{t('playbooks.personalOption')}</option>
-              {teams.map((tm) => (
-                <option key={tm._id} value={tm._id}>{tm.name}</option>
-              ))}
+              {teams.length > 0 && (
+                <optgroup label={t('playbooks.teamOptgroup')}>
+                  {teams.map((tm) => (
+                    <option key={tm._id} value={`team:${tm._id}`}>{tm.name}</option>
+                  ))}
+                </optgroup>
+              )}
+              {organizationsICanShareWith.length > 0 && (
+                <optgroup label={t('playbooks.orgOptgroup')}>
+                  {organizationsICanShareWith.map((org) => (
+                    <option key={org._id} value={`org:${org._id}`}>{org.name}</option>
+                  ))}
+                </optgroup>
+              )}
             </select>
           )}
         </div>

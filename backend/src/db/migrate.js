@@ -1141,6 +1141,21 @@ export async function runMigrations() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_event_type_definitions_team_id ON event_type_definitions(team_id);`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_event_type_definitions_user_id ON event_type_definitions(user_id);`);
 
+    // ── EPIC 011 (Vereinsebene): vereinsweit geteilte Playbooks ────────────
+    // Playbook-Sichtbarkeit war bisher zweistufig (persönlich über user_id,
+    // team-geteilt über team_id, siehe ROADMAP Phase 2) – jetzt zusätzlich
+    // eine dritte, umfassendere Stufe für Vereine mit mehreren Teams
+    // (z.B. 1. Herren + U15), die eine gemeinsame Übungssammlung über alle
+    // Teams hinweg pflegen wollen. organization_id ist bewusst NICHT
+    // zusätzlich zu team_id gesetzt (Anwendungsebene erzwingt "entweder
+    // oder", siehe playbooksController.createPlaybook) – ein Playbook hat
+    // genau EINEN Scope: persönlich, ein Team, oder ein ganzer Verein.
+    // Anlegen/Ändern bewusst auf Vereins-Admins beschränkt (analog
+    // getSchedule) – ein normales Team-Coach-Recht reicht hier nicht, da
+    // die Sichtbarkeit über die eigene Team-Grenze hinausgeht.
+    await client.query(`ALTER TABLE playbooks ADD COLUMN IF NOT EXISTS organization_id UUID REFERENCES organizations(id) ON DELETE SET NULL;`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_playbooks_organization_id ON playbooks(organization_id) WHERE organization_id IS NOT NULL;`);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

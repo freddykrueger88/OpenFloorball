@@ -14,6 +14,16 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- EPIC 011 (Vereinsebene): vereinsweit geteilte Playbooks und
+  Org-Admin-Übersicht "Wer ist wo Trainer" – die beiden zuvor offenen
+  Bausteine dieser Epic. Ein Playbook kann jetzt statt eines einzelnen
+  Teams alternativ einem ganzen Verein zugeordnet werden (nur
+  Vereins-Admins dürfen anlegen; sichtbar für jedes Mitglied
+  irgendeines Teams des Vereins, ohne eigene Vereinsmitgliedschaft
+  nötig). Neue admin-only Übersicht zeigt Cheftrainer/Co-Trainer über
+  alle Teams des Vereins hinweg (`GET /api/organizations/:id/coaches`).
+
+### Added
 - Statistik-Architektur Phase 9 (EPIC 012): Spiel-Insights-Assistent
   ("KI-Spielanalyse" auf der Spielseite, AI_SYSTEM.md §5.5) – fünfter
   KI-Assistent, baut auf derselben KI-Provider-Abstraktion wie die

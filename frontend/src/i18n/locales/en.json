@@ -230,7 +230,10 @@
     "scheduleType": {
       "game": "Game",
       "training": "Training"
-    }
+    },
+    "coachesHeading": "Who coaches where",
+    "coachesHint": "Visible only to organization admins – head/assistant coaches across all teams of the club, informational only.",
+    "coachesEmpty": "No coaches recorded yet in this organization's teams."
   },
   "accessibility": {
     "skipToContent": "Skip to content",
@@ -1111,7 +1114,10 @@
     "noBoardsInFilter": "No boards in this playbook",
     "teamAriaLabel": "Team to share this playbook with",
     "personalOption": "Personal (not shared)",
-    "teamBadgeFallback": "Team"
+    "teamBadgeFallback": "Team",
+    "orgBadgeFallback": "Organization",
+    "teamOptgroup": "Team",
+    "orgOptgroup": "Organization (all teams)"
   },
   "trainings": {
     "count_one": "{{count}} training session",

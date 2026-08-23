@@ -1,5 +1,7 @@
 # TRANSLATING.md
 
+*[🇬🇧 Read this in English](TRANSLATING.en.md)*
+
 # OpenFloorball übersetzen
 
 Danke, dass du OpenFloorball in deine Sprache bringen willst. Floorball
@@ -45,7 +47,7 @@ sich, niemals die Schlüssel (links vom `:`).
 wird zu
 
 ```json
-"resetPosition": "Positie resetten"
+"resetPosition": "Återställ position"
 ```
 
 ---

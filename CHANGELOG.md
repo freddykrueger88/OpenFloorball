@@ -13,6 +13,17 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Removed
+- `release.yml`-Workflow entfernt: erzeugte bei einem Git-Tag nur einen
+  GitHub-Release-Eintrag mit Changelog-Auszug, baute/veröffentlichte
+  aber nie ein Artefakt (kein Docker-Image, kein Download). Installation
+  läuft ausschließlich über `git clone` + `docker compose up -d` auf dem
+  jeweils aktuellen Stand, nirgends dokumentiert über Tags/Releases –
+  der Workflow wurde entsprechend auch nur für 2 von 9 bisherigen
+  Versionen tatsächlich genutzt. Die bestehenden GitHub-Release-Einträge
+  v0.1.0/v0.9.0 wurden ebenfalls entfernt (Git-Tags selbst bleiben
+  erhalten).
+
 ### Fixed
 - Backend-Transaktionsmails (Passwort-Reset, Team-/Vereins-/Board-
   Einladungen, Admin-Benachrichtigung bei Neuregistrierung) waren hart

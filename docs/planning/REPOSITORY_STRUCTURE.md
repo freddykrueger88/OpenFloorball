@@ -138,7 +138,7 @@ Anbieter). Kein Build-Schritt, direkt mit `node` ausführbar.
 
 ```text
 .github/
-├── workflows/               # ci.yml, security.yml, release.yml, …
+├── workflows/               # ci.yml, security.yml, …
 ├── ISSUE_TEMPLATE/
 ├── PULL_REQUEST_TEMPLATE.md
 └── labels.yml

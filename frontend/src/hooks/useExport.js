@@ -6,6 +6,7 @@
  * schickt sie ans Backend und pollt den Job-Status.
  */
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // VITE_API_URL enthält bereits das /api-Präfix (Default '/api', siehe
 // utils/api.js) – hier NICHT nochmal /api/ voranstellen, sonst landen die
@@ -14,6 +15,7 @@ const API = import.meta.env.VITE_API_URL ?? '/api';
 const POLL_INTERVAL_MS = 1200;
 
 export function useExport() {
+  const { t } = useTranslation();
   const [status,   setStatus  ] = useState('idle'); // idle | rendering | uploading | processing | done | error
   const [progress, setProgress] = useState(0);
   const [fileUrl,  setFileUrl ] = useState(null);
@@ -45,7 +47,7 @@ export function useExport() {
    */
   const startExport = useCallback(async ({ frames, renderFrame, fps = 4, width = 720, loop = true, format = 'gif', watermark = true }) => {
     if (!frames?.length || frames.length < 2) {
-      setError('Mindestens 2 Frames benötigt.');
+      setError(t('export.minFramesHint'));
       setStatus('error');
       return;
     }
@@ -98,7 +100,7 @@ export function useExport() {
             setProgress(100);
           } else if (data.status === 'error') {
             clearInterval(pollRef.current);
-            throw new Error(data.message ?? 'Export fehlgeschlagen.');
+            throw new Error(data.message ?? t('errors.generic'));
           }
         } catch (pollErr) {
           clearInterval(pollRef.current);
@@ -112,7 +114,7 @@ export function useExport() {
       setError(err.message);
       setStatus('error');
     }
-  }, [reset]);
+  }, [reset, t]);
 
   return { status, progress, fileUrl, error, startExport, reset };
 }

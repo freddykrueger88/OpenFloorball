@@ -717,6 +717,118 @@ P2
 
 ---
 
+# ISSUE 027
+
+## Europaweite Sprachunterstützung für floorball-aktive Nationen
+
+### Beschreibung
+
+Die Oberfläche gibt es bisher nur auf Deutsch und Englisch
+(`frontend/src/i18n/i18n.js`, `frontend/src/i18n/locales/{de,en}.json`,
+je 1449 Schlüssel). Floorball ist außerhalb des deutschsprachigen Raums
+in einigen Ländern deutlich stärker verwurzelt als hierzulande –
+Trainer dort sollten die Plattform in ihrer eigenen Sprache nutzen
+können, statt auf Englisch auszuweichen. Passt zu CLAUDE.md §26
+(Community, öffentliche Beiträge) und §16 (Accessibility – korrekte
+Sprachangabe für Screenreader gilt pro Sprache).
+
+Priorisierung nach tatsächlicher Floorball-Aktivität (IFF-Mitglieds-
+verbände, Ligastärke, Spielerzahl pro Kopf), nicht nach Sprecherzahl
+allgemein:
+
+**Phase 1 – die vier stärksten Nationen außerhalb DACH:**
+* Schwedisch (`sv`) – Ursprungsland des modernen Floorball, größte Liga
+  (SSL)
+* Finnisch (`fi`) – höchste Spielerdichte pro Kopf weltweit (Salibandy)
+* Tschechisch (`cs`) – große, wachsende Spielerbasis
+* Slowakisch (`sk`) – traditionell stark
+
+**Phase 2:**
+* Norwegisch (`no`/`nb`)
+* Lettisch (`lv`) – sehr hohe Popularität pro Kopf im Baltikum
+* Polnisch (`pl`) – wachsend
+* Französisch (`fr`) – deckt zusätzlich die Romandie (Schweizer Liga
+  ist auch dort aktiv) sowie die wachsende Szene in Frankreich/Belgien
+  ab
+
+**Phase 3 (später, bei Bedarf):**
+* Dänisch (`da`), Estnisch (`et`), Niederländisch (`nl`), Italienisch
+  (`it`, Südschweiz)
+
+Schweiz ist teilweise bereits über `de` abgedeckt (Deutschschweizer
+Vereine lesen Hochdeutsch ohne Probleme), aber nicht für die
+französisch-/italienischsprachigen Landesteile.
+
+---
+
+## Aufgaben
+
+* `i18n.js`: neue Sprachen zu `resources` und `supportedLngs`
+  hinzufügen, jeweils eine Sprache pro Schritt/PR (kleine Änderungen
+  bevorzugen, CLAUDE.md §20.4) statt aller Phase-1-Sprachen auf einmal.
+* Neue `locales/<lng>.json` jeweils strukturell 1:1 aus `en.json`
+  ableiten (gleiche Schlüssel, gleiche Verschachtelung) –
+  `locales.test.js` prüft das vermutlich bereits für de/en und sollte
+  parametrisiert werden, damit sie automatisch für jede neu
+  hinzugefügte Sprache mitläuft.
+* `PreferencesSection.jsx`: `<select>`-Optionen (`settings.languageDe`/
+  `languageEn`) um die neuen Sprachen erweitern – Optionsliste sollte
+  aus `supportedLngs` generiert werden statt weiter hartkodierter
+  `<option>`-Paare, damit das nicht bei jeder neuen Sprache erneut
+  vergessen werden kann.
+* Übersetzungen NICHT unreflektiert per Maschinenübersetzung erzeugen
+  und committen – Floorball-Fachbegriffe (Wechselblöcke, Powerplay/
+  Boxplay-Varianten, Positionsbezeichnungen) brauchen muttersprachliche
+  Trainer-Kompetenz, nicht nur Sprachkompetenz. Siehe Technische
+  Überlegungen.
+* `docs/wiki/Roadmap.md` und dieses Issue nach Abschluss jeder Phase
+  aktualisieren.
+
+---
+
+## Technische Überlegungen
+
+* **Übersetzungsqualität vor Geschwindigkeit:** Ein per LLM
+  erzeugter Rohentwurf ist als Ausgangspunkt für Muttersprachler-Review
+  vertretbar, darf aber nicht ungeprüft live gehen – falsche
+  Floorball-Terminologie beschädigt das Vertrauen genau der
+  Zielgruppe, die gewonnen werden soll (CLAUDE.md §26 Community).
+  Bevorzugter Weg: Entwurf als Pull Request markieren
+  (`needs-native-review`-Label o.ä.), aktiv Trainer/Communities aus den
+  jeweiligen Verbänden zur Prüfung einladen, statt intern zu raten.
+* Slawische Sprachen (`cs`, `sk`, `pl`) haben komplexere
+  Pluralregeln als de/en (mehrere Plural-Formen je nach Zahl) – i18next
+  unterstützt das über `_one`/`_few`/`_many`/`_other`-Suffixe, muss
+  aber pro Schlüssel mit Zahlenbezug (z.B. "N Spieler", "N Tage")
+  geprüft werden, nicht nur strukturell kopiert.
+* `i18next-browser-languagedetector` ist bereits aktiv – neue Sprachen
+  werden automatisch erkannt, sobald sie in `supportedLngs` stehen,
+  ohne weitere Detection-Logik.
+* `<html lang>`-Sync (`syncHtmlLang` in `i18n.js`) funktioniert bereits
+  sprachunabhängig, keine Änderung nötig.
+* Datums-/Zahlenformate: prüfen, ob irgendwo `Intl.DateTimeFormat`/
+  `toLocaleDateString` fest auf `de`/`en` verdrahtet ist statt
+  `i18n.language` zu nutzen.
+
+---
+
+## Akzeptanzkriterien
+
+* Jede Phase-1-Sprache ist vollständig (alle Schlüssel aus `en.json`
+  vorhanden, `locales.test.js` grün) und von mindestens einer
+  muttersprachlichen Person mit Floorball-Bezug gegengelesen, bevor sie
+  auf `main` landet.
+* Sprachauswahl in den Einstellungen zeigt alle unterstützten Sprachen
+  ohne manuelles Nachpflegen an mehreren Stellen (`<select>`-Optionen
+  aus `supportedLngs` generiert).
+* Kein Datenverlust/Bruch für bestehende de/en-Nutzer.
+
+Priorität:
+
+P2
+
+---
+
 # EPIC 009 – Nach MVP
 
 Priorität:

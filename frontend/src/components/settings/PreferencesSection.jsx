@@ -117,6 +117,7 @@ export default function PreferencesSection() {
           >
             <option value="de">{t('settings.languageDe')}</option>
             <option value="en">{t('settings.languageEn')}</option>
+            <option value="sv">{t('settings.languageSv')}</option>
           </select>
         </div>
 

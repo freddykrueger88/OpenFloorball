@@ -921,15 +921,18 @@ Aufgabe zugewiesen. Kleine, in sich abgeschlossene Ergänzung (kein
 neues Schema): Zweitspieler-Auswahl beim Tor-/Schuss-Erfassen +
 `points = goals + assists` zur Anzeigezeit.
 
-**Bewusst nicht Teil dieser Phasen (P2, künftiges, separates
-Backlog-Item):** eine strukturierte Gegner-Entität (`opponents`-Tabelle
-statt Freitext auf `games.opponent`) samt Saison-/Wettbewerbs-Gruppierung
-von Spielen. Fachlich näher an der Spielverwaltung (`games`) als an der
-Statistik-Engine – wurde deshalb bewusst nicht künstlich als Phase 10
-in diese Epic aufgenommen, obwohl CLAUDE.md §8 "Gegneranalyse" für
-Leistungszentren/Nationalteams nennt. Sichtbar dokumentiert statt
-stillschweigend vergessen, siehe `STATISTICS_ANALYTICS_ARCHITECTURE.md`
-Abschnitt 8.4.
+**Nicht Teil dieser Phasen, als eigenständiger Schritt danach
+umgesetzt (2026-08-23):** eine strukturierte Gegner-Entität
+(`opponents`-Tabelle, automatische Verknüpfung über
+`resolveOpponentId()`, Bilanz S-U-N/Tordifferenz über
+`GET /api/opponents`, neue `/opponents`-Seite im Frontend) – siehe
+**ADR-0007** in `DECISIONS.md`. Fachlich näher an der Spielverwaltung
+(`games`) als an der Statistik-Engine – wurde deshalb bewusst nicht
+künstlich als Phase 10 in diese Epic aufgenommen, obwohl CLAUDE.md §8
+"Gegneranalyse" für Leistungszentren/Nationalteams nennt. Bewusst
+weiterhin NICHT enthalten: Saison-/Wettbewerbs-Gruppierung von Spielen
+(eigenständiges, größeres Thema) und manuelles Zusammenführen von
+Tippfehler-Duplikaten gleichnamiger Gegner.
 
 ---
 

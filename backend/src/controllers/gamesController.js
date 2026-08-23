@@ -20,6 +20,7 @@ import { getUserTeamIds, assertTeamAccess } from '../utils/teamAccess.js';
 import { deleteCommentsForResource } from './commentsController.js';
 import { deleteRsvpsForResource } from './rsvpsController.js';
 import { deleteVideosForGame } from './gameVideosController.js';
+import { resolveOpponentId } from './opponentsController.js';
 
 const MAX_GAMES = 30;
 
@@ -39,6 +40,7 @@ function toApiGame(row) {
   return {
     _id:       row.id,
     opponent:  row.opponent,
+    opponentId: row.opponent_id,
     teamId:    row.team_id,
     playedAt:  toDateString(row.played_at),
     notes:     row.notes,
@@ -107,10 +109,12 @@ export async function createGame(req, res) {
       return res.status(400).json(error(`Maximal ${MAX_GAMES} Spiele`));
     }
 
+    const opponentId = await resolveOpponentId(opponent, req.user.id, teamId);
+
     const result = await pool.query(
-      `INSERT INTO games (user_id, opponent, played_at, team_id)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [req.user.id, opponent, playedAt, teamId]
+      `INSERT INTO games (user_id, opponent, opponent_id, played_at, team_id)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [req.user.id, opponent, opponentId, playedAt, teamId]
     );
     res.status(201).json(created(toApiGame(result.rows[0])));
   } catch (err) {
@@ -144,7 +148,12 @@ export async function updateGame(req, res) {
     const values = [];
     let i = 1;
 
-    if (req.body.opponent !== undefined) { sets.push(`opponent = $${i}`); values.push(req.body.opponent); i += 1; }
+    if (req.body.opponent !== undefined) {
+      const game = await getGameRow(req.params.id);
+      const opponentId = await resolveOpponentId(req.body.opponent, req.user.id, game.team_id);
+      sets.push(`opponent = $${i}`); values.push(req.body.opponent); i += 1;
+      sets.push(`opponent_id = $${i}`); values.push(opponentId); i += 1;
+    }
     if (req.body.playedAt !== undefined) { sets.push(`played_at = $${i}`); values.push(req.body.playedAt); i += 1; }
     if (req.body.notes !== undefined)    { sets.push(`notes = $${i}`);     values.push(req.body.notes);    i += 1; }
     if (req.body.periodMinutes !== undefined) { sets.push(`clock_period_minutes = $${i}`); values.push(req.body.periodMinutes); i += 1; }

@@ -429,6 +429,36 @@ transponierte Tabelle gegenübergestellt (`StatsPage.jsx`,
 
 ---
 
+### Gegner-Bilanz (Siege/Unentschieden/Niederlagen, Tordifferenz)
+
+> ✅ Umgesetzt (2026-08-23, strukturierte Gegner-Entität, ADR-0007 in
+> `DECISIONS.md`).
+
+**Definition:** Über alle Spiele gegen denselben Gegner hinweg (siehe
+`opponents`-Tabelle, per Name automatisch verknüpft): Anzahl
+Siege/Unentschieden/Niederlagen sowie Tore für/gegen, aus Sicht des
+eigenen Teams.
+
+**Formel:** `calculateMatchScore(eventRows)` (Statistics Engine, ADR-
+0001) je Spiel, danach `ownGoals > opponentGoals` → Sieg,
+`ownGoals < opponentGoals` → Niederlage, sonst Unentschieden.
+Aufsummiert über alle Spiele desselben `opponent_id`.
+
+**Benötigte Daten:** `opponents`, `games` (`opponent_id`, `played_at`),
+`game_events`.
+
+**Einschränkungen:** Spiele ohne `played_at` zählen nicht in die
+Bilanz (gleiche Konvention wie bei den Trends oben) – ein noch nicht
+gespieltes, zukünftiges Spiel wäre sonst fälschlich ein
+0:0-Unentschieden. Tippfehler-Duplikate gleichnamiger Gegner (z.B. "FC
+Bern" vs. "SC Bern") bleiben getrennte Datensätze – kein automatisches
+oder manuelles Zusammenführen in dieser Version.
+
+**Implementierung:** `GET /api/opponents`
+(`opponentsController.getOpponents`), `OpponentsPage.jsx`.
+
+---
+
 ## Konventionen für alle künftigen Kennzahlen
 
 1. **Nicht speichern, was aus Events berechenbar ist.** Vor jeder

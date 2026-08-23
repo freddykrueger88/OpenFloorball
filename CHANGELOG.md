@@ -14,6 +14,15 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Strukturierte Gegner-Entität (ADR-0007): Spiele gegen denselben
+  Gegner werden jetzt automatisch verknüpft (per Name, team- bzw.
+  persönlich-scoped) – der bestehende Freitext-Workflow beim Anlegen
+  eines Spiels bleibt unverändert. Neue Seite "Gegner" zeigt je Gegner
+  die Bilanz (Siege/Unentschieden/Niederlagen, Tordifferenz) mit
+  Verlinkung zu den einzelnen Spielen; auf der Spielseite erscheint
+  zusätzlich eine kurze Bilanz-Zeile. `GET /api/opponents` (neu).
+
+### Added
 - EPIC 011 (Vereinsebene): vereinsweit geteilte Playbooks und
   Org-Admin-Übersicht "Wer ist wo Trainer" – die beiden zuvor offenen
   Bausteine dieser Epic. Ein Playbook kann jetzt statt eines einzelnen

@@ -824,6 +824,111 @@ nur auf einem Spiel desselben Teams/Nutzers.
 
 ---
 
+# ADR-0007: Strukturierte Gegner-Entität – Dedup per Name-Matching statt manueller Gegner-Verwaltung
+
+## Datum
+
+2026-08-23
+
+---
+
+## Status
+
+Akzeptiert
+
+---
+
+## Kontext
+
+`games.opponent` war bisher reiner Freitext, ohne Verknüpfung zwischen
+Spielen gegen denselben Gegner. Die Statistik-Architektur (EPIC 012)
+hatte eine `opponents`-Tabelle bewusst zurückgestellt
+(`STATISTICS_ANALYTICS_ARCHITECTURE.md` Abschnitt 8.4) – als
+eigenständiges, künftiges Backlog-Item außerhalb der 9 Phasen. Beide
+zu diesem Zeitpunkt laufenden Epics (011 Vereinsebene, 012
+Statistik-Architektur) waren abgeschlossen; dies ist der angekündigte
+nächste Schritt, mit dem klaren Nutzen einer Gegner-Bilanz
+(Siege/Unentschieden/Niederlagen, Tordifferenz) für die
+Gegnervorbereitung (CLAUDE.md §8 "Gegneranalyse").
+
+Zentrale Frage: wie werden Spiele gegen denselben Gegner verknüpft,
+ohne Trainern eine zusätzliche manuelle Gegner-Verwaltung
+aufzuzwingen (CLAUDE.md §6 "Sport Before Software" – der bestehende
+Freitext-Workflow beim Anlegen eines Spiels sollte unverändert
+bleiben)?
+
+---
+
+## Entscheidung
+
+1. **Neue Tabelle `opponents`** (`id, user_id, team_id, name,
+   created_at, updated_at`). `games.opponent` (Freitext) bleibt
+   unverändert als Snapshot bestehen – identisches Prinzip zu
+   `match_lines.line_name`: überlebt eine spätere Umbenennung, ohne
+   die Match-Historie zu verfälschen. Neue `games.opponent_id`
+   (nullable FK, `ON DELETE SET NULL`) verweist auf den strukturierten
+   Datensatz.
+2. **Automatisches Find-or-Create statt manueller Verwaltung**:
+   `resolveOpponentId()` (`opponentsController.js`) wird beim Anlegen/
+   Ändern eines Spiels aufgerufen und verknüpft anhand des exakten,
+   groß-/kleinschreibungs- und leerzeichen-toleranten Namensabgleichs
+   – der Trainer tippt wie bisher einen Namen, ohne einen Gegner
+   separat "anzulegen". Kein manuelles Zusammenführen von
+   Tippfehler-Duplikaten (z.B. "FC Bern" vs. "SC Bern") in diesem
+   Schritt – bewusst kleiner Funktionsumfang, siehe Folgen.
+3. **Eindeutigkeit pro TEAM, nicht pro Nutzer**, für team-gebundene
+   Spiele: zwei Co-Trainer desselben Teams, die denselben Gegnernamen
+   tippen, treffen auf denselben Datensatz (gleiches Team-Sharing-
+   Prinzip wie bei `games` selbst). Für team-lose, persönliche Spiele
+   eindeutig pro Nutzer. Zwei partielle Unique-Indizes (`WHERE team_id
+   IS NOT NULL` / `WHERE team_id IS NULL`) statt eines einzelnen
+   `UNIQUE` – Postgres behandelt `NULL` in gewöhnlichen
+   UNIQUE-Constraints als "distinct", mehrere `team_id = NULL`-Zeilen
+   wären sonst ungeschützt.
+4. **Kein Edit-/Merge-Endpunkt für Gegner.** Nur ein Lese-Endpunkt
+   (`GET /api/opponents`), der die Bilanz je Gegner aggregiert
+   ausliefert (batched über eine Query für opponents/games/
+   game_events, in JS gruppiert – gleiches Muster wie
+   `csvExportController.exportGamesCsv`). Nutzt die bereits
+   vorhandene `calculateMatchScore()` (Statistics Engine, ADR-0001)
+   statt einer neuen Score-Berechnung. Nur Spiele mit `played_at IS
+   NOT NULL` zählen in die Bilanz (gleiche Konvention wie
+   `getRosterPlayerGameLog`) – sonst wäre ein ungespieltes,
+   zukünftiges Spiel fälschlich ein 0:0-Unentschieden.
+
+---
+
+## Begründung
+
+* Der bestehende Freitext-Workflow bleibt für Trainer unverändert –
+  die Verknüpfung passiert unsichtbar im Hintergrund, kein neuer
+  Anlege-/Auswahl-Dialog (CLAUDE.md §6/§15 "Einfach starten").
+* Team-Scope statt User-Scope für team-gebundene Spiele vermeidet
+  künstlich duplizierte Gegner-Datensätze pro Co-Trainer – ohne diese
+  Entscheidung hätte die Bilanz-Berechnung fragmentiert und falsch
+  wirken können.
+* Wiederverwendung von `calculateMatchScore()` statt einer neuen
+  Score-Formel hält die "eine zentrale Berechnungslogik"-Regel der
+  Statistics Engine ein (Architektur-Dokument Abschnitt 10).
+
+---
+
+## Folgen
+
+* Tippfehler-Duplikate (z.B. "FC Bern" vs. "SC Bern") bleiben
+  getrennte Gegner-Datensätze – ein manuelles Zusammenführen ist ein
+  mögliches künftiges, separates Backlog-Item, kein Teil dieser
+  Entscheidung.
+* Ein bestehendes Spiel, dessen `opponent`-Freitext nachträglich
+  geändert wird, verknüpft sich automatisch neu (ggf. mit einem neu
+  angelegten Gegner) – die alte Verknüpfung bleibt für andere Spiele
+  unangetastet.
+* Backfill bestehender Spiele läuft als reines, idempotentes SQL
+  direkt in `migrate.js` (kein Präzedenzfall für JS-Backfill-Loops in
+  dieser Datei) – sicher bei jedem Server-Start erneut ausführbar.
+
+---
+
 # Regel
 
 Architekturentscheidungen werden nicht vergessen.

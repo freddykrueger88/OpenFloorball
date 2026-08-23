@@ -1156,6 +1156,82 @@ export async function runMigrations() {
     await client.query(`ALTER TABLE playbooks ADD COLUMN IF NOT EXISTS organization_id UUID REFERENCES organizations(id) ON DELETE SET NULL;`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_playbooks_organization_id ON playbooks(organization_id) WHERE organization_id IS NOT NULL;`);
 
+    // ── Strukturierte Gegner-Entität (ADR-0007 in DECISIONS.md) ────────────
+    // Bisher reiner Freitext auf games.opponent (siehe games-Block oben) –
+    // Statistik-Architektur hat eine opponents-Tabelle bewusst
+    // zurückgestellt (STATISTICS_ANALYTICS_ARCHITECTURE.md Abschnitt 8.4),
+    // jetzt als eigenständiger, nachgelagerter Schritt umgesetzt. games.opponent
+    // bleibt unverändert als Snapshot-Feld bestehen (identisches Prinzip zu
+    // match_lines.line_name: überlebt Umbenennung, verfälscht keine Historie).
+    //
+    // Ein Gegnername ist eindeutig pro TEAM (nicht pro Nutzer) – zwei
+    // Co-Trainer desselben Teams, die denselben Namen tippen, sollen auf
+    // denselben Datensatz treffen, gleiches Team-Sharing-Prinzip wie bei
+    // games selbst. Für team-lose (rein persönliche) Spiele eindeutig pro
+    // Nutzer. Zwei PARTIELLE Unique-Indizes statt einem normalen UNIQUE,
+    // weil Postgres NULL in gewöhnlichen UNIQUE-Constraints als "distinct"
+    // behandelt (mehrere team_id=NULL-Zeilen wären sonst nicht geschützt).
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS opponents (
+        id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        team_id    UUID REFERENCES teams(id) ON DELETE SET NULL,
+        name       TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_opponents_updated_at ON opponents;
+      CREATE TRIGGER trg_opponents_updated_at
+        BEFORE UPDATE ON opponents
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_opponents_user_id ON opponents(user_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_opponents_team_id ON opponents(team_id);`);
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_opponents_unique_team_scoped
+        ON opponents(team_id, lower(trim(name))) WHERE team_id IS NOT NULL;
+    `);
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_opponents_unique_personal_scoped
+        ON opponents(user_id, lower(trim(name))) WHERE team_id IS NULL;
+    `);
+
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS opponent_id UUID REFERENCES opponents(id) ON DELETE SET NULL;`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_games_opponent_id ON games(opponent_id);`);
+
+    // Backfill bestehender Spiele: idempotent, bei jedem Migrationslauf
+    // sicher wiederholbar, da bereits verknüpfte Spiele (opponent_id IS NOT
+    // NULL) übersprungen werden und ON CONFLICT DO NOTHING doppelte
+    // opponents-Zeilen verhindert.
+    await client.query(`
+      INSERT INTO opponents (user_id, team_id, name)
+      SELECT DISTINCT ON (team_id, lower(trim(opponent))) user_id, team_id, trim(opponent)
+      FROM games
+      WHERE team_id IS NOT NULL AND trim(opponent) <> ''
+      ON CONFLICT (team_id, (lower(trim(name)))) WHERE team_id IS NOT NULL DO NOTHING;
+    `);
+    await client.query(`
+      INSERT INTO opponents (user_id, team_id, name)
+      SELECT DISTINCT ON (user_id, lower(trim(opponent))) user_id, NULL, trim(opponent)
+      FROM games
+      WHERE team_id IS NULL AND trim(opponent) <> ''
+      ON CONFLICT (user_id, (lower(trim(name)))) WHERE team_id IS NULL DO NOTHING;
+    `);
+    await client.query(`
+      UPDATE games g SET opponent_id = o.id
+      FROM opponents o
+      WHERE g.opponent_id IS NULL AND g.team_id IS NOT NULL
+        AND o.team_id = g.team_id AND lower(trim(o.name)) = lower(trim(g.opponent));
+    `);
+    await client.query(`
+      UPDATE games g SET opponent_id = o.id
+      FROM opponents o
+      WHERE g.opponent_id IS NULL AND g.team_id IS NULL
+        AND o.team_id IS NULL AND o.user_id = g.user_id AND lower(trim(o.name)) = lower(trim(g.opponent));
+    `);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

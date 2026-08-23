@@ -58,6 +58,9 @@ describe('GET/POST /api/games', () => {
     expect(res.body.data.opponent).toBe('SV Musterstadt');
     expect(res.body.data.playedAt).toBe('2026-09-20');
     expect(res.body.data.teamId).toBeNull();
+    // Verdrahtung zur strukturierten Gegner-Entität (opponentsController.js)
+    // – die eigentliche Find-or-Create-Matrix steckt in opponents.test.js.
+    expect(res.body.data.opponentId).toBeTruthy();
   });
 
   it('legt ein Spiel ohne Angaben mit sinnvollen Defaults an', async () => {

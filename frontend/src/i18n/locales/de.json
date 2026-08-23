@@ -15,6 +15,7 @@
     "roster": "Kader",
     "lines": "Lines",
     "games": "Spiele",
+    "opponents": "Gegner",
     "calendar": "Kalender",
     "stats": "Statistik",
     "news": "News",
@@ -1275,7 +1276,22 @@
     "videoPanelTitle": "🎥 Spielvideo",
     "videoPanelHint": "Videos zu diesem Spiel hochladen und mit Ereignissen aus der Zeitleiste verknüpfen – auch nachträglich beim Sichten nach dem Spiel.",
     "videoPanelEmpty": "Noch kein Video zu diesem Spiel – lade die Aufnahme hoch, um Ereignisse damit zu verknüpfen.",
-    "jumpToVideoAriaLabel": "Zur verknüpften Videoposition springen"
+    "jumpToVideoAriaLabel": "Zur verknüpften Videoposition springen",
+    "headToHead": "Bilanz gegen {{opponent}}: {{wins}}S-{{draws}}U-{{losses}}N ({{goalsFor}}:{{goalsAgainst}}) in {{count}} Spielen"
+  },
+  "opponents": {
+    "count_one": "{{count}} Gegner",
+    "count_other": "{{count}} Gegner",
+    "noOpponentsYet": "Noch kein Gegner erfasst",
+    "emptyStateDesc": "Sobald du bei einem Spiel einen Gegnernamen einträgst, erscheint er hier mit seiner Bilanz.",
+    "loading": "Lädt Gegner...",
+    "record": "{{wins}}S-{{draws}}U-{{losses}}N",
+    "noGamesYet": "Noch keine gespielten Spiele gegen diesen Gegner",
+    "result": {
+      "win": "Sieg",
+      "draw": "Unentschieden",
+      "loss": "Niederlage"
+    }
   },
   "roster": {
     "title": "Kader",

@@ -34,6 +34,18 @@
   white-space: nowrap;
 }
 
+.headToHead {
+  display: block;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+.headToHead:hover,
+.headToHead:focus-visible {
+  color: var(--color-text);
+}
+
 .exportReportBtn {
   display: inline-flex;
   margin-bottom: var(--space-4);

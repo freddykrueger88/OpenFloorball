@@ -15,6 +15,7 @@
     "roster": "Roster",
     "lines": "Lines",
     "games": "Games",
+    "opponents": "Opponents",
     "calendar": "Calendar",
     "stats": "Stats",
     "news": "News",
@@ -1275,7 +1276,22 @@
     "videoPanelTitle": "🎥 Match video",
     "videoPanelHint": "Upload video for this game and link it to events from the timeline – even after the fact while reviewing footage.",
     "videoPanelEmpty": "No video for this game yet – upload the recording to start linking events to it.",
-    "jumpToVideoAriaLabel": "Jump to the linked video position"
+    "jumpToVideoAriaLabel": "Jump to the linked video position",
+    "headToHead": "Record vs {{opponent}}: {{wins}}W-{{draws}}D-{{losses}}L ({{goalsFor}}:{{goalsAgainst}}) in {{count}} games"
+  },
+  "opponents": {
+    "count_one": "{{count}} opponent",
+    "count_other": "{{count}} opponents",
+    "noOpponentsYet": "No opponents recorded yet",
+    "emptyStateDesc": "Once you enter an opponent name on a game, it will show up here with its record.",
+    "loading": "Loading opponents...",
+    "record": "{{wins}}W-{{draws}}D-{{losses}}L",
+    "noGamesYet": "No games played against this opponent yet",
+    "result": {
+      "win": "Win",
+      "draw": "Draw",
+      "loss": "Loss"
+    }
   },
   "roster": {
     "title": "Roster",

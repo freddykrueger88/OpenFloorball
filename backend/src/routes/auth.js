@@ -18,6 +18,7 @@ import { authenticate } from '../middleware/auth.js';
 import { success, created, error } from '../utils/apiResponse.js';
 import { COOKIE_OPTS } from '../utils/cookies.js';
 import { notifyAdminsOfNewUser, sendMail } from '../utils/mailer.js';
+import { resolveEmailLanguage } from '../utils/emailLanguage.js';
 import logger from '../utils/logger.js';
 
 const router = Router();
@@ -310,7 +311,13 @@ router.post('/forgot-password', [
   const genericMessage = 'Falls ein Konto mit dieser E-Mail-Adresse existiert, wurde eine Nachricht mit einem Link zum Zurücksetzen verschickt.';
 
   try {
-    const userResult = await pool.query('SELECT id, display_name FROM users WHERE email = $1', [email]);
+    const userResult = await pool.query(
+      `SELECT u.id, u.display_name, s.preferences_json->>'language' AS language
+       FROM users u
+       LEFT JOIN settings s ON s.user_id = u.id
+       WHERE u.email = $1`,
+      [email]
+    );
     const user = userResult.rows[0];
 
     if (user) {
@@ -328,10 +335,19 @@ router.post('/forgot-password', [
 
       const appUrl = (process.env.CORS_ORIGIN || '').replace(/\/$/, '');
       const resetLink = `${appUrl}/reset-password/${rawToken}`;
+      const RESET_EMAIL_TEXT = {
+        de: {
+          subject: 'OpenFloorball – Passwort zurücksetzen',
+          text: `Hallo${user.display_name ? ` ${user.display_name}` : ''},\n\ndu hast angefordert, dein Passwort zurückzusetzen. Der folgende Link ist eine Stunde lang gültig:\n\n${resetLink}\n\nWenn du das nicht warst, kannst du diese Nachricht ignorieren – an deinem Konto ändert sich dadurch nichts.`,
+        },
+        en: {
+          subject: 'OpenFloorball – Reset your password',
+          text: `Hi${user.display_name ? ` ${user.display_name}` : ''},\n\nyou requested to reset your password. The following link is valid for one hour:\n\n${resetLink}\n\nIf this wasn't you, you can ignore this message – nothing will change on your account.`,
+        },
+      };
       await sendMail({
         to: email,
-        subject: 'OpenFloorball – Passwort zurücksetzen',
-        text: `Hallo${user.display_name ? ` ${user.display_name}` : ''},\n\ndu hast angefordert, dein Passwort zurückzusetzen. Der folgende Link ist eine Stunde lang gültig:\n\n${resetLink}\n\nWenn du das nicht warst, kannst du diese Nachricht ignorieren – an deinem Konto ändert sich dadurch nichts.`,
+        ...RESET_EMAIL_TEXT[resolveEmailLanguage(user.language)],
       });
       logger.info(`Password reset requested: ${user.id}`);
     }

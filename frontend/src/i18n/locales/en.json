@@ -275,6 +275,7 @@
     "forgotPasswordSubmit": "Request link",
     "forgotPasswordSending": "Sending…",
     "forgotPasswordError": "Request failed. Please try again.",
+    "forgotPasswordSuccess": "If an account exists for this email address, a message with a reset link has been sent.",
     "backToLogin": "Back to login",
     "resetPasswordTitle": "Set new password",
     "resetPasswordNewLabel": "New password",

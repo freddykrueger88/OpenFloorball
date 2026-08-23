@@ -275,6 +275,7 @@
     "forgotPasswordSubmit": "Link anfordern",
     "forgotPasswordSending": "Wird gesendet…",
     "forgotPasswordError": "Anfrage fehlgeschlagen. Bitte versuche es erneut.",
+    "forgotPasswordSuccess": "Falls ein Konto mit dieser E-Mail-Adresse existiert, wurde eine Nachricht mit einem Link zum Zurücksetzen verschickt.",
     "backToLogin": "Zurück zum Login",
     "resetPasswordTitle": "Neues Passwort setzen",
     "resetPasswordNewLabel": "Neues Passwort",

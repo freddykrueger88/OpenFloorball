@@ -1,5 +1,7 @@
 # 🏒 OpenFloorball
 
+*🇩🇪 Deutsch | [🇬🇧 English](README.en.md)*
+
 **Selbst gehostetes Taktikboard und Coaching-Plattform für Floorball**
 
 [![CI](https://github.com/freddykrueger88/OpenFloorball/actions/workflows/ci.yml/badge.svg)](https://github.com/freddykrueger88/OpenFloorball/actions/workflows/ci.yml)

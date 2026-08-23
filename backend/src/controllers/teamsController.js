@@ -17,6 +17,7 @@
 import pool from '../db/pool.js';
 import logger from '../utils/logger.js';
 import { sendMail } from '../utils/mailer.js';
+import { resolveEmailLanguage } from '../utils/emailLanguage.js';
 import { getTeamRole } from '../utils/teamAccess.js';
 import { assertOrgAccess } from '../utils/organizationAccess.js';
 import { success, created, error } from '../utils/apiResponse.js';
@@ -200,7 +201,10 @@ export async function inviteMember(req, res) {
 
     const { email, role = 'member' } = req.body;
     const userResult = await pool.query(
-      'SELECT id, email FROM users WHERE email = $1',
+      `SELECT u.id, u.email, s.preferences_json->>'language' AS language
+       FROM users u
+       LEFT JOIN settings s ON s.user_id = u.id
+       WHERE u.email = $1`,
       [email.trim().toLowerCase()]
     );
     if (userResult.rows.length === 0) {
@@ -226,10 +230,19 @@ export async function inviteMember(req, res) {
     );
 
     const appUrl = (process.env.CORS_ORIGIN || '').replace(/\/$/, '');
+    const INVITE_EMAIL_TEXT = {
+      de: {
+        subject: `OpenFloorball: Einladung zum Team "${team.name}"`,
+        text: `Du wurdest zum Team "${team.name}" hinzugefügt.\n\n${appUrl ? `${appUrl}/settings` : 'Öffne die OpenFloorball-App'}, um es zu sehen.`,
+      },
+      en: {
+        subject: `OpenFloorball: Invitation to team "${team.name}"`,
+        text: `You've been added to the team "${team.name}".\n\n${appUrl ? `${appUrl}/settings` : 'Open the OpenFloorball app'} to see it.`,
+      },
+    };
     sendMail({
       to: targetUser.email,
-      subject: `OpenFloorball: Einladung zum Team "${team.name}"`,
-      text: `Du wurdest zum Team "${team.name}" hinzugefügt.\n\n${appUrl ? `${appUrl}/settings` : 'Öffne die OpenFloorball-App'}, um es zu sehen.`,
+      ...INVITE_EMAIL_TEXT[resolveEmailLanguage(targetUser.language)],
     });
 
     res.status(201).json(created(toApiMember({ ...result.rows[0], email: targetUser.email })));

@@ -3,8 +3,10 @@
  * Reset-Flow). Zeigt nach dem Absenden immer dieselbe generische
  * Erfolgsmeldung an, unabhängig davon, ob die E-Mail-Adresse
  * tatsächlich existiert – der Backend-Endpunkt garantiert das bereits
- * (siehe routes/auth.js), hier wird nur die Antwort unverändert
- * angezeigt statt eine eigene Formulierung zu erfinden.
+ * (siehe routes/auth.js). Der Erfolgstext kommt bewusst aus dem
+ * Frontend-i18n statt aus der (nur deutschen) Backend-Antwort – der
+ * Endpunkt ist absichtlich anonym/ohne Nutzerbezug, es gibt also keine
+ * Sprachpräferenz, die das Backend hier auswerten könnte.
  */
 import { useState } from 'react';
 import { Link } from 'react-router';
@@ -18,15 +20,15 @@ export default function ForgotPasswordPage() {
   const [email,   setEmail  ] = useState('');
   const [loading, setLoading] = useState(false);
   const [err,     setErr    ] = useState(null);
-  const [message, setMessage] = useState(null);
+  const [sent,    setSent   ] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     setErr(null);
     try {
-      const res = await api.post('/auth/forgot-password', { email });
-      setMessage(res.data.data.message);
+      await api.post('/auth/forgot-password', { email });
+      setSent(true);
     } catch (e) {
       const details = e.response?.data?.details;
       const detailMsg = Array.isArray(details) ? details.map((d) => d.message).join(' ') : null;
@@ -42,7 +44,7 @@ export default function ForgotPasswordPage() {
         <img src={logo} alt="OpenFloorball" className="auth-logo" />
         <h1 className="auth-title">{t('auth.forgotPasswordTitle')}</h1>
 
-        {!message && (
+        {!sent && (
           <>
             <p className="auth-hint">{t('auth.forgotPasswordDesc')}</p>
 
@@ -74,8 +76,8 @@ export default function ForgotPasswordPage() {
           </>
         )}
 
-        {message && (
-          <p className="auth-hint" role="status">{message}</p>
+        {sent && (
+          <p className="auth-hint" role="status">{t('auth.forgotPasswordSuccess')}</p>
         )}
 
         <p className="auth-switch">

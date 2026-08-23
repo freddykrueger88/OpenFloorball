@@ -20,6 +20,7 @@
 import pool from '../db/pool.js';
 import logger from '../utils/logger.js';
 import { sendMail } from '../utils/mailer.js';
+import { resolveEmailLanguage } from '../utils/emailLanguage.js';
 import { success, created, error } from '../utils/apiResponse.js';
 
 const MAX_COLLABORATORS_PER_BOARD = 10;
@@ -130,7 +131,10 @@ export async function addCollaborator(req, res) {
     const email = req.body.email.trim().toLowerCase();
     const { permission = 'read' } = req.body;
     const userResult = await pool.query(
-      'SELECT id, email FROM users WHERE email = $1',
+      `SELECT u.id, u.email, s.preferences_json->>'language' AS language
+       FROM users u
+       LEFT JOIN settings s ON s.user_id = u.id
+       WHERE u.email = $1`,
       [email]
     );
     if (userResult.rows.length === 0) {
@@ -149,10 +153,22 @@ export async function addCollaborator(req, res) {
       const invite = inviteResult.rows[0];
 
       const appUrl = (process.env.CORS_ORIGIN || '').replace(/\/$/, '');
+      // Empfänger hat noch keinen Account -> keine gespeicherte
+      // Sprachpräferenz bekannt, resolveEmailLanguage(undefined) fällt
+      // auf 'de' zurück (Projekt-Default, siehe frontend/src/i18n/i18n.js).
+      const INVITE_NO_ACCOUNT_TEXT = {
+        de: {
+          subject: `OpenFloorball: Einladung zum Board "${board.name}"`,
+          text: `Du wurdest eingeladen, am Board "${board.name}" mitzuarbeiten (${permission === 'write' ? 'Bearbeiten' : 'Lesen'}).\n\nDu hast noch keinen OpenFloorball-Account. Registriere dich mit dieser E-Mail-Adresse (${email}), um automatisch Zugriff zu erhalten:\n\n${appUrl}/invite/${invite.token}`,
+        },
+        en: {
+          subject: `OpenFloorball: Invitation to board "${board.name}"`,
+          text: `You've been invited to collaborate on the board "${board.name}" (${permission === 'write' ? 'edit' : 'read'} access).\n\nYou don't have an OpenFloorball account yet. Register with this email address (${email}) to get access automatically:\n\n${appUrl}/invite/${invite.token}`,
+        },
+      };
       sendMail({
         to: email,
-        subject: `OpenFloorball: Einladung zum Board "${board.name}"`,
-        text: `Du wurdest eingeladen, am Board "${board.name}" mitzuarbeiten (${permission === 'write' ? 'Bearbeiten' : 'Lesen'}).\n\nDu hast noch keinen OpenFloorball-Account. Registriere dich mit dieser E-Mail-Adresse (${email}), um automatisch Zugriff zu erhalten:\n\n${appUrl}/invite/${invite.token}`,
+        ...INVITE_NO_ACCOUNT_TEXT[resolveEmailLanguage(undefined)],
       });
 
       return res.status(201).json(created(toApiInvite(invite)));
@@ -177,10 +193,19 @@ export async function addCollaborator(req, res) {
     );
 
     const appUrl = (process.env.CORS_ORIGIN || '').replace(/\/$/, '');
+    const ACCESS_EMAIL_TEXT = {
+      de: {
+        subject: `OpenFloorball: Zugriff auf Board "${board.name}"`,
+        text: `Du wurdest als Kollaborator (${permission === 'write' ? 'Bearbeiten' : 'Lesen'}) zum Board "${board.name}" hinzugefügt.\n\n${appUrl ? `${appUrl}/boards` : 'Öffne die OpenFloorball-App'}, um es zu sehen.`,
+      },
+      en: {
+        subject: `OpenFloorball: Access to board "${board.name}"`,
+        text: `You've been added as a collaborator (${permission === 'write' ? 'edit' : 'read'} access) to the board "${board.name}".\n\n${appUrl ? `${appUrl}/boards` : 'Open the OpenFloorball app'} to see it.`,
+      },
+    };
     sendMail({
       to: targetUser.email,
-      subject: `OpenFloorball: Zugriff auf Board "${board.name}"`,
-      text: `Du wurdest als Kollaborator (${permission === 'write' ? 'Bearbeiten' : 'Lesen'}) zum Board "${board.name}" hinzugefügt.\n\n${appUrl ? `${appUrl}/boards` : 'Öffne die OpenFloorball-App'}, um es zu sehen.`,
+      ...ACCESS_EMAIL_TEXT[resolveEmailLanguage(targetUser.language)],
     });
 
     res.status(201).json(created(toApiCollaborator({ ...result.rows[0], email: targetUser.email })));

@@ -408,15 +408,21 @@ von Live-Spielen erhalten).
 
 ## 8.4 Was bewusst NICHT gebaut wird (Phase 1)
 
-- **Keine `opponents`-Tabelle.** `games.opponent` bleibt Freitext – ein
-  strukturiertes Gegner-Profil samt Saison-/Wettbewerbs-Gruppierung von
-  Spielen (Abschnitt 46/47 der Anforderung) ist bewusst **kein Teil der
-  9 EPIC-012-Phasen** (Roadmap-Tabelle, Abschnitt 11) – dafür fehlt in
-  keiner der neun Phasen ein Bezug. Bleibt ein eigenständiges, mögliches
-  künftiges Backlog-Item außerhalb dieser Statistik-Architektur (z.B.
-  als Teil einer künftigen "Spielverwaltung"-Erweiterung), kein
-  Bestandteil des Kern-Event-Modells. Siehe Phasenplanungs-Review vom
-  2026-08-21 in `docs/planning/BACKLOG.md`.
+- **Keine `opponents`-Tabelle in den 9 EPIC-012-Phasen selbst.**
+  `games.opponent` blieb dafür Freitext – ein strukturiertes
+  Gegner-Profil (Abschnitt 46/47 der Anforderung) war bewusst **kein
+  Teil der 9 EPIC-012-Phasen** (Roadmap-Tabelle, Abschnitt 11) – dafür
+  fehlte in keiner der neun Phasen ein Bezug. War als eigenständiges,
+  künftiges Backlog-Item außerhalb dieser Statistik-Architektur
+  vorgesehen. Siehe Phasenplanungs-Review vom 2026-08-21 in
+  `docs/planning/BACKLOG.md`.
+  > ✅ Umgesetzt (2026-08-23) als eigenständiger, nachgelagerter
+  > Schritt nach Abschluss aller 9 Phasen: `opponents`-Tabelle +
+  > automatische Verknüpfung über `resolveOpponentId()`, siehe
+  > **ADR-0007** in `DECISIONS.md`. Bewusst weiterhin NICHT Teil davon:
+  > Saison-/Wettbewerbs-Gruppierung von Spielen (eigenständiges,
+  > größeres Thema) und manuelles Zusammenführen von
+  > Tippfehler-Duplikaten.
 - **Kein gespeicherter Score.** Bleibt abgeleitet – nur die
   *Berechnung* wird zentralisiert (Statistics Engine, Abschnitt 10),
   nicht die Persistenz geändert.

@@ -47,6 +47,7 @@ export default function Header() {
     { to: '/roster',    label: t('nav.roster') },
     { to: '/lines',     label: t('nav.lines') },
     { to: '/games',     label: t('nav.games') },
+    { to: '/opponents', label: t('nav.opponents') },
     { to: '/stats',     label: t('nav.stats') },
     { to: '/calendar',  label: t('nav.calendar') },
     { to: '/news',      label: t('nav.news') },

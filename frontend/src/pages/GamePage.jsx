@@ -22,6 +22,7 @@ import { useParams, Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Trash2, Send, FileDown, Play, Pause, SkipForward, RotateCcw, Video, Plus, Sparkles } from 'lucide-react';
 import { useGames } from '../hooks/useGames.js';
+import { useOpponents } from '../hooks/useOpponents.js';
 import { useComments } from '../hooks/useComments.js';
 import { useGameEvents } from '../hooks/useGameEvents.js';
 import { useEventTypeDefinitions } from '../hooks/useEventTypeDefinitions.js';
@@ -53,6 +54,7 @@ export default function GamePage() {
   const { t, i18n } = useTranslation();
   const { id } = useParams();
   const { fetchGame, updateGame } = useGames();
+  const { opponents, fetchOpponents } = useOpponents();
   const { exporting: exportingReport, error: reportError, exportGameReport } = usePdfExport();
   const { comments: notes, loading: notesLoading, error: notesError, fetchComments, addComment, deleteComment } = useComments('games', id);
   const { events, loading: eventsLoading, error: eventsError, fetchEvents, addEvent, deleteEvent, linkEventVideo } = useGameEvents(id);
@@ -149,6 +151,7 @@ export default function GamePage() {
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { fetchComments().catch(() => {}); }, [fetchComments]);
+  useEffect(() => { fetchOpponents().catch(() => {}); }, [fetchOpponents]);
   useEffect(() => { fetchEvents().catch(() => {}); }, [fetchEvents]);
   useEffect(() => { fetchEventTypes().catch(() => {}); }, [fetchEventTypes]);
   useEffect(() => { fetchAiStatus().then(setAiStatus).catch(() => {}); }, [fetchAiStatus]);
@@ -502,6 +505,24 @@ export default function GamePage() {
         <span className={styles.scoreboardScore}>{ownGoals} : {opponentGoals}</span>
         <span className={styles.scoreboardSide}>{game.opponent || t('games.noOpponent')}</span>
       </div>
+
+      {(() => {
+        const headToHead = opponents.find((o) => o.id === game.opponentId);
+        if (!headToHead || headToHead.gamesPlayed === 0) return null;
+        return (
+          <Link to="/opponents" className={styles.headToHead}>
+            {t('games.headToHead', {
+              opponent: game.opponent,
+              wins: headToHead.wins,
+              draws: headToHead.draws,
+              losses: headToHead.losses,
+              goalsFor: headToHead.goalsFor,
+              goalsAgainst: headToHead.goalsAgainst,
+              count: headToHead.gamesPlayed,
+            })}
+          </Link>
+        );
+      })()}
 
       <div className={styles.clockPanel} aria-label={t('games.clockAriaLabel', { period: game.clockPeriod, time: `${clockMM}:${clockSS}` })}>
         <span className={styles.clockPeriod}>

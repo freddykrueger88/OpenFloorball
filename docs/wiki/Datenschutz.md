@@ -1,5 +1,7 @@
 # 🛡️ DSGVO & Datenschutz
 
+*🇩🇪 Deutsch | [🇬🇧 English](Datenschutz.en.md)*
+
 OpenFloorball ist self-hosted – der Betreiber der jeweiligen Instanz ist
 datenschutzrechtlich verantwortlich, nicht die OpenFloorball-Entwickler.
 Die App selbst folgt beim Datenmodell dem Grundsatz der

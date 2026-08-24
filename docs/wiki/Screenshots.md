@@ -1,5 +1,7 @@
 # 📸 Screenshots
 
+*🇩🇪 Deutsch | [🇬🇧 English](Screenshots.en.md)*
+
 Alle Screenshots zeigen echte, laufende Funktionen (Demo-Daten,
 keine Mockups). Deutsche Oberfläche, Dark-Theme (Standard).
 

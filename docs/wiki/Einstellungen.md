@@ -1,5 +1,7 @@
 # ⚙️ Einstellungen
 
+*🇩🇪 Deutsch | [🇬🇧 English](Einstellungen.en.md)*
+
 Erreichbar über `/settings` (angemeldeter Nutzer) bzw. den
 "Einstellungen"-Tab im Board-Editor für feldbezogene Optionen.
 

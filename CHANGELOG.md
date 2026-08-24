@@ -13,6 +13,17 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- Projekt-Wiki (`docs/wiki/`, 41 Seiten) jetzt vollständig zweisprachig:
+  jede Seite hat ein `*.en.md`-Gegenstück mit gegenseitiger
+  🇩🇪/🇬🇧-Verlinkung, wie zuvor bei README/TRANSLATING etabliert.
+  Interne Links zwischen Wiki-Seiten zeigen in der englischen Version
+  konsequent auf die jeweilige `.en.md`-Datei. `README.en.md`
+  entsprechend aktualisiert (Doku-Links zeigen jetzt auf die englischen
+  Wiki-Seiten). `docs/planning/`, `docs/current-status.md` und
+  `CHANGELOG.md` bleiben bewusst Deutsch-only (separater, größerer
+  Aufwand, im README vermerkt).
+
 ### Removed
 - `release.yml`-Workflow entfernt: erzeugte bei einem Git-Tag nur einen
   GitHub-Release-Eintrag mit Changelog-Auszug, baute/veröffentlichte

@@ -1,5 +1,7 @@
 # 🤝 Contributing Guide
 
+*🇩🇪 Deutsch | [🇬🇧 English](Contributing.en.md)*
+
 Die vollständige Anleitung liegt im Repository selbst, um sie nicht an
 zwei Stellen aktuell halten zu müssen:
 

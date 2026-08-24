@@ -1,5 +1,7 @@
 # ⭐ Formationen-Vorlagen
 
+*🇩🇪 Deutsch | [🇬🇧 English](Formationen.en.md)*
+
 Eine Formation speichert eine komplette Spieleraufstellung (Positionen
 aller Spieler) als wiederverwendbare Vorlage – unabhängig von einem
 bestimmten Board.

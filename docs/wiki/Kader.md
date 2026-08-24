@@ -1,5 +1,7 @@
 # 👥 Kader (Team-Roster)
 
+*🇩🇪 Deutsch | [🇬🇧 English](Kader.en.md)*
+
 Ein zentraler Spieler-Pool pro Account – einmal pflegen, dann in
 beliebigen Boards zuweisen, statt Namen in jedem Board einzeln
 einzutragen.

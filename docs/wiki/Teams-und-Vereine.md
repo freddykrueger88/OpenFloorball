@@ -1,5 +1,7 @@
 # 👥 Teams und Vereine
 
+*🇩🇪 Deutsch | [🇬🇧 English](Teams-und-Vereine.en.md)*
+
 Zwei getrennte, hierarchisch unabhängige Ebenen: **Teams** (eine
 Mannschaft) und **Organizations** (ein Verein mit mehreren Teams).
 

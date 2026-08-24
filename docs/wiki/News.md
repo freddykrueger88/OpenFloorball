@@ -1,5 +1,7 @@
 # 📣 News
 
+*🇩🇪 Deutsch | [🇬🇧 English](News.en.md)*
+
 Unter `/news` postet ein Coach oder Vereinsleiter kurze Mitteilungen
 an sein Team ("Training am Dienstag fällt aus", "Bitte Trikots waschen
 bis Freitag") – alle Team-Mitglieder sehen sie in einer

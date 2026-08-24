@@ -1,5 +1,7 @@
 # 📚 Playbooks (Board-Sammlungen)
 
+*🇩🇪 Deutsch | [🇬🇧 English](Playbooks.en.md)*
+
 Ein Playbook gruppiert mehrere Boards thematisch, z. B. "Powerplay",
 "Standardsituationen" oder "Gegner XY". Rein organisatorisch – ändert
 nichts an den Boards selbst.

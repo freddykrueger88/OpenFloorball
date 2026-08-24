@@ -13,7 +13,7 @@
 > use · **Stack:** React/Vite · Node/Express · PostgreSQL · Redis ·
 > Docker
 
-Detailed, continuously updated status (German, see note below):
+Detailed, continuously updated status (German):
 **[docs/current-status.md](docs/current-status.md)**
 
 ---
@@ -58,8 +58,7 @@ service – your data stays on your own infrastructure.
 </table>
 
 More views (training planner, roster, community library, mobile use):
-**[docs/wiki/Screenshots.md](docs/wiki/Screenshots.md)** (German wiki,
-screenshots speak for themselves)
+**[docs/wiki/Screenshots.en.md](docs/wiki/Screenshots.en.md)**
 
 ## 📊 Current status
 
@@ -75,21 +74,21 @@ known issues (German): **[docs/current-status.md](docs/current-status.md)**.
 
 | Area | Status | Details |
 |---|---|---|
-| Tactics board (field, drawing, frame animation, versioning) | ✅ | [Spielzuege-Zeichnen.md](docs/wiki/Spielzuege-Zeichnen.md), [Animation.md](docs/wiki/Animation.md) |
-| Formation templates, playbooks | ✅ | [Formationen.md](docs/wiki/Formationen.md), [Playbooks.md](docs/wiki/Playbooks.md) |
-| Training planner, roster, lines | ✅ | [Trainingsplaner.md](docs/wiki/Trainingsplaner.md), [Kader.md](docs/wiki/Kader.md), [Lines.md](docs/wiki/Lines.md) |
-| Live game notes | ✅ | [Live-Spielnotizen.md](docs/wiki/Live-Spielnotizen.md) |
-| Teams and clubs | ✅ | [Teams-und-Vereine.md](docs/wiki/Teams-und-Vereine.md) |
-| Board sharing (collaborators, invites, links) | ✅ | [Export.md](docs/wiki/Export.md) |
-| Community exercise library | ✅ | [Community-Bibliothek.md](docs/wiki/Community-Bibliothek.md) |
-| AI assistants (training/tactics/analysis/knowledge, optional) | ✅ | [KI-Assistenten.md](docs/wiki/KI-Assistenten.md) |
-| Video integration (upload, drawing overlay, trimming, markers, video→board) | ✅ | [Video-Integration.md](docs/wiki/Video-Integration.md) |
-| Real-time presence (live cursors) | ✅ | [Echtzeit-Zusammenarbeit.md](docs/wiki/Echtzeit-Zusammenarbeit.md) |
-| Export as GIF/MP4/PDF | ✅ | [Export.md](docs/wiki/Export.md) |
-| PWA / offline mode | 🟡 | Conflict detection only for boards/frames/trainings/roster, see [Offline-Modus.md](docs/wiki/Offline-Modus.md) |
+| Tactics board (field, drawing, frame animation, versioning) | ✅ | [Drawing plays](docs/wiki/Spielzuege-Zeichnen.en.md), [Animation](docs/wiki/Animation.en.md) |
+| Formation templates, playbooks | ✅ | [Formations](docs/wiki/Formationen.en.md), [Playbooks](docs/wiki/Playbooks.en.md) |
+| Training planner, roster, lines | ✅ | [Training planner](docs/wiki/Trainingsplaner.en.md), [Roster](docs/wiki/Kader.en.md), [Lines](docs/wiki/Lines.en.md) |
+| Live game notes | ✅ | [Live game notes](docs/wiki/Live-Spielnotizen.en.md) |
+| Teams and clubs | ✅ | [Teams and clubs](docs/wiki/Teams-und-Vereine.en.md) |
+| Board sharing (collaborators, invites, links) | ✅ | [Export & sharing](docs/wiki/Export.en.md) |
+| Community exercise library | ✅ | [Community library](docs/wiki/Community-Bibliothek.en.md) |
+| AI assistants (training/tactics/analysis/knowledge, optional) | ✅ | [AI assistants](docs/wiki/KI-Assistenten.en.md) |
+| Video integration (upload, drawing overlay, trimming, markers, video→board) | ✅ | [Video integration](docs/wiki/Video-Integration.en.md) |
+| Real-time presence (live cursors) | ✅ | [Real-time collaboration](docs/wiki/Echtzeit-Zusammenarbeit.en.md) |
+| Export as GIF/MP4/PDF | ✅ | [Export & sharing](docs/wiki/Export.en.md) |
+| PWA / offline mode | 🟡 | Conflict detection only for boards/frames/trainings/roster, see [Offline mode](docs/wiki/Offline-Modus.en.md) |
 | Onboarding tour | ✅ | On first login, skippable |
 | In-depth editor tour | ✅ | In the board editor, independent of the onboarding tour, re-openable via the help icon |
-| GDPR (export, deletion, backup) | ✅ | [Datenschutz.md](docs/wiki/Datenschutz.md), [Backup.md](docs/wiki/Backup.md) |
+| GDPR (export, deletion, backup) | ✅ | [Privacy](docs/wiki/Datenschutz.en.md), [Backup](docs/wiki/Backup.en.md) |
 | Accessibility | ✅ | Colorblind filters, screen reader, keyboard, font sizes |
 | Password reset | ✅ | Via email link, requires configured SMTP delivery |
 | Language | ✅ | German (default) and English in the UI, more languages in progress – see [Contributing a translation](#-contributing) |
@@ -132,8 +131,7 @@ cp .env.example .env
 `REDIS_PASSWORD`, and `JWT_SECRET` must be set, otherwise Docker
 Compose refuses to start (deliberately hard-required fields, no
 insecure defaults). All variables are documented in
-[docs/wiki/Umgebungsvariablen.md](docs/wiki/Umgebungsvariablen.md)
-(German).
+[docs/wiki/Umgebungsvariablen.en.md](docs/wiki/Umgebungsvariablen.en.md).
 
 ```bash
 docker compose up -d
@@ -151,14 +149,14 @@ Then open in your browser: `http://localhost:${APP_PORT:-3000}`
 DOMAIN=your-domain.com docker compose -f docker-compose.yml -f docker-compose.tls.yml up -d
 ```
 
-Details: [docs/wiki/Installation-Docker.md](docs/wiki/Installation-Docker.md) (German)
+Details: [docs/wiki/Installation-Docker.en.md](docs/wiki/Installation-Docker.en.md)
 
 ## 👨‍💻 Development
 
 No local Node.js needed – backend and frontend each run in their own
 containers; lint/test/build also run containerized (see
-[docs/wiki/Installation-Entwicklung.md](docs/wiki/Installation-Entwicklung.md)
-(German) for the full workflow including live reload).
+[docs/wiki/Installation-Entwicklung.en.md](docs/wiki/Installation-Entwicklung.en.md)
+for the full workflow including live reload).
 
 ```bash
 # Backend: lint & tests
@@ -189,7 +187,7 @@ flowchart LR
 ```
 
 Details incl. data model, export data flow, and AI provider
-integration: [docs/wiki/Architektur.md](docs/wiki/Architektur.md) (German)
+integration: [docs/wiki/Architektur.en.md](docs/wiki/Architektur.en.md)
 
 ## 📁 Project structure
 
@@ -210,15 +208,15 @@ Full, current structure with rationale:
 
 ## 📚 Documentation
 
-> **Note:** the in-depth project wiki (`docs/wiki/`) and planning docs
-> (`docs/planning/`) are currently German-only. The application UI
-> itself is fully bilingual (German/English, more languages in
-> progress) – translating the documentation is a separate, larger
-> effort that hasn't happened yet. Contributions welcome, see
+> **Note:** the deeper planning docs (`docs/planning/`) – architecture
+> decisions, product vision, backlog – along with
+> `docs/current-status.md` and `CHANGELOG.md` are currently
+> German-only. The project wiki (`docs/wiki/`) is fully bilingual, like
+> the application UI itself. Contributions welcome, see
 > [Contributing](#-contributing).
 
-- **[docs/wiki/Home.md](docs/wiki/Home.md)** – full wiki (installation,
-  every feature in detail, API reference, architecture) – German
+- **[docs/wiki/Home.en.md](docs/wiki/Home.en.md)** – full wiki
+  (installation, every feature in detail, API reference, architecture)
 - **[docs/current-status.md](docs/current-status.md)** – detailed
   current status, known issues, next steps – German
 - **[CHANGELOG.md](CHANGELOG.md)** – full version history – German

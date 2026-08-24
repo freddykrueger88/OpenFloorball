@@ -1,5 +1,7 @@
 # 💾 Backup & Export
 
+*🇩🇪 Deutsch | [🇬🇧 English](Backup.en.md)*
+
 ## Manueller Export (jeder Nutzer)
 
 Unter `/settings` → Konto: vollständiger Datenexport als ZIP

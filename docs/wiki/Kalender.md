@@ -1,5 +1,7 @@
 # 📅 Kalender
 
+*🇩🇪 Deutsch | [🇬🇧 English](Kalender.en.md)*
+
 Unter `/calendar` erscheinen [Spiele](./Live-Spielnotizen.md) und
 [Trainingseinheiten](./Trainingsplaner.md) gemeinsam in einer
 Monatsansicht – farblich unterschieden (Spiele orange, Trainings

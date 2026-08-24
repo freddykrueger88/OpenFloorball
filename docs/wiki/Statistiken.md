@@ -1,5 +1,7 @@
 # 📊 Statistiken
 
+*🇩🇪 Deutsch | [🇬🇧 English](Statistiken.en.md)*
+
 Unter `/stats` zeigt eine Tabelle für jeden [Kader-Spieler](./Kader.md)
 Tore, Vorlagen (Assists), Punkte, Strafminuten, Matchstrafen, Einsätze,
 Schüsse/Schuss-% sowie (nur für Torhüter) Gegentore/Fangquote –

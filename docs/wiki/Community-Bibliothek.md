@@ -1,5 +1,7 @@
 # 📚 Community-Bibliothek
 
+*🇩🇪 Deutsch | [🇬🇧 English](Community-Bibliothek.en.md)*
+
 Instanzweite Übungsbibliothek: jeder eingeloggte Nutzer dieser
 OpenFloorball-Instanz kann eigene Boards veröffentlichen und Einträge
 anderer klonen. Kein anonymer Zugriff (anders als öffentliche

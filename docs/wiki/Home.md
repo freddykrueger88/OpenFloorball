@@ -1,5 +1,7 @@
 # 🏒 OpenFloorball Wiki
 
+*🇩🇪 Deutsch | [🇬🇧 English](Home.en.md)*
+
 Willkommen im OpenFloorball Wiki! Hier findest du alle Informationen zur
 Installation, Nutzung und Entwicklung.
 

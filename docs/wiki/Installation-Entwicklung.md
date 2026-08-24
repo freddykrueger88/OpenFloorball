@@ -1,5 +1,7 @@
 # 🛠️ Manuelle Installation (Entwicklung)
 
+*🇩🇪 Deutsch | [🇬🇧 English](Installation-Entwicklung.en.md)*
+
 Für iterative Frontend-/Backend-Entwicklung ohne Container-Rebuild bei
 jeder Änderung. Für den reinen Produktivbetrieb siehe
 [Schnellstart mit Docker](./Installation-Docker.md).

@@ -1,5 +1,7 @@
 # 🏒 Live-Spielnotizen
 
+*🇩🇪 Deutsch | [🇬🇧 English](Live-Spielnotizen.en.md)*
+
 Ein Spiel (Gegner + Datum, optional team-geteilt) anlegen und während
 des laufenden Spiels schnelle, automatisch zeitgestempelte Notizen
 erfassen – vom Handy aus, z. B. auf der Bank. Anders als

@@ -1,5 +1,7 @@
 # 🔌 API-Dokumentation
 
+*🇩🇪 Deutsch | [🇬🇧 English](API.en.md)*
+
 REST-API unter `/api`. Authentifizierung über HttpOnly-Session-Cookie
 (JWT), gesetzt durch `POST /api/auth/login` bzw. `/register`. Es gibt
 kein separates API-Token-System – die API ist für das eigene Frontend

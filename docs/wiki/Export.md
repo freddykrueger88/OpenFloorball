@@ -1,5 +1,7 @@
 # 📤 Export & Teilen
 
+*🇩🇪 Deutsch | [🇬🇧 English](Export.en.md)*
+
 Alle Optionen im "Export"-Tab des unteren Menüs im Board-Editor.
 
 ## GIF / MP4

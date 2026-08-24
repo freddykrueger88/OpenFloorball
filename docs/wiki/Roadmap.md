@@ -1,5 +1,7 @@
 # 🗺️ Roadmap
 
+*🇩🇪 Deutsch | [🇬🇧 English](Roadmap.en.md)*
+
 Die vollständige, langfristige Roadmap und der Backlog liegen im
 Repository und werden dort kontinuierlich aktualisiert:
 

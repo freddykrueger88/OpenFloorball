@@ -1,5 +1,7 @@
 # ✏️ Spielzüge zeichnen
 
+*🇩🇪 Deutsch | [🇬🇧 English](Spielzuege-Zeichnen.en.md)*
+
 Die Zeichenwerkzeuge sitzen links neben dem Spielfeld im Board-Editor
 (bei aufgeklapptem unterem Menü scrollbar, falls der Platz nicht reicht).
 

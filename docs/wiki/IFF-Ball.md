@@ -1,5 +1,7 @@
 # 🏐 Ball-Spezifikationen
 
+*🇩🇪 Deutsch | [🇬🇧 English](IFF-Ball.en.md)*
+
 Für die Ball-Farbe auf dem Spielfeld stehen die offiziellen
 IFF-Turnierfarben zur Auswahl, plus eine zusätzliche Option für Street
 Floorball:

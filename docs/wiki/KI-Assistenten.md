@@ -1,5 +1,7 @@
 # 🤖 KI-Assistenten
 
+*🇩🇪 Deutsch | [🇬🇧 English](KI-Assistenten.en.md)*
+
 Fünf optionale, textbasierte Assistenten (`/api/ai/*`), sichtbar nur
 wenn diese Instanz einen KI-Anbieter konfiguriert hat. Kein Assistent
 speichert automatisch etwas – jeder liefert nur einen Textentwurf, den

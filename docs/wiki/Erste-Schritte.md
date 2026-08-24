@@ -1,5 +1,7 @@
 # 🚀 Erste Schritte
 
+*🇩🇪 Deutsch | [🇬🇧 English](Erste-Schritte.en.md)*
+
 Kurzer Rundgang durch OpenFloorball nach der [Installation](./Installation-Docker.md).
 
 ## 1. Registrieren

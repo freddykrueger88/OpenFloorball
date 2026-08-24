@@ -1,5 +1,7 @@
 # ⚙️ Umgebungsvariablen (.env)
 
+*🇩🇪 Deutsch | [🇬🇧 English](Umgebungsvariablen.en.md)*
+
 Vollständige Referenz. Quelle der Wahrheit ist immer
 [`.env.example`](../../.env.example) im Repository-Root – diese Seite
 fasst dieselben Variablen mit Erklärung zusammen.

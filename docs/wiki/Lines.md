@@ -1,5 +1,7 @@
 # 🥍 Lines (Sturm-/Defensivreihen)
 
+*🇩🇪 Deutsch | [🇬🇧 English](Lines.en.md)*
+
 Im Floorball gibt es laufende, unbegrenzte Spielerwechsel – eine Line
 ist deshalb keine feste Gruppe, die dauerhaft zusammengehört, sondern
 eine **vorbereitete Kombination von Kader-Spielern**, mit der ein

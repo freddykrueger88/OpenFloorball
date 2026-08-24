@@ -1,5 +1,7 @@
 # 🩹 Troubleshooting
 
+*🇩🇪 Deutsch | [🇬🇧 English](Troubleshooting.en.md)*
+
 ## Login funktioniert nicht / Cookie wird sofort wieder verworfen
 
 Meist `COOKIE_SECURE=true` (Standard) ohne HTTPS davor. Für reinen

@@ -1,5 +1,7 @@
 # ❓ FAQ
 
+*🇩🇪 Deutsch | [🇬🇧 English](FAQ.en.md)*
+
 **Läuft OpenFloorball auch ohne Docker?**
 Nicht offiziell unterstützt – das Projekt ist bewusst Docker-first
 aufgebaut (Backend, Frontend/Nginx, Postgres, Redis als eigene

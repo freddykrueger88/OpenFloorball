@@ -1,5 +1,7 @@
 # 📜 Changelog
 
+*🇩🇪 Deutsch | [🇬🇧 English](Changelog.en.md)*
+
 Die vollständige, versionierte Historie liegt im Repository:
 
 👉 **[CHANGELOG.md](../../CHANGELOG.md)**

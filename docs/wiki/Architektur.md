@@ -1,5 +1,7 @@
 # 📚 Architektur-Übersicht
 
+*🇩🇪 Deutsch | [🇬🇧 English](Architektur.en.md)*
+
 ## 📱 Tech Stack
 
 ### Backend

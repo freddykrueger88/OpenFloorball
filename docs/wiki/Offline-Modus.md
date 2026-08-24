@@ -1,5 +1,7 @@
 # 📶 Offline-Modus (PWA)
 
+*🇩🇪 Deutsch | [🇬🇧 English](Offline-Modus.en.md)*
+
 OpenFloorball ist eine installierbare Progressive Web App (Service
 Worker via `vite-plugin-pwa`) und funktioniert eingeschränkt auch ohne
 Internetverbindung – z. B. in der Sporthalle mit schlechtem WLAN.

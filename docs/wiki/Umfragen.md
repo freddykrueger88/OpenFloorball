@@ -1,5 +1,7 @@
 # 🗳️ Umfragen
 
+*🇩🇪 Deutsch | [🇬🇧 English](Umfragen.en.md)*
+
 Unter `/polls` stellt ein Coach oder Vereinsleiter eine kurze Frage
 mit mehreren Antwortoptionen an sein Team ("Welcher Tag passt am
 besten?", "Neue Trikotfarbe?"). Team-Mitglieder stimmen ab, die

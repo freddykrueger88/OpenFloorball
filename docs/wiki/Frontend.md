@@ -1,5 +1,7 @@
 # 🎨 Frontend-Struktur
 
+*🇩🇪 Deutsch | [🇬🇧 English](Frontend.en.md)*
+
 React 19 + Vite, kein zentrales Redux – Server-State über eigene
 Hooks pro Ressource, Client-State über schlanke Zustand-Stores.
 

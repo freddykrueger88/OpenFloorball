@@ -1,5 +1,7 @@
 # 🔒 Sicherheitshinweise
 
+*🇩🇪 Deutsch | [🇬🇧 English](Sicherheit.en.md)*
+
 Die vollständige Security Policy liegt im Repository:
 
 👉 **[SECURITY.md](../../SECURITY.md)**

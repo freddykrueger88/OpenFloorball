@@ -1,5 +1,7 @@
 # 🎥 Video-Integration
 
+*🇩🇪 Deutsch | [🇬🇧 English](Video-Integration.en.md)*
+
 Bis zu 5 kurze Videoclips pro Board (z. B. eine konkrete Spielsituation
 des Gegners), abspielbar über den nativen Browser-Player.
 

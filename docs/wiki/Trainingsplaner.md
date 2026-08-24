@@ -1,5 +1,7 @@
 # 📋 Trainingsplaner
 
+*🇩🇪 Deutsch | [🇬🇧 English](Trainingsplaner.en.md)*
+
 Ein Trainingsplan ("Training Session") reiht mehrere bestehende Boards
 zu einer Übungssequenz mit Dauer aneinander – z. B. Aufwärmen (Board A,
 10 Min.) → Passübung (Board B, 15 Min.) → Abschlussspiel (Board C, 20

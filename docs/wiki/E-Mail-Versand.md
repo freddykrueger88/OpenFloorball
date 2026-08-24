@@ -1,5 +1,7 @@
 # 📧 E-Mail-Versand einrichten (z. B. mit Gmail)
 
+*🇩🇪 Deutsch | [🇬🇧 English](E-Mail-Versand.en.md)*
+
 OpenFloorball verschickt aktuell E-Mails in zwei Fällen: wenn ein
 Nutzer über den "Board teilen"-Button als Kollaborator zu einem Board
 hinzugefügt wird, und beim Passwort-Reset-Link. Für Board-Sharing ist

@@ -1,5 +1,7 @@
 # 🟢 Echtzeit-Zusammenarbeit (Presence)
 
+*🇩🇪 Deutsch | [🇬🇧 English](Echtzeit-Zusammenarbeit.en.md)*
+
 Zeigt im Board-Editor an, wer gerade dasselbe Board ansieht, und
 überträgt Live-Cursor-Positionen anderer Nutzer.
 

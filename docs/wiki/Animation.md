@@ -1,5 +1,7 @@
 # 🎬 Frame-by-Frame Animation
 
+*🇩🇪 Deutsch | [🇬🇧 English](Animation.en.md)*
+
 Ein Board besteht aus einer Sequenz von **Frames** – jeder Frame
 speichert Spielerpositionen und gezeichnete Elemente als eigenen
 Zustand. Die Wiedergabe interpoliert Spielerbewegungen flüssig

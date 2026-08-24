@@ -1,5 +1,7 @@
 # 🏟️ Spielfeld-Typen & Maße
 
+*🇩🇪 Deutsch | [🇬🇧 English](IFF-Spielfelder.en.md)*
+
 OpenFloorball bildet vier Spielfeld-Typen ab, alle nach dem
 **IFF-Regelwerk** (International Floorball Federation) modelliert.
 Quelle: IFF Rulebook, Abschnitt 1 – Playing Area.

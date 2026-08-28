@@ -327,7 +327,8 @@
       "info": "Info",
       "comments": "Kommentarer",
       "history": "Historik",
-      "settings": "Inställningar"
+      "settings": "Inställningar",
+      "layers": "Lager"
     },
     "collapsePanel": "Fäll ihop panel",
     "expandPanel": "Fäll ut panel"
@@ -344,7 +345,23 @@
     "saveBtn": "Spara",
     "cancelBtn": "Avbryt",
     "deleteBtn": "Radera",
-    "deleteAriaLabel": "Radera kommentar"
+    "deleteAriaLabel": "Radera kommentar",
+    "pinDialogTitle": "Fäst kommentar",
+    "pinDialogSave": "Fäst",
+    "pinDialogSaving": "Fäster…"
+  },
+  "layers": {
+    "hint": "Dölj enskilda lager för att fokusera på specifika element – gäller bara den här vyn, sparas inte.",
+    "home": "Egna spelare",
+    "away": "Motståndare",
+    "move": "Rörelsepilar",
+    "pass": "Passningspilar",
+    "shot": "Skottpilar",
+    "freehand": "Frihandsritning",
+    "zone": "Träningszoner",
+    "comments": "Kommentarnålar",
+    "hideAriaLabel": "Dölj {{layer}}",
+    "showAriaLabel": "Visa {{layer}}"
   },
   "rsvp": {
     "title": "Närvaro",
@@ -856,6 +873,7 @@
     "endX": "Slut X",
     "endY": "Slut Y",
     "addArrow": "Lägg till",
+    "addZone": "Lägg till zon",
     "freehandPointX": "Punkt X",
     "freehandPointY": "Punkt Y",
     "addPoint": "Lägg till punkt",

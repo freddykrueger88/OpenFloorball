@@ -327,7 +327,8 @@
       "info": "Info",
       "comments": "Kommentare",
       "history": "Verlauf",
-      "settings": "Einstellungen"
+      "settings": "Einstellungen",
+      "layers": "Ebenen"
     },
     "collapsePanel": "Menü einklappen",
     "expandPanel": "Menü ausklappen"
@@ -344,7 +345,23 @@
     "saveBtn": "Speichern",
     "cancelBtn": "Abbrechen",
     "deleteBtn": "Löschen",
-    "deleteAriaLabel": "Kommentar löschen"
+    "deleteAriaLabel": "Kommentar löschen",
+    "pinDialogTitle": "Kommentar anpinnen",
+    "pinDialogSave": "Anpinnen",
+    "pinDialogSaving": "Wird angepinnt…"
+  },
+  "layers": {
+    "hint": "Blende einzelne Ebenen aus, um dich auf bestimmte Elemente zu konzentrieren – wirkt nur für diese Ansicht, wird nicht gespeichert.",
+    "home": "Eigene Spieler",
+    "away": "Gegner",
+    "move": "Laufwege",
+    "pass": "Passwege",
+    "shot": "Schüsse",
+    "freehand": "Freihand",
+    "zone": "Trainingszonen",
+    "comments": "Kommentar-Pins",
+    "hideAriaLabel": "{{layer}} ausblenden",
+    "showAriaLabel": "{{layer}} einblenden"
   },
   "rsvp": {
     "title": "Anwesenheit",
@@ -856,6 +873,7 @@
     "endX": "Ende X",
     "endY": "Ende Y",
     "addArrow": "Hinzufügen",
+    "addZone": "Zone hinzufügen",
     "freehandPointX": "Punkt X",
     "freehandPointY": "Punkt Y",
     "addPoint": "Punkt hinzufügen",

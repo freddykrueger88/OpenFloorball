@@ -1,8 +1,8 @@
 /**
  * DrawingCoordinatesForm – Tastatur-Alternative zum Ziehen mit der Maus
  * (Issue #38 – WCAG 2.1.1 Keyboard). Nur sichtbar bei aktivem Zeichen-
- * Werkzeug (move/pass/shot/freehand) – select/eraser sind reine
- * Klick-Werkzeuge und nicht Teil dieses Formulars.
+ * Werkzeug (move/pass/shot/zone/freehand) – select/eraser/comment sind
+ * reine Klick-Werkzeuge und nicht Teil dieses Formulars.
  */
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +10,10 @@ import { X } from 'lucide-react';
 import Button from '../common/Button.jsx';
 import styles from './DrawingCoordinatesForm.module.css';
 
-const ARROW_TOOLS = ['move', 'pass', 'shot'];
+// 'zone' zeichnet kein Pfeil, sondern ein Rechteck – teilt sich aber
+// dasselbe Zwei-Punkte-Formular (x1/y1/x2/y2), da useDrawing.js beide
+// über denselben generischen addArrowElement()-Pfad anlegt (siehe dort).
+const ARROW_TOOLS = ['move', 'pass', 'shot', 'zone'];
 
 export default function DrawingCoordinatesForm({ activeTool, field, onAddArrow, onAddFreehand }) {
   const { t } = useTranslation();
@@ -81,7 +84,9 @@ export default function DrawingCoordinatesForm({ activeTool, field, onAddArrow, 
               <input id="coord-y2" type="number" step="0.1" min={0} max={maxY} value={y2} onChange={(e) => setY2(e.target.value)} required />
             </label>
           </div>
-          <Button type="submit" variant="primary" size="md">{t('drawing.addArrow')}</Button>
+          <Button type="submit" variant="primary" size="md">
+            {activeTool === 'zone' ? t('drawing.addZone') : t('drawing.addArrow')}
+          </Button>
         </form>
       ) : (
         <div className={styles.form}>

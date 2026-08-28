@@ -21,9 +21,13 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 
 - **Taktikboard-Editor**: IFF-konformes Spielfeld (Großfeld/Kleinfeld/
   Street/3vs3), Drag-&-Drop-Spielerplatzierung, Zeichenwerkzeuge
-  (Bewegungs-/Pass-/Schusspfeile, Freihand), Frame-by-Frame-Animation,
-  automatische Versionierung (bis zu 50 Snapshots/Board,
-  wiederherstellbar).
+  (Bewegungs-/Pass-/Schusspfeile, Freihand, Trainingszonen), Kommentare
+  als klickbare Feld-Pins, Frame-by-Frame-Animation, automatische
+  Versionierung (bis zu 50 Snapshots/Board, wiederherstellbar).
+- **Layer-System** (CLAUDE.md §10.2) – acht Ebenen unabhängig
+  ein-/ausblendbar (eigene Spieler, Gegner, Laufwege, Passwege,
+  Schüsse, Freihand, Trainingszonen, Kommentar-Pins), reiner
+  Sitzungs-Zustand ohne Speicherung.
 - **Lines** – taktische Zusammenstellungen echter Kader-Spieler
   (Sturm-/Defensivreihen/Special-Teams), ein Spieler kann in beliebig
   vielen Lines stehen, schneller Wechsel direkt auf der Spielseite.

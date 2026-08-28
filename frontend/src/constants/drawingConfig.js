@@ -60,6 +60,31 @@ export const TOOLS = {
     strokeWidth: 2,
     description: 'Freies Zeichnen für flexible Markierungen',
   },
+  zone: {
+    id: 'zone',
+    label: 'Trainingszone',
+    labelEn: 'Training zone',
+    icon: '▭',
+    shortcut: 'Z',
+    cursor: 'crosshair',
+    dash: [],
+    strokeWidth: 2,
+    fillOpacity: 0.25,
+    description: 'Markiert eine Fläche auf dem Feld (z.B. Pressing-Zone)',
+  },
+  // Layer-System (CLAUDE.md §10.2): erzeugt bewusst KEIN Frame-Element
+  // (kein Eintrag in useDrawing.js' elements-Array) – ein Klick mit
+  // diesem Werkzeug öffnet stattdessen einen Dialog zum Anpinnen eines
+  // echten Kommentars (siehe BoardEditorPage.jsx/AddCommentPinDialog.jsx).
+  comment: {
+    id: 'comment',
+    label: 'Kommentar anpinnen',
+    labelEn: 'Pin comment',
+    icon: '💬',
+    shortcut: 'C',
+    cursor: 'crosshair',
+    description: 'Pinnt einen Kommentar an eine Position auf dem Feld',
+  },
   eraser: {
     id: 'eraser',
     label: 'Radierer',
@@ -71,7 +96,7 @@ export const TOOLS = {
   },
 };
 
-export const TOOL_ORDER = ['select', 'move', 'pass', 'shot', 'freehand', 'eraser'];
+export const TOOL_ORDER = ['select', 'move', 'pass', 'shot', 'freehand', 'zone', 'comment', 'eraser'];
 
 export const DEFAULT_COLORS = [
   { hex: '#facc15', label: 'Gelb',    labelEn: 'Yellow' },

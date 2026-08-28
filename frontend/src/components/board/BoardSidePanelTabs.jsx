@@ -6,16 +6,29 @@
  * Standardmäßig eingeklappt (nur die schmale Tab-Leiste sichtbar) – der
  * Fokus soll auf dem Spielfeld bleiben, nicht auf dem Menü darunter.
  */
-import { useState, Fragment } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from '../common/Button.jsx';
 import styles from './BoardSidePanelTabs.module.css';
 
-export default function BoardSidePanelTabs({ tabs }) {
+// forceActivate (Layer-System, CLAUDE.md §10.2): { tabId, token } von
+// außen erzwingt einen Tab-Wechsel + Aufklappen, z.B. wenn
+// BoardEditorPage.jsx auf einen Kommentar-Pin-Klick reagiert. `token`
+// muss sich bei jedem Aufruf ändern (z.B. ein Zähler), sonst würde ein
+// zweiter Klick auf einen ANDEREN Pin bei bereits offenem Comments-Tab
+// keinen neuen Effekt auslösen.
+export default function BoardSidePanelTabs({ tabs, forceActivate }) {
   const { t } = useTranslation();
   const [activeId, setActiveId] = useState(tabs[0]?.id);
   const [expanded, setExpanded] = useState(false);
   const active = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
+
+  useEffect(() => {
+    if (!forceActivate?.tabId) return;
+    setActiveId(forceActivate.tabId);
+    setExpanded(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forceActivate?.token]);
 
   if (tabs.length === 0) return null;
 

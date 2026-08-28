@@ -92,6 +92,73 @@ describe('Kommentare auf Boards', () => {
   });
 });
 
+describe('Kommentar-Pins (Layer-System, x/y-Position)', () => {
+  let pinBoardId;
+  let pinCommentId;
+
+  beforeAll(async () => {
+    const boardRes = await request(app).post('/api/boards').set('Cookie', owner.cookie).send({ name: 'Pin-Board', fieldType: 'large' });
+    pinBoardId = boardRes.body.data._id;
+  });
+
+  it('legt einen Kommentar mit x/y-Position an, die im Response/bei GET erhalten bleibt', async () => {
+    const res = await request(app)
+      .post(`/api/boards/${pinBoardId}/comments`)
+      .set('Cookie', owner.cookie)
+      .send({ text: 'Pressing-Zone hier', x: 12.5, y: 4.2 });
+    expect(res.status).toBe(201);
+    expect(res.body.data.x).toBe(12.5);
+    expect(res.body.data.y).toBe(4.2);
+    pinCommentId = res.body.data._id;
+
+    const listRes = await request(app).get(`/api/boards/${pinBoardId}/comments`).set('Cookie', owner.cookie);
+    const pin = listRes.body.data.find((c) => c._id === pinCommentId);
+    expect(pin.x).toBe(12.5);
+    expect(pin.y).toBe(4.2);
+  });
+
+  it('legt einen Kommentar ohne Position weiterhin mit x/y = null an (bestehendes Verhalten unverändert)', async () => {
+    const res = await request(app).post(`/api/boards/${pinBoardId}/comments`).set('Cookie', owner.cookie).send({ text: 'Normaler Kommentar' });
+    expect(res.status).toBe(201);
+    expect(res.body.data.x).toBeNull();
+    expect(res.body.data.y).toBeNull();
+  });
+
+  it('lehnt eine ungültige x-Position mit 422 ab', async () => {
+    const res = await request(app)
+      .post(`/api/boards/${pinBoardId}/comments`)
+      .set('Cookie', owner.cookie)
+      .send({ text: 'Kaputt', x: 'nicht-numerisch', y: 1 });
+    expect(res.status).toBe(422);
+  });
+
+  it('ignoriert x/y beim Bearbeiten – die Pin-Position ist nach dem Anlegen unveränderlich', async () => {
+    const res = await request(app)
+      .put(`/api/boards/${pinBoardId}/comments/${pinCommentId}`)
+      .set('Cookie', owner.cookie)
+      .send({ text: 'Text geändert', x: 99, y: 99 });
+    expect(res.status).toBe(200);
+    expect(res.body.data.text).toBe('Text geändert');
+    // Ursprüngliche Position bleibt erhalten, kein Verschieben über PUT möglich.
+    expect(res.body.data.x).toBe(12.5);
+    expect(res.body.data.y).toBe(4.2);
+  });
+
+  it('Trainings-/Spiel-Kommentare bleiben ohne x/y funktionsfähig (kein Pflichtfeld, kein Bruch)', async () => {
+    // Eigene, frische Trainingseinheit statt der geteilten `sessionId` –
+    // die spätere "Kommentare auf Trainingseinheiten"-Suite erwartet dort
+    // exakt einen Kommentar und würde sonst durch diesen Test kollidieren.
+    const sessionRes = await request(app).post('/api/trainings').set('Cookie', owner.cookie).send({ name: 'Pin-Test-Training' });
+    const res = await request(app)
+      .post(`/api/trainings/${sessionRes.body.data._id}/comments`)
+      .set('Cookie', owner.cookie)
+      .send({ text: 'Weiterhin ohne Position' });
+    expect(res.status).toBe(201);
+    expect(res.body.data.x).toBeNull();
+    expect(res.body.data.y).toBeNull();
+  });
+});
+
 describe('Kommentare auf Trainingseinheiten', () => {
   it('lehnt Zugriff durch einen Fremden mit 404 ab', async () => {
     const res = await request(app).get(`/api/trainings/${sessionId}/comments`).set('Cookie', stranger.cookie);

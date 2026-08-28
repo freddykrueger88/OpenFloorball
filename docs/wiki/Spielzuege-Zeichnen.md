@@ -14,6 +14,8 @@ Die Zeichenwerkzeuge sitzen links neben dem Spielfeld im Board-Editor
 | ⇢ Pass-Pfeil | `P` | Pass zwischen Spielern (gestrichelt) |
 | ⚡ Schuss-Pfeil | `S` | Schuss aufs Tor (dick, durchgezogen) |
 | ✏ Freihand | `F` | Freies Zeichnen für flexible Markierungen |
+| ▭ Trainingszone | `Z` | Farbige Fläche auf dem Feld (z. B. Pressing-Zone) |
+| 💬 Kommentar anpinnen | `C` | Pinnt einen Kommentar an eine Feld-Position (siehe [Kommentar-Pins](#kommentar-pins) unten) |
 | □ Radierer | `E` | Einzelnes Element per Klick löschen |
 
 Farbe und Linienstärke (dünn/mittel/dick) sind frei wählbar, unabhängig
@@ -51,6 +53,27 @@ hinweg gelten soll (z. B. eine Zonenmarkierung). Für eine Zeichnung,
 die nur in einem einzelnen weiteren Frame sichtbar sein soll, kann sie
 dort natürlich auch einfach neu angelegt werden. Details zu Frames:
 [Frame-by-Frame Animation](./Animation.md).
+
+## Kommentar-Pins
+
+Mit dem Kommentar-Werkzeug lässt sich ein Kommentar direkt an eine
+Position auf dem Feld pinnen (z. B. "Hier Lücke im Pressing"), statt
+nur chronologisch im Kommentare-Tab zu erscheinen. Ein Klick öffnet
+einen kleinen Dialog für den Text; nach dem Speichern erscheint ein
+gelber 💬-Pin an der geklickten Stelle. Ein Klick auf einen Pin
+wechselt in den Kommentare-Tab und hebt den passenden Eintrag dort
+hervor. Die Position eines Pins ist nach dem Anlegen bewusst nicht
+mehr änderbar – zum Verschieben den Kommentar löschen und neu anpinnen.
+
+## Layer-System
+
+Der "Layers"-Tab im unteren Menü blendet einzelne Ebenen unabhängig
+voneinander aus: eigene Spieler, Gegner, Laufwege, Passwege, Schüsse,
+Freihand-Zeichnungen, Trainingszonen und Kommentar-Pins. Nützlich, um
+sich z. B. nur auf die gegnerische Aufstellung oder nur auf die
+eigenen Laufwege zu konzentrieren. Die Sichtbarkeit gilt nur für die
+aktuelle Sitzung im Browser und wird nicht gespeichert – beim nächsten
+Öffnen des Boards sind wieder alle Ebenen sichtbar.
 
 ## Feldgröße ändern
 

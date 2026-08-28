@@ -13,6 +13,33 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- Layer-System im Taktikboard-Editor (CLAUDE.md §10.2, "wie in
+  professionellen Designprogrammen"): neuer "Layers"-Tab lässt acht
+  Ebenen unabhängig ein-/ausblenden – Eigene Spieler, Gegner, Laufwege,
+  Passwege, Schüsse, Freihand, Trainingszonen, Kommentar-Pins.
+  Sichtbarkeit ist bewusst reiner Sitzungs-Zustand (kein Board-Feld,
+  kein `localStorage`): anders als in Photoshop/Figma sind diese
+  "Layer" keine gespeicherten Kompositions-Ebenen, sondern reine
+  Sichtfilter über eine einzige flache Zeichnung.
+  - **Neuer Zeichen-Element-Typ "Trainingszone"**: farbige Rechteck-
+    Fläche auf dem Feld (Werkzeug `Z`), läuft über denselben
+    Undo/Redo-fähigen Dispatch-Pfad wie Pfeile – keine Backend-Änderung
+    nötig (`frames.data_json.elements` ist bereits opakes JSON ohne
+    Typ-Whitelist).
+  - **Kommentare als optionale Feld-Pins**: `comments.x`/`comments.y`
+    (nullable, additiv) machen einen Kommentar zu einem klickbaren Pin
+    auf dem Board (Werkzeug `C` → Dialog für den Text). Position ist
+    nach dem Anlegen bewusst unveränderlich (löschen + neu anpinnen
+    statt verschieben) – `updateComment` nimmt weiterhin ausschließlich
+    Text entgegen. Ein Klick auf einen Pin öffnet den bestehenden
+    Kommentare-Tab und hebt den Eintrag dort hervor, statt eine zweite
+    Kommentar-Oberfläche auf dem Canvas nachzubauen. Trainings-/Spiel-
+    Kommentare und nicht angepinnte Board-Kommentare bleiben unverändert.
+  - Neue Tests: `useDrawing.test.js` (Zone-Erstellung/Undo),
+    `LayerVisibilityPanel.test.jsx`, `comments.test.js` (Pin-Erstellung,
+    Unveränderlichkeit bei PUT).
+
 ### Changed
 - UI/UX-Audit: Hauptmenü (`Header.jsx`) von 13 gleichrangigen Nav-Links
   auf 5 gruppierte Bereiche umgestellt (Boards, Kader, Spielbetrieb,

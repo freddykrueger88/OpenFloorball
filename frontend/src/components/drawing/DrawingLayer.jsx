@@ -20,8 +20,17 @@ export default function DrawingLayer({
   onPointerUp,
   onElementClick,
   readonly      = false,
+  // Layer-System (CLAUDE.md §10.2): { move, pass, shot, freehand, zone } –
+  // fehlend/undefined gilt als sichtbar, siehe PlayerLayer.jsx.
+  layerVisibility,
 }) {
+  // 'comment' erzeugt zwar kein Frame-Element (siehe drawingConfig.js),
+  // braucht das unsichtbare Hit-Rect aber trotzdem – ein Klick soll die
+  // Feld-Position liefern, BoardEditorPage.jsx fängt ihn dann VOR
+  // useDrawing.handlePointerDown ab und öffnet den Anpinnen-Dialog statt
+  // ein Element anzulegen.
   const isDrawingTool = !['select', 'eraser'].includes(activeTool);
+  const visibleElements = elements.filter((el) => layerVisibility?.[el.type] !== false);
 
   // Canvas-px → Meter
   const toMeterX = (px) => (px - offsetX) / scale;
@@ -50,8 +59,8 @@ export default function DrawingLayer({
         />
       )}
 
-      {/* Alle Zeichen-Elemente */}
-      {elements.map((el) => (
+      {/* Alle Zeichen-Elemente, nach Layer-Sichtbarkeit gefiltert */}
+      {visibleElements.map((el) => (
         <DrawingElement
           key={el.id}
           element={el}

@@ -40,6 +40,10 @@ export default function FieldContainer({
   cursors,
   onFieldPointerMove,
   onFieldPointerLeave,
+  // Layer-System (CLAUDE.md §10.2)
+  layerVisibility,
+  comments,
+  onCommentPinClick,
 }) {
   const { t } = useTranslation();
   const containerRef = useRef(null);
@@ -99,6 +103,9 @@ export default function FieldContainer({
         cursors={cursors}
         onFieldPointerMove={onFieldPointerMove}
         onFieldPointerLeave={onFieldPointerLeave}
+        layerVisibility={layerVisibility}
+        comments={comments}
+        onCommentPinClick={onCommentPinClick}
       />
     </div>
   );

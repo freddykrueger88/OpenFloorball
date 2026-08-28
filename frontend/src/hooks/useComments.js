@@ -30,9 +30,15 @@ export function useComments(resourceKind, resourceId) {
     }
   }, [basePath, resourceId]);
 
-  const addComment = useCallback(async (text) => {
+  // position (Layer-System, CLAUDE.md §10.2): optionales { x, y } macht
+  // den Kommentar zu einem Pin auf dem Taktikboard. Nur beim Anlegen
+  // möglich – updateComment unten nimmt bewusst weiterhin nur Text
+  // entgegen, eine Pin-Position ist danach unveränderlich (siehe
+  // commentsController.js).
+  const addComment = useCallback(async (text, position) => {
     try {
-      const comment = await apiFetch(basePath, { method: 'POST', body: JSON.stringify({ text }) });
+      const body = position ? { text, x: position.x, y: position.y } : { text };
+      const comment = await apiFetch(basePath, { method: 'POST', body: JSON.stringify(body) });
       setComments((prev) => [...prev, comment]);
       return comment;
     } catch (err) {

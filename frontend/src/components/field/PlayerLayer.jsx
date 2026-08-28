@@ -12,6 +12,10 @@
  *   onDragEnd    – (id, x_m, y_m) => void
  *   snapToGrid   – Meter
  *   readonly     – boolean
+ *   layerVisibility – { home, away } (Layer-System, CLAUDE.md §10.2) –
+ *                  fehlend/undefined gilt als sichtbar (optional chaining
+ *                  unten), bestehende Aufrufer ohne dieses Prop bleiben
+ *                  unverändert.
  */
 import { Layer } from 'react-konva';
 import PlayerToken from './PlayerToken.jsx';
@@ -33,6 +37,7 @@ export default function PlayerLayer({
   showNames   = false,
   namePosition = 'unten',
   showHints   = false, // Issue #27
+  layerVisibility,
 }) {
   return (
     <Layer>
@@ -60,7 +65,11 @@ export default function PlayerLayer({
         }
         // Issue 025: Sichtbarkeit pro Spieler – fehlendes Feld gilt als
         // sichtbar (bestehende Boards ohne dieses Feld unverändert).
+        // Layer-System: zusätzlich die gesamte Mannschaft (Eigene
+        // Spieler/Gegner) über die Session ausblendbar – beide Filter
+        // wirken unabhängig voneinander (UND-Verknüpfung).
         if (p.visible === false) return null;
+        if (layerVisibility?.[p.team] === false) return null;
 
         const color = p.team === 'home' ? homeColor : awayColor;
         return (

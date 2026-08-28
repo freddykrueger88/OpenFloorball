@@ -1,8 +1,9 @@
 /**
  * DrawingElement – Rendert ein einzelnes Zeichen-Element auf dem Canvas
- * Unterstützt: move (Pfeil), pass (gestrichelter Pfeil), shot (dicker Pfeil), freehand
+ * Unterstützt: move (Pfeil), pass (gestrichelter Pfeil), shot (dicker Pfeil),
+ * freehand, zone (Trainingszone, Layer-System CLAUDE.md §10.2)
  */
-import { Arrow, Line, Group } from 'react-konva';
+import { Arrow, Line, Group, Rect } from 'react-konva';
 
 export default function DrawingElement({
   element,
@@ -40,6 +41,27 @@ export default function DrawingElement({
         lineCap="round"
         lineJoin="round"
         {...selectedGlow}
+        {...clickProps}
+      />
+    );
+  }
+
+  if (element.type === 'zone') {
+    // Trainingszone: wie ein Pfeil über x1/y1/x2/y2 definiert, aber als
+    // Fläche statt als Linie gerendert – Ecken müssen nicht in
+    // Zeichenrichtung (x1,y1 oben-links) liegen, daher min/abs statt
+    // direkter Übernahme.
+    const x = toX(Math.min(element.x1, element.x2));
+    const y = toY(Math.min(element.y1, element.y2));
+    const width  = Math.abs(toX(element.x2) - toX(element.x1));
+    const height = Math.abs(toY(element.y2) - toY(element.y1));
+    return (
+      <Rect
+        x={x} y={y} width={width} height={height}
+        fill={element.color}
+        opacity={isSelected ? Math.min(1, (element.fillOpacity ?? 0.25) + 0.25) : (element.fillOpacity ?? 0.25)}
+        stroke={element.color}
+        strokeWidth={element.strokeWidth ?? 2}
         {...clickProps}
       />
     );

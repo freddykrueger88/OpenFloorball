@@ -257,7 +257,11 @@ export function useDrawing(onLocalChange) {
 
   // ── Zeichen-Events (Canvas-Koordinaten in Metern) ─────────────────────
   const handlePointerDown = useCallback((x_m, y_m) => {
-    if (activeTool === 'select' || activeTool === 'eraser') return;
+    // 'comment' erzeugt kein Frame-Element (siehe drawingConfig.js) – wird
+    // in BoardEditorPage.jsx VOR diesem Handler abgefangen (öffnet einen
+    // Dialog statt zu zeichnen). Guard hier zusätzlich als Absicherung,
+    // falls der Handler doch einmal direkt aufgerufen würde.
+    if (activeTool === 'select' || activeTool === 'eraser' || activeTool === 'comment') return;
     const tool = TOOLS[activeTool];
     if (!tool) return;
 
@@ -276,7 +280,9 @@ export function useDrawing(onLocalChange) {
       currentElRef.current = el.id;
       dispatch({ type: 'ADD_ELEMENT', element: el, label: 'freehand' });
     } else {
-      // Pfeil/Linie: Startpunkt setzen, Endpunkt = Startpunkt (wird on-move aktualisiert)
+      // Pfeil/Linie/Zone: Startpunkt setzen, Endpunkt = Startpunkt (wird
+      // on-move aktualisiert) – fillOpacity ist nur bei 'zone' gesetzt
+      // (siehe drawingConfig.js), für Pfeile schlicht undefined.
       const el = {
         id: uid(),
         type: activeTool,
@@ -286,6 +292,7 @@ export function useDrawing(onLocalChange) {
         strokeWidth: tool.strokeWidth ?? strokeWidth,
         dash: tool.dash ?? [],
         arrowHead: tool.arrowHead ?? true,
+        fillOpacity: tool.fillOpacity,
       };
       currentElRef.current = el.id;
       dispatch({ type: 'ADD_ELEMENT', element: el, label: activeTool });
@@ -351,6 +358,7 @@ export function useDrawing(onLocalChange) {
       strokeWidth: toolDef.strokeWidth ?? strokeWidth,
       dash: toolDef.dash ?? [],
       arrowHead: toolDef.arrowHead ?? true,
+      fillOpacity: toolDef.fillOpacity,
     };
     dispatch({ type: 'ADD_ELEMENT', element: el, label: tool });
     onLocalChange?.({ kind: 'addElement', element: el });
@@ -397,6 +405,8 @@ export function useDrawing(onLocalChange) {
       if (key === 'P')      changeTool('pass');
       if (key === 'S')      changeTool('shot');
       if (key === 'F')      changeTool('freehand');
+      if (key === 'Z')      changeTool('zone');
+      if (key === 'C')      changeTool('comment');
       if (key === 'E')      changeTool('eraser');
       if (e.key === 'Escape') changeTool('select');
 

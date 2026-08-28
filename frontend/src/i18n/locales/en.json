@@ -327,7 +327,8 @@
       "info": "Info",
       "comments": "Comments",
       "history": "History",
-      "settings": "Settings"
+      "settings": "Settings",
+      "layers": "Layers"
     },
     "collapsePanel": "Collapse panel",
     "expandPanel": "Expand panel"
@@ -344,7 +345,23 @@
     "saveBtn": "Save",
     "cancelBtn": "Cancel",
     "deleteBtn": "Delete",
-    "deleteAriaLabel": "Delete comment"
+    "deleteAriaLabel": "Delete comment",
+    "pinDialogTitle": "Pin comment",
+    "pinDialogSave": "Pin",
+    "pinDialogSaving": "Pinning…"
+  },
+  "layers": {
+    "hint": "Hide individual layers to focus on specific elements – only affects this view, nothing is saved.",
+    "home": "Own players",
+    "away": "Opponents",
+    "move": "Movement arrows",
+    "pass": "Pass arrows",
+    "shot": "Shot arrows",
+    "freehand": "Freehand",
+    "zone": "Training zones",
+    "comments": "Comment pins",
+    "hideAriaLabel": "Hide {{layer}}",
+    "showAriaLabel": "Show {{layer}}"
   },
   "rsvp": {
     "title": "Attendance",
@@ -856,6 +873,7 @@
     "endX": "End X",
     "endY": "End Y",
     "addArrow": "Add",
+    "addZone": "Add zone",
     "freehandPointX": "Point X",
     "freehandPointY": "Point Y",
     "addPoint": "Add point",

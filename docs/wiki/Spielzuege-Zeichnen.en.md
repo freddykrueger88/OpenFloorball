@@ -14,6 +14,8 @@ The drawing tools sit to the left of the field in the board editor
 | ⇢ Pass arrow | `P` | Pass between players (dashed) |
 | ⚡ Shot arrow | `S` | Shot on goal (thick, solid) |
 | ✏ Freehand | `F` | Free drawing for flexible markings |
+| ▭ Training zone | `Z` | Colored area on the field (e.g. a pressing zone) |
+| 💬 Pin comment | `C` | Pins a comment to a position on the field (see [Comment pins](#comment-pins) below) |
 | □ Eraser | `E` | Delete a single element by clicking it |
 
 Color and line thickness (thin/medium/thick) can be freely chosen,
@@ -50,6 +52,26 @@ persist across multiple frames (e.g. a zone marker). For a drawing that
 should only appear in one single additional frame, it can of course
 also simply be recreated there. Details on frames:
 [Frame-by-frame animation](./Animation.en.md).
+
+## Comment pins
+
+The comment tool lets you pin a comment to a position on the field
+(e.g. "gap in the pressing here") instead of it only appearing
+chronologically in the Comments tab. Clicking opens a small dialog for
+the text; once saved, a yellow 💬 pin appears at the clicked spot.
+Clicking a pin switches to the Comments tab and highlights the
+matching entry there. A pin's position is deliberately immutable once
+created – delete the comment and pin a new one to move it.
+
+## Layer system
+
+The "Layers" tab in the bottom panel hides individual layers
+independently: own players, opponents, movement arrows, pass arrows,
+shot arrows, freehand drawings, training zones, and comment pins.
+Useful for focusing on, say, just the opponent's lineup or just your
+own movement arrows. Visibility only applies to the current browser
+session and isn't saved – all layers are visible again the next time
+you open the board.
 
 ## Changing the field size
 

@@ -23,6 +23,11 @@ function toApiComment(row) {
     userId:    row.user_id,
     email:     row.email,
     text:      row.text,
+    // Layer-System (CLAUDE.md §10.2): optionale Feld-Position, macht
+    // einen Kommentar zu einem "Pin" auf dem Taktikboard. NULL für alle
+    // Trainings-/Spiel-Kommentare und nicht angepinnte Board-Kommentare.
+    x:         row.x,
+    y:         row.y,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -64,10 +69,14 @@ export function makeCommentHandlers(resourceType, { assertRead, assertWrite }) {
         return res.status(400).json(error(`Maximal ${MAX_COMMENTS_PER_RESOURCE} Kommentare`));
       }
 
-      const { text } = req.body;
+      // x/y (Layer-System, Kommentar-Pin) sind bewusst nur hier bei der
+      // Erstellung entgegennehmbar, NICHT in updateComment weiter unten –
+      // eine Pin-Position ist nach dem Anlegen unveränderlich (löschen +
+      // neu anlegen statt verschieben), das ist Absicht, keine Lücke.
+      const { text, x = null, y = null } = req.body;
       const result = await pool.query(
-        'INSERT INTO comments (resource_type, resource_id, user_id, text) VALUES ($1, $2, $3, $4) RETURNING *',
-        [resourceType, resourceId, req.user.id, text]
+        'INSERT INTO comments (resource_type, resource_id, user_id, text, x, y) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+        [resourceType, resourceId, req.user.id, text, x, y]
       );
       const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [req.user.id]);
       res.status(201).json(created(toApiComment({ ...result.rows[0], email: userResult.rows[0]?.email })));

@@ -9,6 +9,7 @@ import { IFF_FIELDS } from '../../constants/fieldConfig.js';
 import { FIELD_COLORS } from '../../constants/fieldTheme.js';
 import PlayerLayer from './PlayerLayer.jsx';
 import CursorLayer from './CursorLayer.jsx';
+import CommentPinsLayer from './CommentPinsLayer.jsx';
 import { DrawingLayer } from '../drawing/index.js';
 
 export { FIELD_COLORS };
@@ -59,6 +60,10 @@ export default function FloorballField({
   cursors = {},
   onFieldPointerMove,
   onFieldPointerLeave,
+  // Layer-System (CLAUDE.md §10.2)
+  layerVisibility,
+  comments = [],
+  onCommentPinClick,
 }) {
   const { t } = useTranslation();
   const field  = IFF_FIELDS[fieldType] ?? IFF_FIELDS.large;
@@ -167,6 +172,7 @@ export default function FloorballField({
         onPointerUp={onPointerUp}
         onElementClick={onElementClick}
         readonly={readonly}
+        layerVisibility={layerVisibility}
       />
 
       {/* Layer 3: Spieler (immer oben) */}
@@ -183,9 +189,19 @@ export default function FloorballField({
         showNames={showNames}
         namePosition={namePosition}
         showHints={showHints}
+        layerVisibility={layerVisibility}
       />
 
-      {/* Layer 4: Live-Cursor anderer Nutzer (immer ganz oben) */}
+      {/* Layer 4: Kommentar-Pins (Layer-System) */}
+      <CommentPinsLayer
+        comments={comments}
+        scale={scale}
+        offsetX={ox} offsetY={oy}
+        onPinClick={onCommentPinClick}
+        visible={layerVisibility?.comments !== false}
+      />
+
+      {/* Layer 5: Live-Cursor anderer Nutzer (immer ganz oben) */}
       <CursorLayer cursors={cursors} scale={scale} offsetX={ox} offsetY={oy} />
     </Stage>
   );

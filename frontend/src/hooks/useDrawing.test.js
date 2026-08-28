@@ -109,6 +109,43 @@ describe('useDrawing – vereinter Undo/Redo-Verlauf (Spieler + Elemente)', () =
   });
 });
 
+describe('useDrawing – Trainingszone (Layer-System, CLAUDE.md §10.2)', () => {
+  it('zeichnet eine Zone per Pointer-Drag genau wie einen Pfeil (derselbe Undo-fähige Dispatch-Pfad)', () => {
+    const { result } = renderHook(() => useDrawing());
+
+    act(() => { result.current.setActiveTool('zone'); });
+    act(() => { result.current.handlePointerDown(1, 1); });
+    act(() => { result.current.handlePointerMove(5, 4); });
+    act(() => { result.current.handlePointerUp(); });
+
+    expect(result.current.elements).toHaveLength(1);
+    expect(result.current.elements[0]).toMatchObject({ type: 'zone', x1: 1, y1: 1, x2: 5, y2: 4 });
+    expect(result.current.canUndo).toBe(true);
+
+    act(() => { result.current.undo(); });
+    expect(result.current.elements).toHaveLength(0);
+  });
+
+  it('addZoneElement (Koordinaten-Formular) legt eine Zone über addArrowElement("zone", …) an', () => {
+    const { result } = renderHook(() => useDrawing());
+    act(() => { result.current.addArrowElement('zone', 2, 2, 8, 6); });
+
+    expect(result.current.elements).toHaveLength(1);
+    expect(result.current.elements[0]).toMatchObject({ type: 'zone', x1: 2, y1: 2, x2: 8, y2: 6 });
+    expect(result.current.elements[0].fillOpacity).toBeGreaterThan(0);
+  });
+
+  it("'comment'-Werkzeug erzeugt KEIN Frame-Element (öffnet stattdessen einen Dialog außerhalb dieses Hooks)", () => {
+    const { result } = renderHook(() => useDrawing());
+
+    act(() => { result.current.setActiveTool('comment'); });
+    act(() => { result.current.handlePointerDown(3, 3); });
+
+    expect(result.current.elements).toHaveLength(0);
+    expect(result.current.isDrawing).toBe(false);
+  });
+});
+
 describe('useDrawing – Echtzeit-Co-Editing (onLocalChange + applyRemote)', () => {
   it('applyRemote(movePlayer) wendet die Position an, OHNE undoStack/redoStack zu verändern', () => {
     const { result } = renderHook(() => useDrawing());

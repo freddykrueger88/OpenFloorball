@@ -36,6 +36,16 @@
   border-bottom: 1px solid var(--color-divider);
 }
 
+/* Layer-System: kurzzeitige Hervorhebung nach Klick auf einen
+   Kommentar-Pin auf dem Feld (CommentPinsLayer.jsx) */
+.highlighted {
+  background: var(--color-primary-highlight);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  margin: calc(var(--space-2) * -1);
+  transition: background 1.2s ease-out;
+}
+
 .itemHeader {
   display: flex;
   justify-content: space-between;

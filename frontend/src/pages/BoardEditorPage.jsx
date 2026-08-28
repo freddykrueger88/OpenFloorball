@@ -20,6 +20,7 @@ import {
   Redo2,
   Keyboard,
   Layers,
+  Layers2,
   Star,
   Video,
   Download,
@@ -49,6 +50,8 @@ import TourOverlay from '../components/layout/TourOverlay.jsx';
 import FieldContainer from '../components/field/FieldContainer.jsx';
 import FieldSettingsPanel from '../components/field/FieldSettingsPanel.jsx';
 import FieldTypeChangeDialog from '../components/field/FieldTypeChangeDialog.jsx';
+import AddCommentPinDialog from '../components/field/AddCommentPinDialog.jsx';
+import LayerVisibilityPanel from '../components/field/LayerVisibilityPanel.jsx';
 import PlayerInfoPanel from '../components/field/PlayerInfoPanel.jsx';
 import TeamColorPanel from '../components/field/TeamColorPanel.jsx';
 import PlayerAccessibleList from '../components/field/PlayerAccessibleList.jsx';
@@ -69,6 +72,7 @@ import { useRoster } from '../hooks/useRoster.js';
 import { useTeams } from '../hooks/useTeams.js';
 import { useField } from '../hooks/useField.js';
 import { useDrawing } from '../hooks/useDrawing.js';
+import { useComments } from '../hooks/useComments.js';
 import { useAutoSave } from '../hooks/useAutoSave.js';
 import { useAnimation } from '../hooks/useAnimation.js';
 import { usePresence } from '../hooks/usePresence.js';
@@ -422,6 +426,63 @@ export default function BoardEditorPage() {
   const [showShareModal, setShowShareModal] = useState(false);
   // EPIC 010 MVP – Community-Übungsbibliothek (Owner-only)
   const [showPublishModal, setShowPublishModal] = useState(false);
+
+  // Layer-System (CLAUDE.md §10.2): eigener Kommentar-Stand statt eines
+  // zweiten, von CommentsPanel.jsx selbst verwalteten – CommentPinsLayer.jsx
+  // braucht dieselben Daten fürs Rendern der Pins auf dem Feld, siehe
+  // CommentsPanel.jsx (externalState-Prop).
+  const comments = useComments('boards', boardId);
+  // Nur an comments.fetchComments hängen, nicht am ganzen comments-Objekt:
+  // useComments() liefert bei jedem Render ein neues Objekt zurück, ein
+  // vollständiges comments-Dep würde nach jedem erfolgreichen fetchComments()
+  // (setComments löst einen Re-Render aus) sofort erneut fetchen.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { comments.fetchComments().catch(() => {}); }, [comments.fetchComments]);
+
+  // Sichtbarkeit ist bewusst reiner Sitzungs-State, kein Board-Feld –
+  // siehe LayerVisibilityPanel.jsx. Fehlender Key gilt als sichtbar.
+  const [layerVisibility, setLayerVisibility] = useState({});
+  const toggleLayerVisibility = useCallback((key) => {
+    setLayerVisibility((prev) => ({ ...prev, [key]: prev[key] === false ? true : false }));
+  }, []);
+
+  // Anpinnen eines Kommentars: { x, y } zwischen Feld-Klick (mit dem
+  // 'comment'-Werkzeug) und dem Dialog, der den Text erfasst.
+  const [pendingCommentPin, setPendingCommentPin] = useState(null);
+  const [savingCommentPin, setSavingCommentPin] = useState(false);
+  const [highlightedCommentId, setHighlightedCommentId] = useState(null);
+  const [commentsTabActivation, setCommentsTabActivation] = useState({ tabId: null, token: 0 });
+
+  const handleFieldPointerDown = useCallback((x_m, y_m) => {
+    if (drawing.activeTool === 'comment') {
+      setPendingCommentPin({ x: x_m, y: y_m });
+      return;
+    }
+    drawing.handlePointerDown(x_m, y_m);
+  }, [drawing]);
+
+  const handleSaveCommentPin = useCallback(async (text) => {
+    if (!pendingCommentPin) return;
+    setSavingCommentPin(true);
+    try {
+      await comments.addComment(text, pendingCommentPin);
+      setPendingCommentPin(null);
+      drawing.setActiveTool('select');
+    } catch { /* Fehler bereits über comments.error sichtbar */ }
+    finally { setSavingCommentPin(false); }
+  }, [pendingCommentPin, comments, drawing]);
+
+  const handleCancelCommentPin = useCallback(() => {
+    setPendingCommentPin(null);
+    drawing.setActiveTool('select');
+  }, [drawing]);
+
+  // Klick auf einen Pin (CommentPinsLayer.jsx): Kommentare-Tab aktivieren
+  // und den passenden Eintrag in der Liste hervorheben/scrollen.
+  const handleCommentPinClick = useCallback((commentId) => {
+    setHighlightedCommentId(commentId);
+    setCommentsTabActivation((prev) => ({ tabId: 'comments', token: prev.token + 1 }));
+  }, []);
   useEffect(() => {
     const handler = (e) => {
       const tag = document.activeElement?.tagName;
@@ -631,6 +692,14 @@ export default function BoardEditorPage() {
         />
       )}
 
+      {pendingCommentPin && (
+        <AddCommentPinDialog
+          onSave={handleSaveCommentPin}
+          onCancel={handleCancelCommentPin}
+          saving={savingCommentPin}
+        />
+      )}
+
       <PlaybackControls
         playing={anim.playing}
         canPlay={anim.canPlay}
@@ -685,7 +754,7 @@ export default function BoardEditorPage() {
               selectedDrawingId={drawing.selectedId}
               activeTool={drawing.activeTool}
               isDrawing={drawing.isDrawing}
-              onPointerDown={drawing.handlePointerDown}
+              onPointerDown={handleFieldPointerDown}
               onPointerMove={drawing.handlePointerMove}
               onPointerUp={drawing.handlePointerUp}
               onElementClick={drawing.handleElementClick}
@@ -695,6 +764,9 @@ export default function BoardEditorPage() {
               cursors={presence.cursors}
               onFieldPointerMove={presence.sendCursor}
               onFieldPointerLeave={presence.sendCursorLeave}
+              layerVisibility={layerVisibility}
+              comments={comments.comments}
+              onCommentPinClick={handleCommentPinClick}
             />
 
             {!anim.playing && (
@@ -751,6 +823,17 @@ export default function BoardEditorPage() {
                   field={IFF_FIELDS[field.fieldType] ?? IFF_FIELDS.large}
                   onAddArrow={drawing.addArrowElement}
                   onAddFreehand={drawing.addFreehandElement}
+                />
+              ),
+            },
+            {
+              id: 'layers',
+              label: t('boardEditor.tabs.layers'),
+              icon: <Layers2 size={16} aria-hidden="true" />,
+              content: (
+                <LayerVisibilityPanel
+                  visibility={layerVisibility}
+                  onToggle={toggleLayerVisibility}
                 />
               ),
             },
@@ -838,7 +921,14 @@ export default function BoardEditorPage() {
               id: 'comments',
               label: t('boardEditor.tabs.comments'),
               icon: <MessageCircle size={16} aria-hidden="true" />,
-              content: <CommentsPanel resourceKind="boards" resourceId={boardId} />,
+              content: (
+                <CommentsPanel
+                  resourceKind="boards"
+                  resourceId={boardId}
+                  externalState={comments}
+                  highlightedCommentId={highlightedCommentId}
+                />
+              ),
             },
             {
               id: 'history',
@@ -871,6 +961,7 @@ export default function BoardEditorPage() {
               ),
             },
           ].filter(Boolean)}
+          forceActivate={commentsTabActivation}
         />
       </div>
     </main>

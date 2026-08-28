@@ -1232,6 +1232,16 @@ export async function runMigrations() {
         AND o.team_id IS NULL AND o.user_id = g.user_id AND lower(trim(o.name)) = lower(trim(g.opponent));
     `);
 
+    // ── Layer-System (CLAUDE.md §10.2): Kommentare als optionale
+    // Feld-Pins ──────────────────────────────────────────────────────
+    // Nullable, additiv – bestehende Kommentare (Boards ohne Pin,
+    // Trainings-/Spiel-Kommentare) bleiben unverändert NULL. Keine
+    // CHECK-Constraint auf resource_type nötig: für training_session/
+    // game sind x/y schlicht immer NULL, es gibt kein Feld, auf das man
+    // dort anpinnen könnte.
+    await client.query(`ALTER TABLE comments ADD COLUMN IF NOT EXISTS x REAL;`);
+    await client.query(`ALTER TABLE comments ADD COLUMN IF NOT EXISTS y REAL;`);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

@@ -5,8 +5,17 @@
  * eigenen Kommentar – Moderation durch Ressourcen-Owner ist serverseitig
  * bereits möglich (siehe commentsController.deleteComment), aber
  * bewusst (noch) ohne eigene UI in diesem ersten Wurf.
+ *
+ * externalState (Layer-System, CLAUDE.md §10.2): optional – der
+ * Board-Editor hält seinen eigenen useComments()-Stand, weil
+ * CommentPinsLayer.jsx dieselben Kommentare auf dem Feld braucht. Wird
+ * externalState übergeben, verwendet dieses Panel dessen Daten/Aktionen
+ * statt einer eigenen, zweiten fetch()-Instanz – Trainings-/Spiel-
+ * Kommentare (kein externalState) verhalten sich unverändert wie zuvor.
+ * highlightedCommentId hebt einen per Pin-Klick ausgewählten Kommentar
+ * in der Liste hervor.
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle } from 'lucide-react';
 import useAuthStore from '../../store/authStore.js';
@@ -17,16 +26,27 @@ import styles from './CommentsPanel.module.css';
 
 const MAX_LENGTH = 2000;
 
-export default function CommentsPanel({ resourceKind, resourceId }) {
+export default function CommentsPanel({ resourceKind, resourceId, externalState, highlightedCommentId }) {
   const { t } = useTranslation();
   const { user } = useAuthStore();
-  const { comments, loading, error, fetchComments, addComment, updateComment, deleteComment } = useComments(resourceKind, resourceId);
+  const internalState = useComments(resourceKind, resourceId);
+  const { comments, loading, error, fetchComments, addComment, updateComment, deleteComment } = externalState ?? internalState;
 
   const [draft, setDraft] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editDraft, setEditDraft] = useState('');
+  const highlightedRef = useRef(null);
 
-  useEffect(() => { fetchComments().catch(() => {}); }, [fetchComments]);
+  // Nur selbst fetchen, wenn kein externalState mitgegeben wurde – sonst
+  // holt/verwaltet der Aufrufer (BoardEditorPage.jsx) die Daten bereits
+  // selbst, ein zweiter GET wäre unnötig.
+  useEffect(() => { if (!externalState) fetchComments().catch(() => {}); }, [fetchComments, externalState]);
+
+  useEffect(() => {
+    if (highlightedCommentId && highlightedRef.current) {
+      highlightedRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [highlightedCommentId]);
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -65,7 +85,11 @@ export default function CommentsPanel({ resourceKind, resourceId }) {
       ) : (
         <ul className={styles.list} role="list">
           {comments.map((c) => (
-            <li key={c._id} className={styles.item}>
+            <li
+              key={c._id}
+              ref={c._id === highlightedCommentId ? highlightedRef : undefined}
+              className={`${styles.item} ${c._id === highlightedCommentId ? styles.highlighted : ''}`}
+            >
               <div className={styles.itemHeader}>
                 <span className={styles.author}>{c.email}</span>
                 <span className={styles.timestamp}>{formatDate(c.createdAt, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>

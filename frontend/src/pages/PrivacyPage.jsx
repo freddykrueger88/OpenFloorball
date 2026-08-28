@@ -24,6 +24,9 @@ export default function PrivacyPage() {
           <ul>
             <li>{t('privacyPage.dataCategories.account')}</li>
             <li>{t('privacyPage.dataCategories.boards')}</li>
+            <li>{t('privacyPage.dataCategories.roster')}</li>
+            <li>{t('privacyPage.dataCategories.games')}</li>
+            <li>{t('privacyPage.dataCategories.training')}</li>
             <li>{t('privacyPage.dataCategories.settings')}</li>
           </ul>
         </section>

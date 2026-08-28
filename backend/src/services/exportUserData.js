@@ -2,11 +2,35 @@
  * exportUserData – Baut das vollständige Backup-JSON eines Users
  * (Issue #21). Wird sowohl vom manuellen Export (routes/user.js) als
  * auch vom automatischen Backup-Cron (services/backupCron.js) genutzt.
+ *
+ * Issue 026 (2026-08-28): games/game_events/game_squad/match_lines
+ * (EPIC 012 Phase 1-4) sowie training_attendance/player_development_notes
+ * (EPIC 012 Phase 5) ergänzt – vorher deckte der Export weder die
+ * Spiel-Domäne noch diese beiden neueren Trainings-Tabellen ab
+ * (Art. 15-Auskunft war dadurch unvollständig). Bewusst additiv, KEINE
+ * neue BACKUP_FORMAT-Version: alle neuen Felder sind optionale
+ * Top-Level-/verschachtelte Arrays, `importAccount` behandelt ihr Fehlen
+ * (alte Backups) bereits über `?? []`-Fallbacks wie bei allen bisherigen
+ * additiven Feldern (formations/playbooks/trainingSessions).
  */
 import pool from '../db/pool.js';
 import { toApiFrame } from '../controllers/framesController.js';
 
 export const BACKUP_FORMAT = 'openfloorball-backup-v1';
+
+// DATE-Spalten (games.played_at) liefert node-postgres als Date-Objekt in
+// der lokalen Zeitzone des Prozesses – über die lokalen Getter statt
+// toISOString() in "YYYY-MM-DD" wandeln, sonst kann JSON.stringify beim
+// Export je nach Zeitzone auf den Vor-/Folgetag verschieben (identisches
+// Problem/Lösung wie gamesController.toDateString, hier separat gehalten,
+// da dort nicht exportiert).
+function toDateString(date) {
+  if (!date) return null;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
 export async function buildUserExport(userId) {
   const userResult = await pool.query(
@@ -82,11 +106,34 @@ export async function buildUserExport(userId) {
     'SELECT * FROM roster_players WHERE user_id = $1 ORDER BY created_at ASC',
     [userId]
   );
-  const rosterPlayers = rosterResult.rows.map((r) => ({
-    name: r.name,
-    jerseyNumber: r.jersey_number,
-    role: r.role,
-  }));
+  const rosterPlayers = [];
+  for (const r of rosterResult.rows) {
+    // Nur vom exportierenden Nutzer selbst verfasste Notizen (Issue 026) –
+    // Notizen sind personenbezogene Beobachtungen ÜBER einen Spieler, ihr
+    // Autor entscheidet über deren Export, nicht der Kader-Besitzer.
+    // Referenz auf eine Trainingseinheit per Name+Erstellungszeitpunkt
+    // (derselbe Schlüssel wie bei trainingSessions/boardName oben), da
+    // training_session_id beim Re-Import ohnehin eine neue ID bekäme.
+    const notesResult = await pool.query(
+      `SELECT n.note, n.created_at, ts.name AS session_name, ts.created_at AS session_created_at
+       FROM player_development_notes n
+       LEFT JOIN training_sessions ts ON ts.id = n.training_session_id
+       WHERE n.roster_player_id = $1 AND n.author_user_id = $2
+       ORDER BY n.created_at ASC`,
+      [r.id, userId]
+    );
+    rosterPlayers.push({
+      name: r.name,
+      jerseyNumber: r.jersey_number,
+      role: r.role,
+      developmentNotes: notesResult.rows.map((n) => ({
+        note: n.note,
+        createdAt: n.created_at,
+        sessionName: n.session_name ?? null,
+        sessionCreatedAt: n.session_created_at ?? null,
+      })),
+    });
+  }
 
   const linesResult = await pool.query(
     'SELECT * FROM lines WHERE user_id = $1 ORDER BY created_at ASC',
@@ -144,6 +191,15 @@ export async function buildUserExport(userId) {
        WHERE i.session_id = $1 ORDER BY i.order_index ASC`,
       [s.id]
     );
+    // Trainings-Anwesenheit (Statistik-Architektur Phase 5, Issue 026) –
+    // Kader-Spieler-Referenz per Name+Nummer+Rolle, analog dem
+    // `lines`-Export oben statt der DB-ID.
+    const attendanceResult = await pool.query(
+      `SELECT ta.status, ta.note, r.name, r.jersey_number, r.role
+       FROM training_attendance ta JOIN roster_players r ON r.id = ta.roster_player_id
+       WHERE ta.session_id = $1`,
+      [s.id]
+    );
     trainingSessions.push({
       name: s.name,
       notes: s.notes,
@@ -157,6 +213,85 @@ export async function buildUserExport(userId) {
         orderIndex: i.order_index,
         durationMinutes: i.duration_minutes,
         note: i.note,
+      })),
+      attendance: attendanceResult.rows.map((a) => ({
+        name: a.name, jerseyNumber: a.jersey_number, role: a.role, status: a.status, note: a.note,
+      })),
+    });
+  }
+
+  // Spiele (EPIC 012 Phase 1-4, Issue 026): eigene Spiele mit verschachtelten
+  // game_events/game_squad/match_lines, analog trainingSessions oben.
+  // Nur eigene Spiele (user_id = userId, wie überall sonst in diesem Export)
+  // – team-geteilte Spiele anderer Trainer sind nicht Teil dieses Accounts.
+  // team_id/opponent_id/Spieluhr-Zustand werden bewusst NICHT exportiert:
+  // team_id ist beim Re-Import ohnehin nicht sinnvoll wiederherstellbar
+  // (siehe Kader/Lines oben), opponent_id wird beim Import über
+  // resolveOpponentId() aus dem Freitext-Namen neu aufgelöst/angelegt, und
+  // die Spieluhr ist flüchtiger Live-Zustand eines evtl. noch laufenden
+  // Spiels, kein für ein Backup relevanter historischer Fakt.
+  const gamesResult = await pool.query(
+    'SELECT * FROM games WHERE user_id = $1 ORDER BY created_at ASC',
+    [userId]
+  );
+  const games = [];
+  for (const g of gamesResult.rows) {
+    const eventsResult = await pool.query(
+      `SELECT ge.*,
+              rp1.name AS player_name, rp1.jersey_number AS player_number, rp1.role AS player_role,
+              rp2.name AS secondary_name, rp2.jersey_number AS secondary_number, rp2.role AS secondary_role
+       FROM game_events ge
+       LEFT JOIN roster_players rp1 ON rp1.id = ge.roster_player_id
+       LEFT JOIN roster_players rp2 ON rp2.id = ge.secondary_roster_player_id
+       WHERE ge.game_id = $1 ORDER BY ge.created_at ASC`,
+      [g.id]
+    );
+    const squadResult = await pool.query(
+      `SELECT gs.status, gs.note, r.name, r.jersey_number, r.role
+       FROM game_squad gs JOIN roster_players r ON r.id = gs.roster_player_id
+       WHERE gs.game_id = $1`,
+      [g.id]
+    );
+    const matchLinesResult = await pool.query(
+      'SELECT * FROM match_lines WHERE game_id = $1 ORDER BY started_at ASC',
+      [g.id]
+    );
+
+    games.push({
+      opponent: g.opponent,
+      playedAt: toDateString(g.played_at),
+      notes: g.notes,
+      createdAt: g.created_at,
+      events: eventsResult.rows.map((e) => ({
+        eventType: e.event_type,
+        isOpponent: e.is_opponent,
+        player: e.roster_player_id ? { name: e.player_name, jerseyNumber: e.player_number, role: e.player_role } : null,
+        secondaryPlayer: e.secondary_roster_player_id
+          ? { name: e.secondary_name, jerseyNumber: e.secondary_number, role: e.secondary_role }
+          : null,
+        period: e.period,
+        clockSecondsAtEvent: e.clock_seconds_at_event,
+        outcome: e.outcome,
+        shotType: e.shot_type,
+        strengthState: e.strength_state,
+        x: e.x,
+        y: e.y,
+        zone: e.zone,
+        // companionGoalEventId in metadata verweist auf eine DB-ID, die nach
+        // einem Re-Import nicht mehr existiert – bewusst herausgefiltert
+        // statt einer stillen "Karteileiche"-Referenz (video_id/
+        // videoTimestampSeconds aus demselben Grund weggelassen: Videos
+        // selbst sind nicht Teil dieses Backups).
+        metadata: Object.fromEntries(
+          Object.entries(e.metadata ?? {}).filter(([key]) => key !== 'companionGoalEventId')
+        ),
+        createdAt: e.created_at,
+      })),
+      squad: squadResult.rows.map((s) => ({
+        name: s.name, jerseyNumber: s.jersey_number, role: s.role, status: s.status, note: s.note,
+      })),
+      matchLines: matchLinesResult.rows.map((m) => ({
+        lineName: m.line_name, period: m.period, startedAt: m.started_at, endedAt: m.ended_at,
       })),
     });
   }
@@ -177,5 +312,6 @@ export async function buildUserExport(userId) {
     playbooks,
     formations,
     trainingSessions,
+    games,
   };
 }

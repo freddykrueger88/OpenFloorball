@@ -15,6 +15,7 @@ import { COOKIE_OPTS } from '../utils/cookies.js';
 import { buildUserExport, BACKUP_FORMAT } from '../services/exportUserData.js';
 import { deleteCommentsForUser } from './commentsController.js';
 import { deleteRsvpsForUser } from './rsvpsController.js';
+import { resolveOpponentId } from './opponentsController.js';
 
 const MAX_FRAMES_PER_BOARD = 50;
 const MAX_ROSTER_PLAYERS = 40;
@@ -23,6 +24,12 @@ const MAX_PLAYBOOKS = 15;
 const MAX_FORMATIONS = 20;
 const MAX_TRAINING_SESSIONS = 20;
 const MAX_TRAINING_ITEMS_PER_SESSION = 30;
+const MAX_ATTENDANCE_PER_SESSION = 40;
+const MAX_DEV_NOTES_PER_PLAYER = 200;
+const MAX_GAMES = 30;
+const MAX_GAME_EVENTS_PER_GAME = 500;
+const MAX_GAME_SQUAD_PER_GAME = 40;
+const MAX_MATCH_LINES_PER_GAME = 200;
 
 export async function deleteAccount(req, res) {
   try {
@@ -234,19 +241,29 @@ export async function importAccount(req, res) {
       rosterIdByKey.set(key, inserted.rows[0].id);
     }
 
+    // Für match_lines (Spiele-Import weiter unten): Lines referenzieren sich
+    // selbst über ihren Namen (match_lines.line_name ist bereits als
+    // denormalisierter Text gespeichert, line_id ist nullable) – in BEIDEN
+    // Zweigen befüllen, analog boardIdByKey oben.
+    const lineIdByKey = new Map();
+
     const lines = (data.lines ?? []).slice(0, MAX_LINES);
     for (const line of lines) {
       const existingLine = await client.query(
         `SELECT id FROM lines WHERE user_id = $1 AND name = $2 AND color = $3 AND type = $4`,
         [req.user.id, line.name, line.color ?? '#3B82F6', line.type ?? 'offense']
       );
-      if (existingLine.rows.length > 0) continue;
+      if (existingLine.rows.length > 0) {
+        lineIdByKey.set(line.name, existingLine.rows[0].id);
+        continue;
+      }
 
       const lineResult = await client.query(
         `INSERT INTO lines (user_id, name, color, type) VALUES ($1, $2, $3, $4) RETURNING id`,
         [req.user.id, line.name, line.color ?? '#3B82F6', line.type ?? 'offense']
       );
       const newLineId = lineResult.rows[0].id;
+      lineIdByKey.set(line.name, newLineId);
 
       const players = (line.players ?? []);
       for (let i = 0; i < players.length; i++) {
@@ -257,6 +274,104 @@ export async function importAccount(req, res) {
           `INSERT INTO line_players (line_id, roster_player_id, order_index) VALUES ($1, $2, $3)
            ON CONFLICT (line_id, roster_player_id) DO NOTHING`,
           [newLineId, rosterPlayerId, i]
+        );
+      }
+    }
+
+    // Spiele (EPIC 012 Phase 1-4, Issue 026): eigene Spiele mit
+    // verschachtelten game_events/game_squad/match_lines. Muss NACH
+    // Kader+Lines stehen (rosterIdByKey/lineIdByKey werden zur Auflösung
+    // gebraucht). Dedup wie bei Boards/Trainingsplänen: exakte
+    // Übereinstimmung von Gegner+Datum+Erstellungszeitpunkt wird
+    // übersprungen – inkl. der verschachtelten Daten, da ein Duplikat
+    // dieselben enthalten haben sollte.
+    const games = (data.games ?? []).slice(0, MAX_GAMES);
+    for (const game of games) {
+      const existingGame = await client.query(
+        `SELECT id FROM games WHERE user_id = $1 AND opponent = $2
+         AND played_at IS NOT DISTINCT FROM $3::date
+         AND date_trunc('milliseconds', created_at) = date_trunc('milliseconds', $4::timestamptz)`,
+        [req.user.id, game.opponent ?? '', game.playedAt, game.createdAt]
+      );
+      if (existingGame.rows.length > 0) {
+        skipped++;
+        continue;
+      }
+
+      // team_id bewusst NULL (siehe exportUserData.js) – resolveOpponentId
+      // ordnet den Freitext-Namen wie bei einer normalen Spielanlage einem
+      // persönlichen opponents-Eintrag zu (legt bei Bedarf einen neuen an).
+      const opponentId = await resolveOpponentId(game.opponent ?? '', req.user.id, null);
+      const gameResult = await client.query(
+        `INSERT INTO games (user_id, opponent, opponent_id, played_at, notes, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        [
+          req.user.id, game.opponent ?? '', opponentId, game.playedAt ?? null,
+          game.notes ?? '', game.createdAt ?? new Date().toISOString(),
+        ]
+      );
+      const newGameId = gameResult.rows[0].id;
+      imported++;
+
+      const events = (game.events ?? []).slice(0, MAX_GAME_EVENTS_PER_GAME);
+      for (const evt of events) {
+        // event_type ist ein FK auf event_type_definitions.key – eingebaute
+        // Typen existieren in jeder Instanz, ein persönlicher/team-eigener
+        // Custom-Typ (Phase 7) aber ggf. nicht in der Zielinstanz. Ohne
+        // passende Definition würde der INSERT die FK verletzen – das
+        // Ereignis wird dann übersprungen statt den gesamten Import
+        // abzubrechen (analog fehlender Kader-/Board-Referenzen oben).
+        const typeExists = await client.query(
+          'SELECT 1 FROM event_type_definitions WHERE key = $1',
+          [evt.eventType]
+        );
+        if (typeExists.rows.length === 0) continue;
+
+        const rosterPlayerId = evt.player
+          ? rosterIdByKey.get(`${evt.player.name}|${evt.player.jerseyNumber ?? ''}|${evt.player.role ?? ''}`) ?? null
+          : null;
+        const secondaryRosterPlayerId = evt.secondaryPlayer
+          ? rosterIdByKey.get(`${evt.secondaryPlayer.name}|${evt.secondaryPlayer.jerseyNumber ?? ''}|${evt.secondaryPlayer.role ?? ''}`) ?? null
+          : null;
+
+        await client.query(
+          `INSERT INTO game_events (
+             game_id, event_type, roster_player_id, is_opponent,
+             secondary_roster_player_id, period, clock_seconds_at_event,
+             outcome, shot_type, strength_state, x, y, zone, metadata,
+             created_at, created_by
+           ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::jsonb,$15,$16)`,
+          [
+            newGameId, evt.eventType, rosterPlayerId, evt.isOpponent ?? false,
+            secondaryRosterPlayerId, evt.period ?? null, evt.clockSecondsAtEvent ?? null,
+            evt.outcome ?? null, evt.shotType ?? null, evt.strengthState ?? null,
+            evt.x ?? null, evt.y ?? null, evt.zone ?? null, JSON.stringify(evt.metadata ?? {}),
+            evt.createdAt ?? new Date().toISOString(), req.user.id,
+          ]
+        );
+      }
+
+      const squad = (game.squad ?? []).slice(0, MAX_GAME_SQUAD_PER_GAME);
+      for (const s of squad) {
+        const rosterPlayerId = rosterIdByKey.get(`${s.name}|${s.jerseyNumber ?? ''}|${s.role ?? ''}`);
+        if (!rosterPlayerId) continue; // Spieler war nicht im Kader-Export enthalten
+        await client.query(
+          `INSERT INTO game_squad (game_id, roster_player_id, status, note) VALUES ($1, $2, $3, $4)
+           ON CONFLICT (game_id, roster_player_id) DO NOTHING`,
+          [newGameId, rosterPlayerId, s.status, s.note ?? '']
+        );
+      }
+
+      const matchLines = (game.matchLines ?? []).slice(0, MAX_MATCH_LINES_PER_GAME);
+      for (const ml of matchLines) {
+        // line_id bleibt NULL, wenn die Line nicht (mehr) Teil des Imports
+        // ist – dieselbe Situation wie im Original, wenn eine Line nach dem
+        // Spiel gelöscht wurde (Spalte ist ON DELETE SET NULL, siehe migrate.js).
+        const lineId = lineIdByKey.get(ml.lineName) ?? null;
+        await client.query(
+          `INSERT INTO match_lines (game_id, line_id, line_name, period, started_at, ended_at, created_by)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [newGameId, lineId, ml.lineName, ml.period ?? null, ml.startedAt ?? new Date().toISOString(), ml.endedAt ?? null, req.user.id]
         );
       }
     }
@@ -283,14 +398,24 @@ export async function importAccount(req, res) {
     // (siehe Board-Import-Schleife) – fehlt der Verweis (Board war nicht
     // Teil des Exports), wird das Item übersprungen statt einen Fehler zu
     // werfen (analog line_players bei fehlendem Kader-Spieler).
+    // Für Spielerentwicklungsnotizen (weiter unten): Trainingseinheiten
+    // referenzieren sich selbst über Name+Erstellungszeitpunkt (derselbe
+    // Schlüssel wie player_development_notes.sessionName/sessionCreatedAt
+    // in exportUserData.js) – in BEIDEN Zweigen befüllen, analog boardIdByKey.
+    const sessionIdByKey = new Map();
+
     const trainingSessions = (data.trainingSessions ?? []).slice(0, MAX_TRAINING_SESSIONS);
     for (const session of trainingSessions) {
+      const sessionKey = `${session.name}|${session.createdAt}`;
       const existingSession = await client.query(
         `SELECT id FROM training_sessions WHERE user_id = $1 AND name = $2
          AND date_trunc('milliseconds', created_at) = date_trunc('milliseconds', $3::timestamptz)`,
         [req.user.id, session.name, session.createdAt]
       );
-      if (existingSession.rows.length > 0) continue;
+      if (existingSession.rows.length > 0) {
+        sessionIdByKey.set(sessionKey, existingSession.rows[0].id);
+        continue;
+      }
 
       const sessionResult = await client.query(
         `INSERT INTO training_sessions (user_id, name, notes, scheduled_date, goal, created_at)
@@ -301,6 +426,7 @@ export async function importAccount(req, res) {
         ]
       );
       const newSessionId = sessionResult.rows[0].id;
+      sessionIdByKey.set(sessionKey, newSessionId);
 
       const items = (session.items ?? []).slice(0, MAX_TRAINING_ITEMS_PER_SESSION);
       for (let i = 0; i < items.length; i++) {
@@ -311,6 +437,45 @@ export async function importAccount(req, res) {
           `INSERT INTO training_session_items (session_id, board_id, order_index, duration_minutes, note)
            VALUES ($1, $2, $3, $4, $5)`,
           [newSessionId, boardId, i, item.durationMinutes ?? 15, item.note ?? '']
+        );
+      }
+
+      // Trainings-Anwesenheit (Statistik-Architektur Phase 5, Issue 026) –
+      // nur für frisch angelegte Sessions (wie items oben), Kader-Referenz
+      // per rosterIdByKey wie überall sonst in diesem Import.
+      const attendance = (session.attendance ?? []).slice(0, MAX_ATTENDANCE_PER_SESSION);
+      for (const a of attendance) {
+        const rosterPlayerId = rosterIdByKey.get(`${a.name}|${a.jerseyNumber ?? ''}|${a.role ?? ''}`);
+        if (!rosterPlayerId) continue; // Spieler war nicht im Kader-Export enthalten
+        await client.query(
+          `INSERT INTO training_attendance (session_id, roster_player_id, status, note) VALUES ($1, $2, $3, $4)
+           ON CONFLICT (session_id, roster_player_id) DO NOTHING`,
+          [newSessionId, rosterPlayerId, a.status, a.note ?? '']
+        );
+      }
+    }
+
+    // Spielerentwicklungsnotizen (Statistik-Architektur Phase 5, Issue 026)
+    // – NACH Kader UND Trainingsplänen, da beide Referenzen
+    // (rosterIdByKey/sessionIdByKey) erst dann vollständig befüllt sind.
+    // Autor ist immer der importierende Nutzer selbst (siehe
+    // exportUserData.js – nur selbst verfasste Notizen werden exportiert).
+    for (const p of (data.rosterPlayers ?? []).slice(0, MAX_ROSTER_PLAYERS)) {
+      const rosterPlayerId = rosterIdByKey.get(`${p.name}|${p.jerseyNumber ?? ''}|${p.role ?? ''}`);
+      if (!rosterPlayerId) continue;
+      const notes = (p.developmentNotes ?? []).slice(0, MAX_DEV_NOTES_PER_PLAYER);
+      for (const n of notes) {
+        const sessionId = n.sessionName ? sessionIdByKey.get(`${n.sessionName}|${n.sessionCreatedAt}`) ?? null : null;
+        const existingNote = await client.query(
+          `SELECT id FROM player_development_notes WHERE roster_player_id = $1 AND author_user_id = $2
+           AND note = $3 AND date_trunc('milliseconds', created_at) = date_trunc('milliseconds', $4::timestamptz)`,
+          [rosterPlayerId, req.user.id, n.note, n.createdAt]
+        );
+        if (existingNote.rows.length > 0) continue;
+        await client.query(
+          `INSERT INTO player_development_notes (roster_player_id, author_user_id, training_session_id, note, created_at)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [rosterPlayerId, req.user.id, sessionId, n.note, n.createdAt ?? new Date().toISOString()]
         );
       }
     }

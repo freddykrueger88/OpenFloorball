@@ -618,6 +618,9 @@
       "title": "Vilken data lagras?",
       "account": "Konto: e-postadress, visningsnamn, lösenord (krypterad hash), roll",
       "boards": "Tavlor: namn, anteckningar, bildrutor (positioner/formationer), anfalls-/försvarskedjor",
+      "roster": "Trupp: spelarnamn, tröjnummer, roll, spelarutvecklingsanteckningar",
+      "games": "Matcher: motståndare, datum, händelser (mål/utvisningar/skott), matchtrupp, kedjebyten",
+      "training": "Träningsplaner: övningar, datum, närvaro per truppspelare",
       "settings": "Inställningar: visnings- och tillgänglighetsinställningar"
     },
     "purpose": {

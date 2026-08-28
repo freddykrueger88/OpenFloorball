@@ -165,9 +165,12 @@ konkrete Backlog-Einträge vor (siehe unten).
 
 - **Native App-Store-Präsenz** (Google Play/Apple App Store) – bisher
   nur als installierbare PWA, kein nativer Wrapper.
-- **Vite 8 / ESLint 10** im Frontend – Upgrade blockiert durch
-  Peer-Dependency-Konflikte im jeweiligen Ökosystem (zuletzt
-  2026-08-07 erneut geprüft).
+- **ESLint 10 im Frontend** – weiterhin blockiert: `eslint-plugin-react`
+  unterstützt in seiner aktuellen Version (7.37.5) nur `eslint ^9.7`,
+  kein Update in Sicht (zuletzt 2026-08-28 erneut geprüft). Backend
+  läuft bereits auf ESLint 10, Vite 8 im Frontend ebenfalls seit
+  2026-08-28 (siehe CHANGELOG) – der Peer-Konflikt betraf am Ende nur
+  noch diese eine Frontend-Lint-Abhängigkeit, nicht mehr Vite selbst.
 - **Formale Barrierefreiheits-Zertifizierung** (WCAG 2.1 AA/BITV 2.0/
   EN 301 549 durch Dritte) steht aus – die Funktionen selbst sind
   umgesetzt, aber nicht extern zertifiziert.
@@ -180,8 +183,8 @@ konkrete Backlog-Einträge vor (siehe unten).
 
 ## Nächste Schritte
 
-1. Vite 8 / ESLint 10 aktualisieren, sobald die
-   Peer-Dependency-Konflikte in den jeweiligen Ökosystemen gelöst sind.
+1. ESLint 10 im Frontend nachziehen, sobald `eslint-plugin-react` eine
+   passende Peer-Dependency veröffentlicht.
 2. Native App-Store-Präsenz prüfen (PWA-Wrapper wie Capacitor/Trusted
    Web Activity).
 
@@ -191,7 +194,7 @@ konkrete Backlog-Einträge vor (siehe unten).
 |---|---|
 | Version | 0.9.0 (`backend/package.json` und `frontend/package.json`) |
 | Backend | Node ≥24, Express 5, PostgreSQL 18, Redis 8 |
-| Frontend | React 19, Vite 7, react-router 8, zustand 5, Konva 10/react-konva 19, i18next (DE/EN) |
+| Frontend | React 19, Vite 8, react-router 8, zustand 5, Konva 10/react-konva 19, i18next (DE/EN) |
 | PWA | `vite-plugin-pwa`, echt konfiguriert (Workbox-Caching, Manifest) |
 | Tests | 53 Backend-Testdateien, 19 Frontend-Testdateien |
 | CI/CD | GitHub Actions – Lint/Test/Build (Backend + Frontend), Docker-Build-Check, Security-Scan, Dependency-Review |

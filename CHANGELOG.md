@@ -78,6 +78,17 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   auf fehlende/leere Schlüssel statt nur de/en fest zu verdrahten.
 
 ### Changed
+- Frontend-Dependency-Update: Vite 7→8 (`@vitejs/plugin-react` 5.0→5.2,
+  `vitest` 4.1.10→4.1.11) – der bei der letzten großen
+  Dependency-Runde (siehe Eintrag weiter unten) noch offene
+  Peer-Konflikt mit einer `@babel/core`-Pre-Release im
+  Rolldown-Ökosystem ist inzwischen im Ökosystem gelöst.
+  `manualChunks` in `vite.config.js` nutzte vorsorglich bereits die
+  Funktions- statt Objekt-Form (Vite 8/Rolldown hat die Objekt-Form
+  entfernt). ESLint 10 im Frontend bleibt weiterhin zurückgestellt:
+  `eslint-plugin-react` unterstützt aktuell nur `eslint ^9.7`, dieser
+  Konflikt betrifft nur noch das Frontend-Lint-Setup, nicht mehr Vite
+  selbst (Backend läuft bereits auf ESLint 10).
 - Issue 025: Neue Boards zeigen standardmäßig nur noch die eigene
   Mannschaft + Ball, keine automatische gegnerische Aufstellung mehr
   (die meisten Taktiken – Spielaufbau, Systeme, Trainingsformen –

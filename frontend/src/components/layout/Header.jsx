@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown, Settings as SettingsIcon } from 'lucide-react';
 import useAuthStore from '../../store/authStore.js';
 import { apiFetch } from '../../utils/apiFetch.js';
 import { useFocusTrap } from '../../hooks/useFocusTrap.js';
@@ -17,18 +17,108 @@ import styles from './Header.module.css';
 
 const LANGUAGES = ['de', 'en'];
 
+// UI/UX-Audit 2026-08-28: 13 gleichrangige Nav-Links passten nicht mehr
+// entspannt in eine Zeile und waren auch im mobilen Menü eine undifferenzierte
+// lange Liste. Gruppierung nach Trainer-Workflow (CLAUDE.md §7 Coach Workflow
+// First) statt technischer Reihenfolge – Desktop bekommt dadurch aufklappbare
+// Untermenüs (siehe navGroup* unten), das mobile Menü bekommt dieselben
+// Gruppen als Abschnitts-Überschriften (kein zweites Interaktionsmuster nötig,
+// dort ist ohnehin schon vertikaler Scroll-Platz). `tourId` verweist wie
+// gehabt auf ein `data-tour`-Attribut für die Onboarding-Tour
+// (tourSteps.js) – zeigt jetzt auf den Gruppen-Trigger statt auf einen
+// einzelnen Unterpunkt, da nur der Trigger unabhängig vom Auf-/Zuklappen
+// immer sichtbar ist.
+function buildNavGroups(t) {
+  return [
+    {
+      key: 'boards',
+      labelKey: 'nav.groups.boards',
+      tourId: 'nav-group-boards',
+      links: [
+        { to: '/boards', label: t('nav.boards') },
+        { to: '/trainings', label: t('nav.trainings') },
+      ],
+    },
+    {
+      key: 'roster',
+      labelKey: 'nav.groups.roster',
+      tourId: 'nav-group-roster',
+      links: [
+        { to: '/roster', label: t('nav.roster') },
+        { to: '/lines', label: t('nav.lines') },
+      ],
+    },
+    {
+      key: 'games',
+      labelKey: 'nav.groups.games',
+      tourId: 'nav-group-games',
+      links: [
+        { to: '/games', label: t('nav.games') },
+        { to: '/opponents', label: t('nav.opponents') },
+        { to: '/stats', label: t('nav.stats') },
+        { to: '/calendar', label: t('nav.calendar') },
+      ],
+    },
+    {
+      key: 'team',
+      labelKey: 'nav.groups.team',
+      tourId: 'nav-group-team',
+      links: [
+        { to: '/news', label: t('nav.news') },
+        { to: '/polls', label: t('nav.polls') },
+      ],
+    },
+    {
+      key: 'knowledge',
+      labelKey: 'nav.groups.knowledge',
+      tourId: 'nav-group-knowledge',
+      links: [
+        { to: '/library', label: t('nav.library') },
+        { to: '/knowledge', label: t('nav.knowledge') },
+      ],
+    },
+  ];
+}
+
 export default function Header() {
   const { t, i18n } = useTranslation();
   const location = useLocation();
   const user = useAuthStore((s) => s.user);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState(null);
   const menuRef = useRef(null);
+  const navRef = useRef(null);
+  const groupTriggerRefs = useRef({});
+  const navGroups = buildNavGroups(t);
 
   // Menü bei Routenwechsel schließen (z.B. nach Klick auf einen Nav-Link),
   // sonst bliebe es auf der neuen Seite fälschlich offen stehen.
-  useEffect(() => { setMenuOpen(false); }, [location.pathname]);
+  useEffect(() => { setMenuOpen(false); setOpenGroup(null); }, [location.pathname]);
 
   useFocusTrap(menuRef, { active: menuOpen, onEscape: () => setMenuOpen(false) });
+
+  // Ein aufklappbares Untermenü ist bewusst KEIN Fokus-Trap (anders als das
+  // mobile Hamburger-Menü oben) – WAI-ARIA-Praxis für Navigations-Dropdowns:
+  // Tab führt aus dem Menü heraus zum nächsten Seitenelement weiter, statt
+  // den Fokus gefangen zu halten. Schließen erfolgt per Klick außerhalb,
+  // Escape (mit Fokus-Rückgabe an den Trigger) oder Klick auf einen Link.
+  useEffect(() => {
+    if (!openGroup) return undefined;
+    const handlePointerDown = (e) => {
+      if (!navRef.current?.contains(e.target)) setOpenGroup(null);
+    };
+    const handleKeyDown = (e) => {
+      if (e.key !== 'Escape') return;
+      groupTriggerRefs.current[openGroup]?.focus();
+      setOpenGroup(null);
+    };
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [openGroup]);
 
   const changeLanguage = (lang) => {
     if (lang === i18n.language) return;
@@ -37,25 +127,6 @@ export default function Header() {
       apiFetch('/api/settings', { method: 'PUT', body: JSON.stringify({ language: lang }) }).catch(() => {});
     }
   };
-
-  // tourId: Ziel-Attribut für die Onboarding-Tour (TourOverlay.jsx sucht
-  // per document.querySelector(`[data-tour="${target}"]`)) – nicht jeder
-  // Nav-Punkt hat einen Tour-Schritt (bewusst kurz gehalten, siehe dort).
-  const navLinks = [
-    { to: '/boards',    label: t('nav.boards'),    tourId: 'nav-boards' },
-    { to: '/trainings', label: t('nav.trainings'), tourId: 'nav-trainings' },
-    { to: '/roster',    label: t('nav.roster') },
-    { to: '/lines',     label: t('nav.lines') },
-    { to: '/games',     label: t('nav.games') },
-    { to: '/opponents', label: t('nav.opponents') },
-    { to: '/stats',     label: t('nav.stats') },
-    { to: '/calendar',  label: t('nav.calendar') },
-    { to: '/news',      label: t('nav.news') },
-    { to: '/polls',     label: t('nav.polls') },
-    { to: '/library',   label: t('nav.library'),   tourId: 'nav-library' },
-    { to: '/knowledge', label: t('nav.knowledge') },
-    { to: '/settings',  label: t('nav.settings'),  tourId: 'nav-settings' },
-  ];
 
   return (
     <header className={styles.header}>
@@ -68,17 +139,50 @@ export default function Header() {
       </Link>
 
       {user && (
-        <nav className={styles.nav} aria-label={t('nav.mainNavigation')}>
-          {navLinks.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              data-tour={link.tourId}
-              className={`${styles.navLink} ${location.pathname.startsWith(link.to) ? styles.navLinkActive : ''}`}
-            >
-              {link.label}
-            </Link>
-          ))}
+        <nav ref={navRef} className={styles.nav} aria-label={t('nav.mainNavigation')}>
+          {navGroups.map((group) => {
+            const isActiveGroup = group.links.some((link) => location.pathname.startsWith(link.to));
+            const isOpen = openGroup === group.key;
+            return (
+              <div key={group.key} className={styles.navGroup}>
+                <button
+                  type="button"
+                  ref={(el) => { groupTriggerRefs.current[group.key] = el; }}
+                  data-tour={group.tourId}
+                  aria-expanded={isOpen}
+                  aria-haspopup="true"
+                  aria-controls={`nav-group-panel-${group.key}`}
+                  className={`${styles.navLink} ${styles.navGroupTrigger} ${isActiveGroup ? styles.navLinkActive : ''}`}
+                  onClick={() => setOpenGroup((prev) => (prev === group.key ? null : group.key))}
+                >
+                  {t(group.labelKey)}
+                  <ChevronDown size={14} aria-hidden="true" className={styles.navGroupChevron} />
+                </button>
+                {isOpen && (
+                  <div id={`nav-group-panel-${group.key}`} className={styles.navGroupPanel}>
+                    {group.links.map((link) => (
+                      <Link
+                        key={link.to}
+                        to={link.to}
+                        className={`${styles.navGroupPanelLink} ${location.pathname.startsWith(link.to) ? styles.navLinkActive : ''}`}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <Link
+            to="/settings"
+            data-tour="nav-settings"
+            className={`${styles.navLink} ${styles.navSettingsIcon} ${location.pathname.startsWith('/settings') ? styles.navLinkActive : ''}`}
+            aria-label={t('nav.settings')}
+            title={t('nav.settings')}
+          >
+            <SettingsIcon size={20} aria-hidden="true" />
+          </Link>
         </nav>
       )}
 
@@ -129,16 +233,32 @@ export default function Header() {
         >
           <div ref={menuRef} className={styles.menuPanel} role="dialog" aria-modal="true" aria-label={t('nav.mainNavigation')}>
             <nav aria-label={t('nav.mainNavigation')}>
-              {navLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  data-tour={link.tourId}
-                  className={`${styles.menuLink} ${location.pathname.startsWith(link.to) ? styles.navLinkActive : ''}`}
-                >
-                  {link.label}
-                </Link>
+              {navGroups.map((group) => (
+                <div key={group.key} className={styles.menuGroup}>
+                  {/* data-tour hier auf der (nicht interaktiven) Gruppen-
+                      Überschrift statt auf einem einzelnen Link – dieselbe
+                      Rolle wie der Dropdown-Trigger in der Desktop-Leiste,
+                      siehe TourOverlay.jsx (wählt das erste sichtbare
+                      Element mit passendem data-tour aus). */}
+                  <p className={styles.menuGroupLabel} data-tour={group.tourId}>{t(group.labelKey)}</p>
+                  {group.links.map((link) => (
+                    <Link
+                      key={link.to}
+                      to={link.to}
+                      className={`${styles.menuLink} ${location.pathname.startsWith(link.to) ? styles.navLinkActive : ''}`}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
               ))}
+              <Link
+                to="/settings"
+                data-tour="nav-settings"
+                className={`${styles.menuLink} ${location.pathname.startsWith('/settings') ? styles.navLinkActive : ''}`}
+              >
+                {t('nav.settings')}
+              </Link>
             </nav>
             <Button variant="secondary" size="md" className={styles.menuLogoutBtn} onClick={() => useAuthStore.getState().logout()}>
               {t('nav.logout')}

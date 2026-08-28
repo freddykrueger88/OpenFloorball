@@ -11,7 +11,22 @@ keinen separaten Setup-Assistenten. `http://localhost` (bzw. der
 konfigurierte `APP_PORT`) öffnen, auf **Registrieren** klicken,
 E-Mail + Passwort vergeben.
 
-## 2. Erstes Board anlegen
+## 2. Geführte Tour
+
+Nach der ersten Anmeldung startet automatisch eine kurze, jederzeit
+überspringbare Einführungstour durch das Hauptmenü. Das Hauptmenü
+selbst ist in fünf Bereiche gruppiert (Boards, Kader, Spielbetrieb,
+Team, Wissen) statt einer langen Liste einzelner Links – jeder Bereich
+lässt sich per Klick aufklappen. Die Tour lässt sich jederzeit über
+[Einstellungen](./Einstellungen.md) erneut starten.
+
+Im Board-Editor selbst gibt es eine zweite, unabhängige Tour zu den
+Editor-Werkzeugen (Spieler platzieren, Zeichnen, Szenen/Animation,
+Speichern, Lines/Formationsvorlagen/Video im Seitenpanel, Export) –
+erneut aufrufbar über das Hilfe-Symbol (❓) oben rechts im Editor oder
+ebenfalls über die Einstellungen.
+
+## 3. Erstes Board anlegen
 
 Auf der Board-Übersicht (`/boards`, Startseite nach dem Login) auf
 **Neues Board** klicken. Dabei wählbar:
@@ -27,7 +42,7 @@ OpenFloorball legt automatisch eine IFF-konforme Standardaufstellung
 (2‑1‑2-System, alle Feldspieler in der eigenen Hälfte) als ersten
 [Frame](./Animation.md) an.
 
-## 3. Spielzug aufbauen
+## 4. Spielzug aufbauen
 
 Im Board-Editor:
 
@@ -40,7 +55,7 @@ Im Board-Editor:
 Änderungen werden automatisch gespeichert (Sichtbar am
 Speicherstatus im Header).
 
-## 4. Exportieren oder teilen
+## 5. Exportieren oder teilen
 
 Im unteren Tab-Menü ("⚙️ Einstellungen"-Tab ausklappen für Details):
 
@@ -51,7 +66,7 @@ Im unteren Tab-Menü ("⚙️ Einstellungen"-Tab ausklappen für Details):
 - **Board teilen**: einen anderen OpenFloorball-Nutzer als Kollaborator
   hinzufügen (siehe [Export & Teilen](./Export.md))
 
-## 5. Team & Training
+## 6. Team & Training
 
 - [Kader](./Kader.md): zentraler Spieler-Pool, einmal pflegen, in
   jedem Board zuweisbar

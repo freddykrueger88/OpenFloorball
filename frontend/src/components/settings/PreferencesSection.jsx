@@ -4,9 +4,11 @@
  * ausgelagert, reines Verschieben ohne Logik-Änderung) + Custom-Theme-
  * Farbwähler (Stufe 5 – neu).
  */
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useThemeStore from '../../store/themeStore.js';
 import useTourStore from '../../store/tourStore.js';
+import useAnnounceStore from '../../store/announceStore.js';
 import { useSettings } from '../../hooks/useSettings.js';
 import { applyGlobalPreferences } from '../../utils/applyPreferences.js';
 import { IFF_FIELDS, IFF_BALL_COLORS, DEFAULT_TEAM_COLORS } from '../../constants/fieldConfig.js';
@@ -17,6 +19,12 @@ export default function PreferencesSection() {
   const { t, i18n } = useTranslation();
   const { theme, themes, setTheme, customColors, setCustomColors } = useThemeStore();
   const { settings, updateSettings } = useSettings();
+  // Anders als die Nav-Tour ist die Editor-Tour-Overlay-Komponente nur im
+  // Board-Editor selbst gemountet (BoardEditorPage.jsx), nicht global in
+  // App.jsx – ein Klick hier setzt den Store-Zustand also nur "vorgemerkt",
+  // sichtbar wird die Tour erst beim nächsten Öffnen eines Boards. Ohne
+  // dieses Feedback wäre der Klick scheinbar wirkungslos.
+  const [editorTourQueued, setEditorTourQueued] = useState(false);
 
   const THEME_LABELS = {
     dark: t('settings.dark'), light: t('settings.light'),
@@ -245,6 +253,27 @@ export default function PreferencesSection() {
         <Button variant="secondary" size="md" onClick={() => useTourStore.getState().start('nav')}>
           {t('settings.restartTour')}
         </Button>
+      </section>
+
+      {/* Symmetrie zur Nav-Tour oben (ISSUE 024-Ausbau): bisher war die
+          Editor-Tour nur über das Hilfe-Symbol im Editor selbst erneut
+          aufrufbar, ohne Pendant hier – wer den Editor gerade nicht offen
+          hat, konnte sie nicht neu starten. */}
+      <section className={styles.section}>
+        <h2>{t('settings.editorTourSectionTitle')}</h2>
+        <p className={styles.fieldLabel}>{t('settings.restartEditorTourDesc')}</p>
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={() => {
+            useTourStore.getState().start('editor');
+            setEditorTourQueued(true);
+            useAnnounceStore.getState().announce(t('settings.restartEditorTourQueued'));
+          }}
+        >
+          {t('settings.restartEditorTour')}
+        </Button>
+        {editorTourQueued && <p className={styles.fieldLabel}>{t('settings.restartEditorTourQueued')}</p>}
       </section>
     </>
   );

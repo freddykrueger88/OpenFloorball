@@ -14,6 +14,19 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Issue 026: DSGVO-Backup-Export/Import (`GET /api/user/data`,
+  `GET /api/user/export`, `POST /api/user/import`) deckt jetzt auch die
+  Spiel-Domäne (Spiele inkl. Live-Match-Ereignisse, Match-Kader,
+  Match-Line-Historie) sowie Trainings-Anwesenheit und
+  Spielerentwicklungsnotizen ab – vorher endete der Export bei Boards/
+  Kader/Lines/Playbooks/Formationen/Trainingsplänen, ohne die seit
+  EPIC 012 hinzugekommenen Tabellen. Referenzierung wie beim
+  bestehenden Muster per Name/Datum statt DB-ID, damit ein Re-Import in
+  einen anderen Account funktioniert. Entwicklungsnotizen werden nur
+  für den exportierenden Nutzer selbst (als Autor) mitgenommen. Die
+  Datenkategorien-Liste auf `/privacy` nennt die drei neuen Kategorien
+  jetzt ebenfalls. Bewusst kein neues `BACKUP_FORMAT`: rein additive,
+  optionale Felder, alte Backups importieren unverändert weiter.
 - Projekt-Wiki (`docs/wiki/`, 41 Seiten) jetzt vollständig zweisprachig:
   jede Seite hat ein `*.en.md`-Gegenstück mit gegenseitiger
   🇩🇪/🇬🇧-Verlinkung, wie zuvor bei README/TRANSLATING etabliert.

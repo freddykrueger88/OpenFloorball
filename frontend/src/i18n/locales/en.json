@@ -618,6 +618,9 @@
       "title": "What data is stored?",
       "account": "Account: email address, display name, password (encrypted hash), role",
       "boards": "Boards: names, notes, frames (positions/formations), attacking/defensive lines",
+      "roster": "Roster: player names, jersey numbers, roles, player development notes",
+      "games": "Games: opponent, date, events (goals/penalties/shots), match squad, line changes",
+      "training": "Training plans: exercises, dates, attendance per roster player",
       "settings": "Settings: display and accessibility preferences"
     },
     "purpose": {

@@ -405,6 +405,150 @@ describe('Formationen + Playbooks + Trainingspläne im Export/Import-Roundtrip',
   });
 });
 
+describe('Spiele + Trainings-Anwesenheit + Spielerentwicklungsnotizen im Export/Import-Roundtrip (Issue 026)', () => {
+  let owner;
+  let maxId;
+  let gameId;
+  let lineId;
+  let sessionId;
+
+  beforeAll(async () => {
+    owner = await registerAndLogin('games-attendance-notes');
+
+    const rosterRes = await request(app).post('/api/roster').set('Cookie', owner.cookie)
+      .send({ name: 'Max', jerseyNumber: 10, role: 'C' });
+    maxId = rosterRes.body.data._id;
+
+    const gameRes = await request(app).post('/api/games').set('Cookie', owner.cookie)
+      .send({ opponent: 'HC Rivals', playedAt: '2026-01-15' });
+    gameId = gameRes.body.data._id;
+
+    // Ein 'shot'-Ereignis mit outcome='goal' legt zusätzlich ein
+    // Companion-'goal'-Ereignis an (ADR-0002) – ergibt 2 Events aus einem Call.
+    await request(app).post(`/api/games/${gameId}/events`).set('Cookie', owner.cookie)
+      .send({ eventType: 'shot', rosterPlayerId: maxId, outcome: 'goal', x: 0.5, y: 0.5 });
+
+    await request(app).put(`/api/games/${gameId}/squad/${maxId}`).set('Cookie', owner.cookie)
+      .send({ status: 'playing' });
+
+    const lineRes = await request(app).post('/api/lines').set('Cookie', owner.cookie)
+      .send({ name: 'Export-Match-Line', color: '#10b981', type: 'offense' });
+    lineId = lineRes.body.data._id;
+    await request(app).post(`/api/games/${gameId}/match-lines`).set('Cookie', owner.cookie)
+      .send({ lineId });
+
+    const sessionRes = await request(app).post('/api/trainings').set('Cookie', owner.cookie)
+      .send({ name: 'Export-Anwesenheits-Training' });
+    sessionId = sessionRes.body.data._id;
+    await request(app).put(`/api/trainings/${sessionId}/attendance/${maxId}`).set('Cookie', owner.cookie)
+      .send({ status: 'present' });
+
+    await request(app).post(`/api/roster/${maxId}/notes`).set('Cookie', owner.cookie)
+      .send({ note: 'Gute Trainingswoche, Abschluss verbessert.' });
+  });
+
+  async function exportBackupJson(cookie) {
+    const res = await request(app)
+      .get('/api/user/export')
+      .set('Cookie', cookie)
+      .buffer(true)
+      .parse((response, callback) => {
+        const chunks = [];
+        response.on('data', (chunk) => chunks.push(chunk));
+        response.on('end', () => callback(null, Buffer.concat(chunks)));
+      });
+    const zip = new AdmZip(res.body);
+    return { data: JSON.parse(zip.getEntry('backup.json').getData().toString('utf8')), raw: zip.getEntry('backup.json').getData() };
+  }
+
+  it('exportiert Spiele (mit Events/Kader/Match-Lines), Trainings-Anwesenheit und Spielerentwicklungsnotizen', async () => {
+    const { data } = await exportBackupJson(owner.cookie);
+
+    expect(data.games).toHaveLength(1);
+    const game = data.games[0];
+    expect(game.opponent).toBe('HC Rivals');
+    expect(game.playedAt).toBe('2026-01-15');
+    // shot + companion goal
+    expect(game.events).toHaveLength(2);
+    expect(game.events.every((e) => e.player?.name === 'Max')).toBe(true);
+    expect(game.squad).toEqual([{ name: 'Max', jerseyNumber: 10, role: 'C', status: 'playing', note: '' }]);
+    expect(game.matchLines).toHaveLength(1);
+    expect(game.matchLines[0].lineName).toBe('Export-Match-Line');
+
+    const session = data.trainingSessions.find((s) => s.name === 'Export-Anwesenheits-Training');
+    expect(session.attendance).toEqual([{ name: 'Max', jerseyNumber: 10, role: 'C', status: 'present', note: '' }]);
+
+    const player = data.rosterPlayers.find((p) => p.name === 'Max');
+    expect(player.developmentNotes).toHaveLength(1);
+    expect(player.developmentNotes[0].note).toBe('Gute Trainingswoche, Abschluss verbessert.');
+  });
+
+  it('stellt Spiele/Anwesenheit/Entwicklungsnotizen beim Re-Import in einen frischen Account korrekt wieder her', async () => {
+    const { raw } = await exportBackupJson(owner.cookie);
+
+    const freshUser = await registerAndLogin('fresh-import-games');
+    const freshZip = new AdmZip();
+    freshZip.addFile('backup.json', raw);
+
+    const importRes = await request(app)
+      .post('/api/user/import')
+      .set('Cookie', freshUser.cookie)
+      .attach('file', freshZip.toBuffer(), 'backup.zip');
+    expect(importRes.status).toBe(200);
+
+    const gamesRes = await request(app).get('/api/games').set('Cookie', freshUser.cookie);
+    expect(gamesRes.body.data).toHaveLength(1);
+    const newGameId = gamesRes.body.data[0]._id;
+    expect(gamesRes.body.data[0].opponent).toBe('HC Rivals');
+    expect(gamesRes.body.data[0].playedAt).toBe('2026-01-15');
+
+    const rosterRes = await request(app).get('/api/roster').set('Cookie', freshUser.cookie);
+    const newMax = rosterRes.body.data.find((p) => p.name === 'Max');
+    expect(newMax).toBeTruthy();
+
+    const eventsRes = await request(app).get(`/api/games/${newGameId}/events`).set('Cookie', freshUser.cookie);
+    expect(eventsRes.body.data).toHaveLength(2);
+    expect(eventsRes.body.data.every((e) => e.rosterPlayerId === newMax._id)).toBe(true);
+
+    const squadRes = await request(app).get(`/api/games/${newGameId}/squad`).set('Cookie', freshUser.cookie);
+    const maxSquad = squadRes.body.data.find((s) => s.rosterPlayerId === newMax._id);
+    expect(maxSquad.status).toBe('playing');
+
+    const matchLinesRes = await request(app).get(`/api/games/${newGameId}/match-lines`).set('Cookie', freshUser.cookie);
+    expect(matchLinesRes.body.data).toHaveLength(1);
+    expect(matchLinesRes.body.data[0].lineName).toBe('Export-Match-Line');
+
+    const sessionsRes = await request(app).get('/api/trainings').set('Cookie', freshUser.cookie);
+    const newSessionId = sessionsRes.body.data.find((s) => s.name === 'Export-Anwesenheits-Training')._id;
+    const attendanceRes = await request(app).get(`/api/trainings/${newSessionId}/attendance`).set('Cookie', freshUser.cookie);
+    const maxAttendance = attendanceRes.body.data.find((a) => a.rosterPlayerId === newMax._id);
+    expect(maxAttendance.status).toBe('present');
+
+    const notesRes = await request(app).get(`/api/roster/${newMax._id}/notes`).set('Cookie', freshUser.cookie);
+    expect(notesRes.body.data).toHaveLength(1);
+    expect(notesRes.body.data[0].note).toBe('Gute Trainingswoche, Abschluss verbessert.');
+  });
+
+  it('überspringt ein bereits importiertes Spiel beim erneuten Import (Duplikat-Erkennung)', async () => {
+    const { raw } = await exportBackupJson(owner.cookie);
+    const data = JSON.parse(raw.toString('utf8'));
+
+    const freshUser = await registerAndLogin('fresh-import-games-dup');
+    const zip1 = new AdmZip();
+    zip1.addFile('backup.json', Buffer.from(JSON.stringify(data)));
+    const first = await request(app).post('/api/user/import').set('Cookie', freshUser.cookie).attach('file', zip1.toBuffer(), 'backup.zip');
+    expect(first.body.data.imported).toBeGreaterThanOrEqual(1);
+
+    const zip2 = new AdmZip();
+    zip2.addFile('backup.json', Buffer.from(JSON.stringify(data)));
+    const second = await request(app).post('/api/user/import').set('Cookie', freshUser.cookie).attach('file', zip2.toBuffer(), 'backup.zip');
+    expect(second.status).toBe(200);
+
+    const gamesRes = await request(app).get('/api/games').set('Cookie', freshUser.cookie);
+    expect(gamesRes.body.data).toHaveLength(1);
+  });
+});
+
 describe('Admin Backup-Config', () => {
   it('lehnt Nicht-Admins mit 403 ab', async () => {
     const res = await request(app).get('/api/admin/backup-config').set('Cookie', regular.cookie);

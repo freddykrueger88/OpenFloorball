@@ -618,6 +618,9 @@
       "title": "Welche Daten werden gespeichert?",
       "account": "Konto: E-Mail-Adresse, Anzeigename, Passwort (verschlüsselt gehasht), Rolle",
       "boards": "Spielfelder: Namen, Notizen, Frames (Positionen/Formationen), Sturm-/Defensivreihen",
+      "roster": "Kader: Spielername, Trikotnummer, Rolle, Spielerentwicklungsnotizen",
+      "games": "Spiele: Gegner, Datum, Ereignisse (Tore/Strafen/Schüsse), Match-Kader, Line-Wechsel",
+      "training": "Trainingspläne: Übungen, Termine, Anwesenheit je Kader-Spieler",
       "settings": "Einstellungen: Darstellungs- und Barrierefreiheits-Präferenzen"
     },
     "purpose": {

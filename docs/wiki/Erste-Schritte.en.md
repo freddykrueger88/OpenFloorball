@@ -10,7 +10,22 @@ The **first registered account automatically becomes admin** – there's
 no separate setup wizard. Open `http://localhost` (or your configured
 `APP_PORT`), click **Register**, and set an email + password.
 
-## 2. Create your first board
+## 2. Guided tour
+
+After your first login, a short, skippable-at-any-time onboarding tour
+walks you through the main menu automatically. The main menu itself is
+grouped into five areas (Boards, Roster, Games, Team, Knowledge)
+instead of one long list of individual links – click any group to
+expand it. You can restart the tour at any time from
+[Settings](./Einstellungen.en.md).
+
+The board editor has a second, independent tour covering the editor
+tools (placing players, drawing, scenes/animation, saving, the Lines/
+formation-templates/video tabs in the side panel, export) – reachable
+again via the help icon (❓) in the top right of the editor, or from
+Settings.
+
+## 3. Create your first board
 
 On the boards overview (`/boards`, the landing page after login),
 click **New board**. You can choose:
@@ -25,7 +40,7 @@ OpenFloorball automatically creates an IFF-compliant default lineup
 (2‑1‑2 system, all field players in their own half) as the first
 [frame](./Animation.en.md).
 
-## 3. Build a play
+## 4. Build a play
 
 In the board editor:
 
@@ -38,7 +53,7 @@ In the board editor:
 Changes save automatically (visible via the save status in the
 header).
 
-## 4. Export or share
+## 5. Export or share
 
 In the bottom tab menu (expand the "⚙️ Settings" tab for details):
 
@@ -49,7 +64,7 @@ In the bottom tab menu (expand the "⚙️ Settings" tab for details):
 - **Share board**: add another OpenFloorball user as a collaborator
   (see [Export & sharing](./Export.en.md))
 
-## 5. Team & training
+## 6. Team & training
 
 - [Roster](./Kader.en.md): a central player pool, maintain it once,
   assign it in any board

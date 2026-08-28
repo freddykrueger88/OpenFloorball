@@ -756,6 +756,7 @@ export default function BoardEditorPage() {
             },
             canEdit && {
               id: 'lines',
+              tourId: 'editor-tab-lines',
               label: t('boardEditor.tabs.lines'),
               icon: <Layers size={16} aria-hidden="true" />,
               content: (
@@ -767,6 +768,7 @@ export default function BoardEditorPage() {
             },
             canEdit && {
               id: 'formations',
+              tourId: 'editor-tab-formations',
               label: t('boardEditor.tabs.formations'),
               icon: <Star size={16} aria-hidden="true" />,
               // UI/UX-Audit: Ende der "Bearbeiten"-Tab-Gruppe
@@ -785,6 +787,7 @@ export default function BoardEditorPage() {
             },
             {
               id: 'video',
+              tourId: 'editor-tab-video',
               label: t('boardEditor.tabs.video'),
               icon: <Video size={16} aria-hidden="true" />,
               content: <VideoPanel boardId={boardId} canEdit={canEdit} fieldType={field.fieldType} homeColor={homeColor} awayColor={awayColor} ballColor={ballColor} />,

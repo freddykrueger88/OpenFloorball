@@ -13,6 +13,26 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Changed
+- UI/UX-Audit: Hauptmenü (`Header.jsx`) von 13 gleichrangigen Nav-Links
+  auf 5 gruppierte Bereiche umgestellt (Boards, Kader, Spielbetrieb,
+  Team, Wissen) – nach Trainer-Workflow (CLAUDE.md §7) statt
+  technischer Reihenfolge. Desktop bekommt aufklappbare, barrierefreie
+  Untermenüs (Escape/Klick-außerhalb schließt, bewusst kein Fokus-Trap
+  – WAI-ARIA-Praxis für Navigations-Dropdowns), das mobile Menü zeigt
+  dieselben Gruppen als Abschnitts-Überschriften. Neuer
+  Komponententest `Header.test.jsx` (bisher ungetestet).
+- Onboarding-Touren ausgebaut: die Nav-Tour (ISSUE 023) deckt jetzt
+  alle fünf Menü-Bereiche ab (zuvor nur 4 von 13 Einzel-Links), die
+  Editor-Tour (ISSUE 024) zusätzlich die bisher fehlenden
+  Seitenpanel-Tabs Lines/Formationsvorlagen/Video. Neuer
+  "Editor-Tour erneut starten"-Button in den Einstellungen (Symmetrie
+  zur bereits bestehenden Nav-Tour-Wiederholung – vorher nur über das
+  Hilfe-Symbol im Editor selbst erreichbar). Neuer Komponententest
+  `TourOverlay.test.jsx` (bisher war nur der reine Store getestet).
+  `docs/wiki/Erste-Schritte.md` dokumentiert das Tour-Feature jetzt
+  erstmals.
+
 ### Added
 - Issue 026: DSGVO-Backup-Export/Import (`GET /api/user/data`,
   `GET /api/user/export`, `POST /api/user/import`) deckt jetzt auch die

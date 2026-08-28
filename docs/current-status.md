@@ -116,16 +116,26 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 - **Automatische Backups** (Cron, konfigurierbares Zeitplan/
   Aufbewahrung) sowie ein manueller "Jetzt ausführen"-Button im
   Admin-Bereich für einen sofortigen Lauf unabhängig vom Zeitplan.
+- **Hauptmenü** (Header.jsx) in fünf Bereiche gruppiert (Boards, Kader,
+  Spielbetrieb, Team, Wissen) statt 13 gleichrangiger Einzel-Links
+  (UI/UX-Audit 2026-08-28) – Desktop als barrierefreie aufklappbare
+  Untermenüs (Escape/Klick-außerhalb schließt, kein Fokus-Trap gemäß
+  WAI-ARIA-Praxis für Navigations-Dropdowns), mobiles Menü als
+  Abschnitts-Überschriften in derselben vertikalen Liste.
 - **Onboarding-Tour** für neue Nutzer (überspringbar, wiederholbar) und
   **vertiefte Editor-Tour** (Backlog-ISSUE 024) direkt im Board-Editor
   – zwei unabhängige Touren mit getrennten "gesehen"-Status
   (`tourCompleted`/`editorTourCompleted`), Überspringen/Abschließen
-  der einen beeinflusst die andere nicht. Die Editor-Tour ist über ein
-  Hilfe-Symbol im Editor jederzeit erneut aufrufbar (startet einmal
-  automatisch pro Account, nicht pro einzelnem neuen Board – bewusste
-  Abweichung von der wörtlichen Backlog-Formulierung "beim ersten
-  Öffnen eines neu erstellten Boards", um nicht bei jedem neuen Board
-  erneut zu erscheinen).
+  der einen beeinflusst die andere nicht. Die Nav-Tour deckt seit dem
+  Menü-Umbau alle fünf Bereiche ab (zuvor nur 4 von 13 Einzel-Links),
+  die Editor-Tour zusätzlich die Seitenpanel-Tabs Lines/
+  Formationsvorlagen/Video (zuvor nur Zeichnen-/Export-Tab). Beide
+  Touren sind jederzeit über die Einstellungen erneut startbar; die
+  Editor-Tour zusätzlich über ein Hilfe-Symbol im Editor selbst
+  (startet einmal automatisch pro Account, nicht pro einzelnem neuen
+  Board – bewusste Abweichung von der wörtlichen Backlog-Formulierung
+  "beim ersten Öffnen eines neu erstellten Boards", um nicht bei jedem
+  neuen Board erneut zu erscheinen).
 - **Passwort-Reset-Flow** – E-Mail-Link mit einmal verwendbarem, eine
   Stunde gültigem Token (Hash statt Klartext in der DB, im Gegensatz
   zu Share-/Invite-Tokens bewusst die einzige Ausnahme – Besitz

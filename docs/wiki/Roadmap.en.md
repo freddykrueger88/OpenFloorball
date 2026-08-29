@@ -44,6 +44,11 @@ continuously updated there (German):
 (German). Phase 1 (extensible event model) not yet implemented.
 
 **Feature ideas:**
+- Carpooling for games and trainings (backlog ISSUE 028) – team members
+  offer rides to away games/trainings or claim a free seat on an
+  existing offer. Open question before implementation: how to include
+  parents without their own account, without having to store extra
+  contact data (address/phone number).
 - Europe-wide language support (backlog ISSUE 027) – the UI so far
   only German/English; phase 1 prioritizes the strongest floorball
   nations outside the DACH region (Swedish, Finnish, Czech, Slovak),

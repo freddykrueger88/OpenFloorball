@@ -44,6 +44,11 @@ Repository und werden dort kontinuierlich aktualisiert:
 Phase 1 (erweiterbares Event-Modell) noch nicht umgesetzt.
 
 **Feature-Ideen:**
+- Fahrgemeinschaften für Spiele und Trainings (Backlog-ISSUE 028) –
+  Team-Mitglieder bieten Fahrten zu Auswärtsspielen/Trainings an oder
+  nehmen ein bestehendes Angebot wahr (freie Plätze). Offene Frage vor
+  Umsetzung: wie Eltern ohne eigenen Account eingebunden werden, ohne
+  zusätzliche Kontaktdaten (Adresse/Telefon) speichern zu müssen.
 - Europaweite Sprachunterstützung (Backlog-ISSUE 027) – Oberfläche
   bisher nur Deutsch/Englisch; Phase 1 priorisiert die floorball-
   stärksten Nationen außerhalb DACH (Schwedisch, Finnisch, Tschechisch,

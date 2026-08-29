@@ -829,6 +829,86 @@ P2
 
 ---
 
+# ISSUE 028
+
+## Fahrgemeinschaften für Spiele und Trainings
+
+### Beschreibung
+
+Besonders bei Auswärtsspielen und im Nachwuchsbereich organisieren
+Trainer und Eltern Fahrgemeinschaften heute meist manuell (WhatsApp-
+Gruppe, Zuruf). OpenFloorball könnte das direkt an ein Spiel oder eine
+Trainingseinheit anhängen: Team-Mitglieder können eine Fahrt
+**anbieten** (freie Plätze nennen) oder ein bestehendes Angebot
+**wahrnehmen** (einen Platz beanspruchen) – passt zu CLAUDE.md §7
+Coach Workflow First ("Training durchführen" / Spieltag-Organisation).
+
+---
+
+## Aufgaben
+
+* Fahrtangebot pro Spiel/Trainingseinheit anlegen: Treffpunkt
+  (Freitext, z.B. "Vereinsheim, 14:00 Uhr"), Anzahl freier Plätze,
+  optionale Notiz.
+* Ein anderes Team-Mitglied kann sich für ein Angebot eintragen
+  ("wahrnehmen"); freie Plätze reduzieren sich automatisch, ein volles
+  Angebot ist klar erkennbar (kein Überbuchen).
+* Eigenen Eintrag bzw. eigenes Angebot jederzeit wieder zurückziehen
+  können.
+* Übersicht direkt auf der Spiel-/Trainings-Detailseite (analog RSVP/
+  Kommentare) – keine neue eigenständige Hauptnavigationsseite nötig.
+
+---
+
+## Technische Überlegungen
+
+* Strukturell nah an `rsvps`/`comments`: polymorphe Zuordnung
+  (`resource_type IN ('training_session', 'game')` + `resource_id`),
+  plus eine echte Junction-Tabelle für "wer hat wie viele Plätze
+  beansprucht" (analog `game_squad`/`training_attendance` – echte
+  Junction statt polymorph, da nur zwei Ressourcentypen betroffen
+  sind).
+* **Datensparsamkeit (CLAUDE.md §5.1/§5.3) ist hier der kritischste
+  Punkt:** keine Wohnadressen, keine Pflicht-Telefonnummern im
+  Datenmodell. Der Treffpunkt ist bewusst freier Text, den der
+  Anbieter selbst wählt (z.B. ein neutraler Sammelpunkt statt der
+  eigenen Adresse). Kontaktaufnahme zwischen Anbieter und Mitfahrer
+  kann über die bestehende Kommentarfunktion der Ressource laufen,
+  statt eine neue Kontaktdaten-Ablage aufzubauen.
+* Sichtbarkeit/Zugriff wie RSVP: nur Mitglieder des jeweiligen Teams
+  (`team_members`), kein öffentlicher/anonymer Zugang.
+* **Offene Frage vor Umsetzung:** In der Praxis fahren im
+  Nachwuchsbereich oft Eltern, nicht die (teils minderjährigen)
+  Spieler selbst – `roster_players` haben aber bewusst keine
+  Kontaktfelder (CLAUDE.md §9.2 Datensparsamkeit). Reicht "nur
+  Team-Mitglieder mit eigenem Account bieten/nehmen wahr" (einfach,
+  schließt reine Eltern ohne Zugang aus), oder braucht es einen
+  niedrigschwelligeren, tokenbasierten Weg ähnlich `board_invites`/
+  `share_token`? Vor der Umsetzung mit echten Trainern/Vereinen klären
+  statt vorab zu raten.
+
+---
+
+## Akzeptanzkriterien
+
+* Ein Team-Mitglied kann für ein konkretes Spiel oder Training ein
+  Fahrtangebot mit Treffpunkt und freier Platzzahl anlegen.
+* Ein anderes Team-Mitglied kann sich eintragen, solange freie Plätze
+  vorhanden sind; ein volles Angebot lässt sich nicht überbuchen.
+* Anbieter und eingetragene Mitfahrer können ihren jeweiligen Eintrag
+  selbst wieder löschen.
+* Kein neues personenbezogenes Pflichtfeld (Adresse/Telefon) im
+  Datenmodell.
+* Zugriff ausschließlich für Mitglieder des jeweiligen Teams (wie
+  RSVP/Anwesenheit).
+
+Priorität:
+
+P2 – nützliche Ergänzung zum Coach-Workflow rund um Spieltag-
+Organisation, aber kein Kernfeature des Taktikboards.
+
+---
+
 # EPIC 009 – Nach MVP
 
 Priorität:

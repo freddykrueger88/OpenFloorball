@@ -47,12 +47,16 @@ const RESOURCES = [
   {
     label: 'Spiele',
     basePath: '/api/games',
+    table: 'games',
+    dateColumn: 'played_at',
     createTeamShared: (cookie) => request(app).post('/api/games').set('Cookie', cookie).send({ opponent: 'Gegner', teamId }),
     createPersonal: (cookie) => request(app).post('/api/games').set('Cookie', cookie).send({ opponent: 'Solo-Gegner' }),
   },
   {
     label: 'Trainingseinheiten',
     basePath: '/api/trainings',
+    table: 'training_sessions',
+    dateColumn: 'scheduled_date',
     createTeamShared: (cookie) => request(app).post('/api/trainings').set('Cookie', cookie).send({ name: 'Team-Training', teamId }),
     createPersonal: (cookie) => request(app).post('/api/trainings').set('Cookie', cookie).send({ name: 'Solo-Training' }),
   },
@@ -147,6 +151,42 @@ for (const resource of RESOURCES) {
         .set('Cookie', stranger.cookie)
         .send({ status: 'yes' });
       expect(putRes.status).toBe(404);
+    });
+
+    it('lehnt eine Rückmeldung zu einem abgesagten Termin mit 400 ab (Spieler-Dashboard-Ausbau)', async () => {
+      const res = await resource.createTeamShared(owner.cookie);
+      const cancelledId = res.body.data._id;
+      await pool.query(`UPDATE ${resource.table} SET status = 'cancelled' WHERE id = $1`, [cancelledId]);
+
+      const putRes = await request(app)
+        .put(`${resource.basePath}/${cancelledId}/rsvps/me`)
+        .set('Cookie', owner.cookie)
+        .send({ status: 'yes' });
+      expect(putRes.status).toBe(400);
+    });
+
+    it('lehnt eine Rückmeldung zu einem bereits vergangenen Termin mit 400 ab (Spieler-Dashboard-Ausbau)', async () => {
+      const res = await resource.createTeamShared(owner.cookie);
+      const pastId = res.body.data._id;
+      await pool.query(`UPDATE ${resource.table} SET ${resource.dateColumn} = CURRENT_DATE - INTERVAL '7 days' WHERE id = $1`, [pastId]);
+
+      const putRes = await request(app)
+        .put(`${resource.basePath}/${pastId}/rsvps/me`)
+        .set('Cookie', owner.cookie)
+        .send({ status: 'yes' });
+      expect(putRes.status).toBe(400);
+    });
+
+    it('erlaubt eine Rückmeldung weiterhin für einen zukünftigen Termin', async () => {
+      const res = await resource.createTeamShared(owner.cookie);
+      const futureId = res.body.data._id;
+      await pool.query(`UPDATE ${resource.table} SET ${resource.dateColumn} = CURRENT_DATE + INTERVAL '7 days' WHERE id = $1`, [futureId]);
+
+      const putRes = await request(app)
+        .put(`${resource.basePath}/${futureId}/rsvps/me`)
+        .set('Cookie', owner.cookie)
+        .send({ status: 'yes' });
+      expect(putRes.status).toBe(200);
     });
 
     it('löscht RSVPs mit, wenn die Ressource gelöscht wird', async () => {

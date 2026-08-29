@@ -8,7 +8,7 @@ import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
   getRosterPlayers, getRosterPlayer, getRosterStats, getRosterPlayerGameLog, getRosterPlayerTrainingLog,
-  createRosterPlayer, updateRosterPlayer, deleteRosterPlayer,
+  createRosterPlayer, updateRosterPlayer, deleteRosterPlayer, getMyRosterPlayer,
 } from '../controllers/rosterController.js';
 import { getNotes, createNote, updateNote, deleteNote } from '../controllers/playerDevelopmentNotesController.js';
 
@@ -20,12 +20,16 @@ const rosterFields = [
   body('name').optional().trim().notEmpty().withMessage('Name ist erforderlich').isLength({ max: 40 }),
   body('jerseyNumber').optional({ nullable: true }).isInt({ min: 0, max: 99 }).withMessage('Rückennummer muss zwischen 0 und 99 liegen'),
   body('role').optional({ nullable: true }).isIn(['TW', 'V', 'C', 'S']).withMessage('Ungültige Position'),
+  // Spieler-Dashboard-Ausbau: Verknüpfung zu einem Login-Account
+  body('linkedUserId').optional({ nullable: true }).isUUID().withMessage('Ungültige User-ID'),
 ];
 
 router.get   ('/',      getRosterPlayers);
 // Muss VOR /:id stehen, sonst interpretiert param('id').isUUID() den
 // literalen Pfad "stats" als ungültige ID (422 statt der Stats-Route).
 router.get   ('/stats',  getRosterStats);
+// Spieler-Dashboard-Ausbau: aus demselben Grund vor /:id.
+router.get   ('/me',     getMyRosterPlayer);
 router.get   ('/:id',  [param('id').isUUID().withMessage('Ungültige Kader-ID'), validate], getRosterPlayer);
 router.get   ('/:id/game-log', [param('id').isUUID().withMessage('Ungültige Kader-ID'), validate], getRosterPlayerGameLog);
 router.get   ('/:id/training-log', [param('id').isUUID().withMessage('Ungültige Kader-ID'), validate], getRosterPlayerTrainingLog);

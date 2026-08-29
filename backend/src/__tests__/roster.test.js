@@ -224,3 +224,106 @@ describe('PUT/DELETE /api/roster/:id + Ownership', () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe('GET /api/roster/me + linkedUserId (Spieler-Dashboard-Ausbau)', () => {
+  let linkOwner;
+  let player1;
+  let player2;
+  let stranger;
+  let teamId;
+  let teamPlayerId;
+  let personalPlayerId;
+
+  beforeAll(async () => {
+    linkOwner = await registerAndLogin('linkowner');
+    player1 = await registerAndLogin('player1');
+    player2 = await registerAndLogin('player2');
+    stranger = await registerAndLogin('linkstranger');
+
+    const teamResult = await pool.query(
+      'INSERT INTO teams (name, created_by) VALUES ($1, $2) RETURNING id',
+      ['Link-Team', linkOwner.id]
+    );
+    teamId = teamResult.rows[0].id;
+    await pool.query(
+      'INSERT INTO team_members (team_id, user_id, role) VALUES ($1, $2, $3), ($1, $4, $5)',
+      [teamId, linkOwner.id, 'owner', player1.id, 'member']
+    );
+
+    const teamPlayerRes = await request(app)
+      .post('/api/roster').set('Cookie', linkOwner.cookie)
+      .send({ name: 'Verknüpfbarer Spieler', teamId });
+    teamPlayerId = teamPlayerRes.body.data._id;
+
+    const personalRes = await request(app)
+      .post('/api/roster').set('Cookie', linkOwner.cookie)
+      .send({ name: 'Persönlicher Spieler' });
+    personalPlayerId = personalRes.body.data._id;
+  });
+
+  it('liefert null, solange kein Kader-Eintrag verknüpft ist', async () => {
+    const res = await request(app).get('/api/roster/me').set('Cookie', player1.cookie);
+    expect(res.status).toBe(200);
+    expect(res.body.data).toBeNull();
+  });
+
+  it('lehnt Verknüpfung mit einem Nicht-Team-Mitglied mit 400 ab', async () => {
+    const res = await request(app)
+      .put(`/api/roster/${teamPlayerId}`)
+      .set('Cookie', linkOwner.cookie)
+      .send({ linkedUserId: stranger.id });
+    expect(res.status).toBe(400);
+  });
+
+  it('lehnt Verknüpfung eines rein persönlichen (team-losen) Eintrags mit 400 ab', async () => {
+    const res = await request(app)
+      .put(`/api/roster/${personalPlayerId}`)
+      .set('Cookie', linkOwner.cookie)
+      .send({ linkedUserId: player1.id });
+    expect(res.status).toBe(400);
+  });
+
+  it('Owner verknüpft ein Team-Mitglied mit dem Kader-Eintrag', async () => {
+    const res = await request(app)
+      .put(`/api/roster/${teamPlayerId}`)
+      .set('Cookie', linkOwner.cookie)
+      .send({ linkedUserId: player1.id });
+    expect(res.status).toBe(200);
+    expect(res.body.data.linkedUserId).toBe(player1.id);
+
+    const meRes = await request(app).get('/api/roster/me').set('Cookie', player1.cookie);
+    expect(meRes.status).toBe(200);
+    expect(meRes.body.data._id).toBe(teamPlayerId);
+  });
+
+  it('lehnt Verknüpfung desselben Users mit einem zweiten Kader-Eintrag mit 400 ab', async () => {
+    const secondPlayerRes = await request(app)
+      .post('/api/roster').set('Cookie', linkOwner.cookie)
+      .send({ name: 'Zweiter Team-Spieler', teamId });
+    const res = await request(app)
+      .put(`/api/roster/${secondPlayerRes.body.data._id}`)
+      .set('Cookie', linkOwner.cookie)
+      .send({ linkedUserId: player1.id });
+    expect(res.status).toBe(400);
+  });
+
+  it('löst die Verknüpfung mit linkedUserId: null wieder', async () => {
+    const res = await request(app)
+      .put(`/api/roster/${teamPlayerId}`)
+      .set('Cookie', linkOwner.cookie)
+      .send({ linkedUserId: null });
+    expect(res.status).toBe(200);
+    expect(res.body.data.linkedUserId).toBeNull();
+
+    const meRes = await request(app).get('/api/roster/me').set('Cookie', player1.cookie);
+    expect(meRes.body.data).toBeNull();
+  });
+
+  it('verweigert einem einfachen Team-Mitglied das Setzen der Verknüpfung (404, keine Coach/Owner-Rechte)', async () => {
+    const res = await request(app)
+      .put(`/api/roster/${teamPlayerId}`)
+      .set('Cookie', player1.cookie)
+      .send({ linkedUserId: player2.id });
+    expect(res.status).toBe(404);
+  });
+});

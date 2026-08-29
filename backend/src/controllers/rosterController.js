@@ -36,6 +36,8 @@ function toApiRosterPlayer(row) {
     jerseyNumber:  row.jersey_number,
     role:          row.role,
     teamId:        row.team_id,
+    // Spieler-Dashboard-Ausbau: Verknüpfung zu einem Login-Account
+    linkedUserId:  row.linked_user_id,
     createdAt:     row.created_at,
     updatedAt:     row.updated_at,
   };
@@ -207,6 +209,21 @@ export async function getRosterStats(req, res) {
     res.json(success(await fetchRosterStats(req.user.id, teamIds)));
   } catch (err) {
     logger.error('[getRosterStats]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// GET /api/roster/me – Spieler-Dashboard-Ausbau: liefert den mit dem
+// eigenen Account verknüpften Kader-Eintrag, falls vorhanden. Muss in
+// routes/roster.js VOR "/:id" registriert sein, sonst würde "me" als
+// UUID-Parameter interpretiert. "Nicht verknüpft" ist ein normaler
+// Zustand (Standardfall für die meisten Accounts heute), kein 404.
+export async function getMyRosterPlayer(req, res) {
+  try {
+    const result = await pool.query('SELECT * FROM roster_players WHERE linked_user_id = $1', [req.user.id]);
+    res.json(success(result.rows[0] ? toApiRosterPlayer(result.rows[0]) : null));
+  } catch (err) {
+    logger.error('[getMyRosterPlayer]', err);
     res.status(500).json(error('Interner Serverfehler'));
   }
 }
@@ -391,6 +408,32 @@ export async function updateRosterPlayer(req, res) {
     if (req.body.name !== undefined)         { sets.push(`name = $${i}`); values.push(req.body.name); i += 1; }
     if (req.body.jerseyNumber !== undefined)  { sets.push(`jersey_number = $${i}`); values.push(req.body.jerseyNumber); i += 1; }
     if (req.body.role !== undefined)          { sets.push(`role = $${i}`); values.push(req.body.role); i += 1; }
+
+    // Spieler-Dashboard-Ausbau: Verknüpfung zu einem Login-Account. `null`
+    // löst die Verknüpfung. Nur möglich für team-geteilte Einträge (ein rein
+    // persönlicher Kader-Eintrag ohne team_id hat keine Mitgliederliste, aus
+    // der man "den richtigen" Account auswählen könnte) und nur, wenn die
+    // Ziel-User-ID tatsächlich Mitglied dieses Teams ist – verhindert, dass
+    // beliebige fremde Accounts verknüpft werden.
+    if (req.body.linkedUserId !== undefined) {
+      const linkedUserId = req.body.linkedUserId;
+      if (linkedUserId !== null) {
+        if (!existing.rows[0].team_id) {
+          return res.status(400).json(error('Verknüpfung nur für team-geteilte Kader-Einträge möglich'));
+        }
+        if (!(await assertTeamAccess(existing.rows[0].team_id, linkedUserId, 'member'))) {
+          return res.status(400).json(error('Der ausgewählte Account ist kein Mitglied dieses Teams'));
+        }
+        const alreadyLinked = await pool.query(
+          'SELECT id FROM roster_players WHERE linked_user_id = $1 AND id != $2',
+          [linkedUserId, req.params.id]
+        );
+        if (alreadyLinked.rows.length > 0) {
+          return res.status(400).json(error('Dieser Account ist bereits mit einem anderen Kader-Eintrag verknüpft'));
+        }
+      }
+      sets.push(`linked_user_id = $${i}`); values.push(linkedUserId); i += 1;
+    }
 
     if (sets.length === 0) {
       return res.status(400).json(error('Keine gültigen Felder zum Aktualisieren'));

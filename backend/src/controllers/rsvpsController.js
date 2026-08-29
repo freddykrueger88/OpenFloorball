@@ -19,6 +19,14 @@ const RESOURCE_TABLE = {
   training_session: 'training_sessions',
 };
 
+// Spieler-Dashboard-Ausbau: Datums-/Uhrzeit-Spalten unterscheiden sich
+// zwischen games (kickoff_time/played_at) und training_sessions
+// (start_time/scheduled_date) – siehe migrate.js.
+const RESOURCE_DATE_COLUMNS = {
+  game: { date: 'played_at', time: 'kickoff_time' },
+  training_session: { date: 'scheduled_date', time: 'start_time' },
+};
+
 function toApiRsvpEntry(row) {
   return {
     userId:      row.user_id,
@@ -32,6 +40,28 @@ function toApiRsvpEntry(row) {
 
 export function makeRsvpHandlers(resourceType, { assertRead }) {
   const table = RESOURCE_TABLE[resourceType];
+  const { date: dateCol, time: timeCol } = RESOURCE_DATE_COLUMNS[resourceType];
+
+  // Spieler-Dashboard-Ausbau ("Fristen und Sonderfälle"): serverseitiger
+  // Schutz, der bisher nur clientseitig (Dashboard-Buttons deaktiviert)
+  // bestand. Ohne Uhrzeit gilt der Termin erst nach Ende des Kalendertags
+  // als vorbei (COALESCE auf 23:59:59), damit ein Termin ohne erfasste
+  // Uhrzeit nicht schon tagsüber fälschlich gesperrt wird. Gibt bei
+  // Verstoß einen Fehlertext zurück, sonst null.
+  async function guardEditable(resourceId) {
+    const result = await pool.query(
+      `SELECT status,
+              (${dateCol} IS NOT NULL
+               AND (${dateCol} + COALESCE(${timeCol}, TIME '23:59:59'))::timestamptz < NOW()) AS is_past
+       FROM ${table} WHERE id = $1`,
+      [resourceId]
+    );
+    const row = result.rows[0];
+    if (!row) return null; // Ressource existiert nicht – assertRead hat das bereits geprüft/abgelehnt
+    if (row.status === 'cancelled') return 'Dieser Termin wurde abgesagt – eine Rückmeldung ist nicht mehr möglich.';
+    if (row.is_past) return 'Für vergangene Termine ist keine Rückmeldung mehr möglich.';
+    return null;
+  }
 
   // GET /api/games/:id/rsvps bzw. /api/trainings/:id/rsvps – liefert
   // IMMER die volle Team-Roster-Liste (LEFT JOIN), auch für Mitglieder
@@ -76,6 +106,11 @@ export function makeRsvpHandlers(resourceType, { assertRead }) {
       const resourceId = req.params.id;
       if (!(await assertRead(resourceId, req.user.id))) {
         return res.status(404).json(error('Nicht gefunden'));
+      }
+
+      const guardMessage = await guardEditable(resourceId);
+      if (guardMessage) {
+        return res.status(400).json(error(guardMessage));
       }
 
       const { status, reason = '' } = req.body;

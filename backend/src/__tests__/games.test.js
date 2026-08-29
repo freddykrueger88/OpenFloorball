@@ -179,3 +179,78 @@ describe('Live-Notizen (comments mit resource_type=game)', () => {
     expect(remaining.rows[0].count).toBe(0);
   });
 });
+
+describe('Spiel-Logistik + ownGoals/opponentGoals/result (Spieler-Dashboard-Ausbau)', () => {
+  let logisticsUser;
+  let gameId;
+
+  beforeAll(async () => {
+    logisticsUser = await registerAndLogin('logistics');
+  });
+
+  it('legt ein Spiel mit Anstoßzeit/Halle/Koordinaten/Heim-Kennzeichnung an', async () => {
+    const res = await request(app)
+      .post('/api/games')
+      .set('Cookie', logisticsUser.cookie)
+      .send({
+        opponent: 'Floorball Lions', playedAt: '2026-09-20',
+        kickoffTime: '18:30', venueName: 'Sporthalle Nord',
+        venueAddress: 'Musterstraße 1, 12345 Musterstadt',
+        venueLat: 52.52, venueLng: 13.405, isHome: true,
+      });
+    expect(res.status).toBe(201);
+    expect(res.body.data.kickoffTime).toBe('18:30');
+    expect(res.body.data.venueName).toBe('Sporthalle Nord');
+    expect(res.body.data.venueLat).toBe(52.52);
+    expect(res.body.data.isHome).toBe(true);
+    expect(res.body.data.status).toBe('scheduled');
+    expect(res.body.data.ownGoals).toBe(0);
+    expect(res.body.data.opponentGoals).toBe(0);
+    expect(res.body.data.result).toBeNull();
+    gameId = res.body.data._id;
+  });
+
+  it('lehnt eine ungültige Uhrzeit mit 422 ab', async () => {
+    const res = await request(app)
+      .post('/api/games')
+      .set('Cookie', logisticsUser.cookie)
+      .send({ opponent: 'X', kickoffTime: '18:30:00' });
+    expect(res.status).toBe(422);
+  });
+
+  it('setzt den Status auf "postponed"', async () => {
+    const res = await request(app)
+      .put(`/api/games/${gameId}`)
+      .set('Cookie', logisticsUser.cookie)
+      .send({ status: 'postponed' });
+    expect(res.status).toBe(200);
+    expect(res.body.data.status).toBe('postponed');
+  });
+
+  it('lehnt einen ungültigen Status mit 422 ab', async () => {
+    const res = await request(app)
+      .put(`/api/games/${gameId}`)
+      .set('Cookie', logisticsUser.cookie)
+      .send({ status: 'finished' });
+    expect(res.status).toBe(422);
+  });
+
+  it('berechnet ownGoals/opponentGoals/result korrekt aus game_events', async () => {
+    await request(app).post(`/api/games/${gameId}/events`).set('Cookie', logisticsUser.cookie)
+      .send({ eventType: 'goal', isOpponent: false });
+    await request(app).post(`/api/games/${gameId}/events`).set('Cookie', logisticsUser.cookie)
+      .send({ eventType: 'goal', isOpponent: false });
+    await request(app).post(`/api/games/${gameId}/events`).set('Cookie', logisticsUser.cookie)
+      .send({ eventType: 'goal', isOpponent: true });
+
+    const listRes = await request(app).get('/api/games').set('Cookie', logisticsUser.cookie);
+    const game = listRes.body.data.find((g) => g._id === gameId);
+    expect(game.ownGoals).toBe(2);
+    expect(game.opponentGoals).toBe(1);
+    expect(game.result).toBe('win');
+
+    const singleRes = await request(app).get(`/api/games/${gameId}`).set('Cookie', logisticsUser.cookie);
+    expect(singleRes.body.data.ownGoals).toBe(2);
+    expect(singleRes.body.data.result).toBe('win');
+  });
+});

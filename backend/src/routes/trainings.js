@@ -18,6 +18,17 @@ router.use(authenticate);
 const idParam     = param('id').isUUID().withMessage('Ungültige Trainingseinheit-ID');
 const itemIdParam = param('itemId').isUUID().withMessage('Ungültige Übungs-ID');
 
+// Spieler-Dashboard-Ausbau: Trainings-Logistik, gemeinsam für POST/PUT
+const sessionLogisticsFields = [
+  body('startTime').optional({ nullable: true }).matches(/^\d{2}:\d{2}$/).withMessage('Ungültige Uhrzeit (HH:MM)'),
+  body('durationMinutes').optional({ nullable: true }).isInt({ min: 1, max: 480 }).withMessage('Dauer muss zwischen 1 und 480 Minuten liegen'),
+  body('venueName').optional({ nullable: true }).trim().isLength({ max: 150 }).withMessage('Hallenname max. 150 Zeichen'),
+  body('venueAddress').optional({ nullable: true }).trim().isLength({ max: 300 }).withMessage('Adresse max. 300 Zeichen'),
+  body('venueLat').optional({ nullable: true }).isFloat({ min: -90, max: 90 }).withMessage('Ungültige Breitengrad-Koordinate'),
+  body('venueLng').optional({ nullable: true }).isFloat({ min: -180, max: 180 }).withMessage('Ungültige Längengrad-Koordinate'),
+  body('status').optional().isIn(['scheduled', 'postponed', 'cancelled']).withMessage('Ungültiger Status'),
+];
+
 router.get   ('/',     getSessions);
 router.post  ('/',     [
   body('name').trim().notEmpty().withMessage('Name ist erforderlich').isLength({ max: 80 }),
@@ -27,6 +38,7 @@ router.post  ('/',     [
   // EPIC 010 – KI-Trainingsassistent: erlaubt, den generierten Plantext
   // direkt beim Anlegen zu setzen, statt Create+Update nacheinander.
   body('notes').optional().isLength({ max: 4000 }).withMessage('Notizen max. 4000 Zeichen'),
+  ...sessionLogisticsFields,
   validate,
 ], createSession);
 router.get   ('/:id',  [idParam, validate], getSession);
@@ -39,6 +51,7 @@ router.put   ('/:id',  [
   body('notes').optional().isLength({ max: 4000 }).withMessage('Notizen max. 4000 Zeichen'),
   body('scheduledDate').optional({ nullable: true }).isISO8601().withMessage('Ungültiges Datum').bail().isLength({ max: 10 }),
   body('goal').optional().isLength({ max: 200 }).withMessage('Ziel max. 200 Zeichen'),
+  ...sessionLogisticsFields,
   validate,
 ], updateSession);
 router.delete('/:id',  [idParam, validate], deleteSession);

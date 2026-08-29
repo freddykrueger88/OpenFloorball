@@ -46,6 +46,12 @@ function toDateString(date) {
   return `${y}-${m}-${d}`;
 }
 
+// TIME-Spalten liefert node-postgres als String "HH:MM:SS" – Sekunden für
+// die API abschneiden (Spieler-Dashboard-Ausbau, analog gamesController.js).
+function toTimeString(time) {
+  return time ? time.slice(0, 5) : null;
+}
+
 function toApiSession(row) {
   return {
     _id:           row.id,
@@ -56,6 +62,14 @@ function toApiSession(row) {
     goal:          row.goal,
     itemCount:     Number(row.item_count ?? 0),
     totalMinutes:  Number(row.total_minutes ?? 0),
+    // Spieler-Dashboard-Ausbau: Trainings-Logistik (alle nullable/additiv)
+    startTime:        toTimeString(row.start_time),
+    durationMinutes:  row.duration_minutes,
+    venueName:        row.venue_name,
+    venueAddress:     row.venue_address,
+    venueLat:         row.venue_lat,
+    venueLng:         row.venue_lng,
+    status:           row.status,
     createdAt:     row.created_at,
     updatedAt:     row.updated_at,
   };
@@ -139,7 +153,11 @@ export async function getSessions(req, res) {
 // POST /api/trainings
 export async function createSession(req, res) {
   try {
-    const { name, teamId = null, scheduledDate = null, goal = '', notes = '' } = req.body;
+    const {
+      name, teamId = null, scheduledDate = null, goal = '', notes = '',
+      startTime = null, durationMinutes = null, venueName = null,
+      venueAddress = null, venueLat = null, venueLng = null,
+    } = req.body;
 
     if (teamId && !(await assertTeamAccess(teamId, req.user.id, 'coach'))) {
       return res.status(404).json(error('Team nicht gefunden'));
@@ -157,9 +175,11 @@ export async function createSession(req, res) {
     // setzbar, damit "Als Trainingseinheit übernehmen" ein einzelner
     // Request ist statt Create+Update.
     const result = await pool.query(
-      `INSERT INTO training_sessions (user_id, name, team_id, scheduled_date, goal, notes)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [req.user.id, name, teamId, scheduledDate, goal, notes]
+      `INSERT INTO training_sessions (user_id, name, team_id, scheduled_date, goal, notes,
+                                       start_time, duration_minutes, venue_name, venue_address, venue_lat, venue_lng)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+      [req.user.id, name, teamId, scheduledDate, goal, notes,
+        startTime, durationMinutes, venueName, venueAddress, venueLat, venueLng]
     );
     res.status(201).json(created(toApiSession({ ...result.rows[0], item_count: 0, total_minutes: 0 })));
   } catch (err) {
@@ -204,6 +224,14 @@ export async function updateSession(req, res) {
     if (req.body.notes !== undefined) { sets.push(`notes = $${i}`); values.push(req.body.notes); i += 1; }
     if (req.body.scheduledDate !== undefined) { sets.push(`scheduled_date = $${i}`); values.push(req.body.scheduledDate); i += 1; }
     if (req.body.goal !== undefined) { sets.push(`goal = $${i}`); values.push(req.body.goal); i += 1; }
+    // Spieler-Dashboard-Ausbau: Trainings-Logistik
+    if (req.body.startTime !== undefined)       { sets.push(`start_time = $${i}`);       values.push(req.body.startTime);       i += 1; }
+    if (req.body.durationMinutes !== undefined) { sets.push(`duration_minutes = $${i}`); values.push(req.body.durationMinutes); i += 1; }
+    if (req.body.venueName !== undefined)       { sets.push(`venue_name = $${i}`);       values.push(req.body.venueName);       i += 1; }
+    if (req.body.venueAddress !== undefined)    { sets.push(`venue_address = $${i}`);    values.push(req.body.venueAddress);    i += 1; }
+    if (req.body.venueLat !== undefined)        { sets.push(`venue_lat = $${i}`);        values.push(req.body.venueLat);        i += 1; }
+    if (req.body.venueLng !== undefined)        { sets.push(`venue_lng = $${i}`);        values.push(req.body.venueLng);        i += 1; }
+    if (req.body.status !== undefined)          { sets.push(`status = $${i}`);           values.push(req.body.status);          i += 1; }
 
     if (sets.length === 0) {
       return res.status(400).json(error('Keine gültigen Felder zum Aktualisieren'));

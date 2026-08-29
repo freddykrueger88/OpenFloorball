@@ -36,7 +36,25 @@ function toDateString(date) {
   return `${y}-${m}-${d}`;
 }
 
+// TIME-Spalten liefert node-postgres als String "HH:MM:SS" – Sekunden für
+// die API abschneiden, das Frontend braucht nur "HH:MM".
+function toTimeString(time) {
+  return time ? time.slice(0, 5) : null;
+}
+
+// Ergebnis nur ableitbar, sobald mindestens ein Tor erfasst ist (Spieler-
+// Dashboard-Ausbau) – kein "0:0 unentschieden" für ein noch nicht
+// begonnenes Spiel ohne jedes Ereignis.
+function computeResult(ownGoals, opponentGoals) {
+  if (ownGoals === 0 && opponentGoals === 0) return null;
+  if (ownGoals > opponentGoals) return 'win';
+  if (ownGoals < opponentGoals) return 'loss';
+  return 'draw';
+}
+
 function toApiGame(row) {
+  const ownGoals = Number(row.own_goals ?? 0);
+  const opponentGoals = Number(row.opponent_goals ?? 0);
   return {
     _id:       row.id,
     opponent:  row.opponent,
@@ -49,10 +67,34 @@ function toApiGame(row) {
     clockElapsedSeconds:  row.clock_elapsed_seconds,
     clockStartedAt:       row.clock_started_at,
     clockPeriodMinutes:   row.clock_period_minutes,
+    // Spieler-Dashboard-Ausbau: Spiel-Logistik (alle nullable/additiv)
+    kickoffTime:  toTimeString(row.kickoff_time),
+    venueName:    row.venue_name,
+    venueAddress: row.venue_address,
+    venueLat:     row.venue_lat,
+    venueLng:     row.venue_lng,
+    isHome:       row.is_home,
+    status:       row.status,
+    ownGoals,
+    opponentGoals,
+    result: computeResult(ownGoals, opponentGoals),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
 }
+
+// Serverseitig berechnetes Endergebnis aus game_events (Spieler-Dashboard-
+// Ausbau) – vermeidet N+1-Requests für Saisonüberblick/letztes Spiel, exakt
+// dasselbe Aggregations-Muster wie rosterController.js::fetchRosterStats.
+const GAME_GOALS_JOIN = `
+  LEFT JOIN (
+    SELECT game_id,
+           SUM(CASE WHEN event_type = 'goal' AND NOT is_opponent THEN 1 ELSE 0 END) AS own_goals,
+           SUM(CASE WHEN event_type = 'goal' AND is_opponent THEN 1 ELSE 0 END) AS opponent_goals
+    FROM game_events
+    GROUP BY game_id
+  ) ge ON ge.game_id = g.id
+`;
 
 async function getGameRow(gameId) {
   const result = await pool.query('SELECT user_id, team_id FROM games WHERE id = $1', [gameId]);
@@ -81,8 +123,11 @@ export async function getGames(req, res) {
   try {
     const teamIds = await getUserTeamIds(req.user.id);
     const result = await pool.query(
-      `SELECT * FROM games WHERE user_id = $1 OR team_id = ANY($2::uuid[])
-       ORDER BY played_at DESC NULLS FIRST, updated_at DESC`,
+      `SELECT g.*, COALESCE(ge.own_goals, 0)::int AS own_goals, COALESCE(ge.opponent_goals, 0)::int AS opponent_goals
+       FROM games g
+       ${GAME_GOALS_JOIN}
+       WHERE g.user_id = $1 OR g.team_id = ANY($2::uuid[])
+       ORDER BY g.played_at DESC NULLS FIRST, g.updated_at DESC`,
       [req.user.id, teamIds]
     );
     res.json(success(result.rows.map(toApiGame)));
@@ -95,7 +140,11 @@ export async function getGames(req, res) {
 // POST /api/games
 export async function createGame(req, res) {
   try {
-    const { opponent = '', playedAt = null, teamId = null } = req.body;
+    const {
+      opponent = '', playedAt = null, teamId = null,
+      kickoffTime = null, venueName = null, venueAddress = null,
+      venueLat = null, venueLng = null, isHome = null,
+    } = req.body;
 
     if (teamId && !(await assertTeamAccess(teamId, req.user.id, 'coach'))) {
       return res.status(404).json(error('Team nicht gefunden'));
@@ -112,9 +161,11 @@ export async function createGame(req, res) {
     const opponentId = await resolveOpponentId(opponent, req.user.id, teamId);
 
     const result = await pool.query(
-      `INSERT INTO games (user_id, opponent, opponent_id, played_at, team_id)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [req.user.id, opponent, opponentId, playedAt, teamId]
+      `INSERT INTO games (user_id, opponent, opponent_id, played_at, team_id,
+                           kickoff_time, venue_name, venue_address, venue_lat, venue_lng, is_home)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
+      [req.user.id, opponent, opponentId, playedAt, teamId,
+        kickoffTime, venueName, venueAddress, venueLat, venueLng, isHome]
     );
     res.status(201).json(created(toApiGame(result.rows[0])));
   } catch (err) {
@@ -129,7 +180,13 @@ export async function getGame(req, res) {
     if (!(await assertGameRead(req.params.id, req.user.id))) {
       return res.status(404).json(error('Spiel nicht gefunden'));
     }
-    const result = await pool.query('SELECT * FROM games WHERE id = $1', [req.params.id]);
+    const result = await pool.query(
+      `SELECT g.*, COALESCE(ge.own_goals, 0)::int AS own_goals, COALESCE(ge.opponent_goals, 0)::int AS opponent_goals
+       FROM games g
+       ${GAME_GOALS_JOIN}
+       WHERE g.id = $1`,
+      [req.params.id]
+    );
     res.json(success(toApiGame(result.rows[0])));
   } catch (err) {
     logger.error('[getGame]', err);
@@ -157,6 +214,14 @@ export async function updateGame(req, res) {
     if (req.body.playedAt !== undefined) { sets.push(`played_at = $${i}`); values.push(req.body.playedAt); i += 1; }
     if (req.body.notes !== undefined)    { sets.push(`notes = $${i}`);     values.push(req.body.notes);    i += 1; }
     if (req.body.periodMinutes !== undefined) { sets.push(`clock_period_minutes = $${i}`); values.push(req.body.periodMinutes); i += 1; }
+    // Spieler-Dashboard-Ausbau: Spiel-Logistik
+    if (req.body.kickoffTime !== undefined)  { sets.push(`kickoff_time = $${i}`);  values.push(req.body.kickoffTime);  i += 1; }
+    if (req.body.venueName !== undefined)    { sets.push(`venue_name = $${i}`);    values.push(req.body.venueName);    i += 1; }
+    if (req.body.venueAddress !== undefined) { sets.push(`venue_address = $${i}`); values.push(req.body.venueAddress); i += 1; }
+    if (req.body.venueLat !== undefined)     { sets.push(`venue_lat = $${i}`);     values.push(req.body.venueLat);     i += 1; }
+    if (req.body.venueLng !== undefined)     { sets.push(`venue_lng = $${i}`);     values.push(req.body.venueLng);     i += 1; }
+    if (req.body.isHome !== undefined)       { sets.push(`is_home = $${i}`);       values.push(req.body.isHome);       i += 1; }
+    if (req.body.status !== undefined)       { sets.push(`status = $${i}`);        values.push(req.body.status);       i += 1; }
 
     if (sets.length === 0) {
       return res.status(400).json(error('Keine gültigen Felder zum Aktualisieren'));

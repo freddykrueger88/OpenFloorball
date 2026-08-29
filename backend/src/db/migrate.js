@@ -1242,6 +1242,86 @@ export async function runMigrations() {
     await client.query(`ALTER TABLE comments ADD COLUMN IF NOT EXISTS x REAL;`);
     await client.query(`ALTER TABLE comments ADD COLUMN IF NOT EXISTS y REAL;`);
 
+    // ── Demo-Daten (Onboarding-Ausbau): Markierung + Idempotenz-Flag ────────
+    // is_demo ist additiv auf den fünf Tabellen, die pro Account eine
+    // eigenständige Demo-Testumgebung tragen (Team, Kader, Spiele,
+    // Trainings, Gegner) – game_squad/game_events/training_attendance/
+    // team_members brauchen KEIN eigenes Flag, sie hängen bereits per
+    // ON DELETE CASCADE an genau diesen Tabellen und werden beim Löschen
+    // automatisch mit entfernt (siehe demoData.js). users.demo_seeded_at
+    // ist der einzige Ort, der "wurde für diesen Account schon einmal
+    // erzeugt" festhält – NULL nach Löschung erlaubt erneutes Anlegen.
+    await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS demo_seeded_at TIMESTAMPTZ;`);
+    await client.query(`ALTER TABLE teams ADD COLUMN IF NOT EXISTS is_demo BOOLEAN NOT NULL DEFAULT false;`);
+    await client.query(`ALTER TABLE roster_players ADD COLUMN IF NOT EXISTS is_demo BOOLEAN NOT NULL DEFAULT false;`);
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS is_demo BOOLEAN NOT NULL DEFAULT false;`);
+    await client.query(`ALTER TABLE training_sessions ADD COLUMN IF NOT EXISTS is_demo BOOLEAN NOT NULL DEFAULT false;`);
+    await client.query(`ALTER TABLE opponents ADD COLUMN IF NOT EXISTS is_demo BOOLEAN NOT NULL DEFAULT false;`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_teams_is_demo ON teams(is_demo) WHERE is_demo = true;`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_roster_players_is_demo ON roster_players(is_demo) WHERE is_demo = true;`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_games_is_demo ON games(is_demo) WHERE is_demo = true;`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_training_sessions_is_demo ON training_sessions(is_demo) WHERE is_demo = true;`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_opponents_is_demo ON opponents(is_demo) WHERE is_demo = true;`);
+
+    // ── Spieler-Dashboard: Verknüpfung Login-Account ↔ Kader-Eintrag ────────
+    // roster_players.user_id ist der Ersteller/Coach, nicht zwangsläufig der
+    // Spieler selbst – ohne diese zusätzliche, optionale Spalte kann ein
+    // eingeloggter Account nie ermitteln, welcher Kader-Eintrag "er selbst"
+    // ist, und damit auch nie eigene Tore/Assists sehen. Nullable, vom
+    // Team-Owner/-Coach gesetzt (siehe rosterController.js::updateRosterPlayer).
+    // Partieller Unique-Index statt normalem UNIQUE, weil NULL in Postgres
+    // sonst nicht mehrfach vorkommen dürfte (Standardfall: nicht verknüpft).
+    await client.query(`ALTER TABLE roster_players ADD COLUMN IF NOT EXISTS linked_user_id UUID REFERENCES users(id) ON DELETE SET NULL;`);
+    await client.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_roster_players_linked_user_id ON roster_players(linked_user_id) WHERE linked_user_id IS NOT NULL;`);
+
+    // ── Spieler-Dashboard: Spiel-/Trainings-Logistik ────────────────────────
+    // Bisher trugen games/training_sessions nur ein Datum (DATE, keine
+    // Uhrzeit) und keinerlei Ort-/Status-Information – für einen Countdown
+    // und eine Orts-Karte auf dem neuen Dashboard reicht das nicht. Alle
+    // Felder nullable/additiv, bestehende Einträge zeigen dafür einen
+    // sauberen Fallback statt erfundener Werte. "Abgeschlossen" wird bewusst
+    // NICHT gespeichert, sondern aus Datum+status='scheduled' abgeleitet.
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS kickoff_time TIME;`);
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS venue_name TEXT;`);
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS venue_address TEXT;`);
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS venue_lat REAL;`);
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS venue_lng REAL;`);
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS is_home BOOLEAN;`);
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'postponed', 'cancelled'));`);
+
+    await client.query(`ALTER TABLE training_sessions ADD COLUMN IF NOT EXISTS start_time TIME;`);
+    await client.query(`ALTER TABLE training_sessions ADD COLUMN IF NOT EXISTS duration_minutes INTEGER;`);
+    await client.query(`ALTER TABLE training_sessions ADD COLUMN IF NOT EXISTS venue_name TEXT;`);
+    await client.query(`ALTER TABLE training_sessions ADD COLUMN IF NOT EXISTS venue_address TEXT;`);
+    await client.query(`ALTER TABLE training_sessions ADD COLUMN IF NOT EXISTS venue_lat REAL;`);
+    await client.query(`ALTER TABLE training_sessions ADD COLUMN IF NOT EXISTS venue_lng REAL;`);
+    await client.query(`ALTER TABLE training_sessions ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'postponed', 'cancelled'));`);
+
+    // ── Spieler-Dashboard: optionale Saisonmanager-Anbindung pro Team ───────
+    // Rein optional (Local-/Self-Hosting-First, CLAUDE.md §5.5/§5.7) – ein
+    // Team OHNE Eintrag hier nutzt weiterhin ausschließlich die eigenen
+    // games/training_sessions. api_key ist serverseitig-only: wird nie in
+    // einer API-Response zurückgegeben (siehe teamSaisonmanagerController.js),
+    // exakt wie settings.ai_provider_api_key nie ans Frontend geht.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS team_saisonmanager_links (
+        id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        team_id    UUID NOT NULL UNIQUE REFERENCES teams(id) ON DELETE CASCADE,
+        api_key    TEXT NOT NULL,
+        league_id  INTEGER NOT NULL,
+        sm_team_id INTEGER NOT NULL,
+        created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_team_saisonmanager_links_updated_at ON team_saisonmanager_links;
+      CREATE TRIGGER trg_team_saisonmanager_links_updated_at
+        BEFORE UPDATE ON team_saisonmanager_links
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

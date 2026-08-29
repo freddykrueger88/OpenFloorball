@@ -12,6 +12,7 @@ import { usePlaybooks } from '../hooks/usePlaybooks.js';
 import { useTeams } from '../hooks/useTeams.js';
 import { useOrganizations } from '../hooks/useOrganizations.js';
 import { useAiApi } from '../hooks/useAiApi.js';
+import { useDemoData } from '../hooks/useDemoData.js';
 import BoardCard from '../components/boards/BoardCard.jsx';
 import BoardPostcard from '../components/boards/BoardPostcard.jsx';
 import NewBoardModal from '../components/boards/NewBoardModal.jsx';
@@ -44,6 +45,11 @@ export default function BoardsPage() {
   // diese Instanz überhaupt einen KI-Anbieter konfiguriert hat.
   const { fetchStatus: fetchAiStatus } = useAiApi();
   const [aiStatus, setAiStatus] = useState(null);
+  // Onboarding-Ausbau: Empty-State-Hinweis für Bestandsnutzer ohne Demo-Daten
+  // (neue Accounts bekommen sie bereits direkt nach der Registrierung, siehe
+  // RegisterPage.jsx – hier greift nur der manuelle Fallback).
+  const { status: demoStatus, createDemoData } = useDemoData();
+  const [creatingDemo, setCreatingDemo] = useState(false);
   const [showTacticModal,  setShowTacticModal ] = useState(false);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
 
@@ -126,6 +132,16 @@ export default function BoardsPage() {
       setShowAnalysisModal(false);
       navigate(`/board/${board._id}`);
     } catch { /* error via hook */ }
+  };
+
+  const handleCreateDemoData = async () => {
+    setCreatingDemo(true);
+    try {
+      await createDemoData();
+      fetchTeams().catch(() => {});
+    } catch { /* error via hook */ } finally {
+      setCreatingDemo(false);
+    }
   };
 
   const handleRename = async (id, name) => {
@@ -275,6 +291,14 @@ export default function BoardsPage() {
           >
             {t('boardsPage.createFirstBoard')}
           </Button>
+          {demoStatus && !demoStatus.hasDemoData && (
+            <>
+              <p className={styles.emptyStateDemoHint}>{t('boardsPage.demoDataHint')}</p>
+              <Button variant="secondary" size="md" onClick={handleCreateDemoData} disabled={creatingDemo}>
+                <Sparkles size={16} aria-hidden="true" /> {creatingDemo ? t('boardsPage.demoDataCreating') : t('boardsPage.demoDataCreateBtn')}
+              </Button>
+            </>
+          )}
         </div>
       ) : filteredBoards.length === 0 ? (
         <div className={styles.emptyState} role="status">

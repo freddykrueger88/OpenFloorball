@@ -28,7 +28,9 @@
       "games": "Spielbetrieb",
       "team": "Team",
       "knowledge": "Wissen"
-    }
+    },
+    "glossary": "Floorball-Lexikon",
+    "dashboard": "Dashboard"
   },
   "field": {
     "large": "Großfeld (40×20m)",
@@ -102,7 +104,8 @@
       "organizations": "Vereine",
       "data": "Daten",
       "admin": "Admin",
-      "libraryModeration": "Bibliotheks-Meldungen"
+      "libraryModeration": "Bibliotheks-Meldungen",
+      "demoData": "Demo-Daten"
     },
     "languageDe": "Deutsch",
     "languageEn": "Englisch",
@@ -211,7 +214,9 @@
         "org_admin": "Vereinsadmin"
       },
       "organizationAriaLabel": "Verein zuordnen",
-      "noOrganization": "Kein Verein"
+      "noOrganization": "Kein Verein",
+      "foundOrganizationTitle": "Verein gründen",
+      "foundOrganizationHint": "Trainierst du mehrere Teams unter einem gemeinsamen Verein (z. B. 1. Herren und U15)? Fasse sie in einem Verein zusammen, um vereinsweite Termine und Playbooks zu nutzen. Für ein einzelnes Team brauchst du das nicht – dein Team ist dann schon \"der Verein\"."
     },
     "organizations": {
       "intro": "Ein Verein bündelt mehrere Teams rein organisatorisch – er teilt selbst keine Kader, Playbooks oder Trainingspläne.",
@@ -231,6 +236,28 @@
         "admin": "Admin",
         "member": "Mitglied"
       }
+    },
+    "demoData": {
+      "activeHint": "Eine Demo-Testumgebung mit Team, Kader, Trainings und Spielen ist für diesen Account aktiv.",
+      "seededAt": "Erstellt am {{date}}",
+      "deleteTitle": "Demo-Daten löschen",
+      "deleteHint": "Entfernt ausschließlich das Demo-Team „Floorball Tigers“ mit allen zugehörigen Demo-Spielern, -Trainings und -Spielen. Eigene, selbst angelegte Daten sind davon nicht betroffen.",
+      "deleteBtn": "Demo-Daten löschen",
+      "inactiveHint": "Lege eine Demo-Testumgebung mit Beispiel-Team, -Kader, -Trainings und -Spielen an, um OpenFloorball auszuprobieren.",
+      "createBtn": "Demo-Daten erstellen",
+      "creating": "Wird erstellt…",
+      "createSuccess": "Demo-Daten wurden erstellt.",
+      "deleteSuccess": "Demo-Daten wurden gelöscht."
+    },
+    "saisonmanager": {
+      "title": "Saisonmanager",
+      "hint": "Optional: verbinde dieses Team mit Floorball Deutschlands Saisonmanager, um echte Anstoßzeiten, Hallen und die Liga-Tabelle im Dashboard zu sehen. Ohne Verbindung funktioniert alles wie bisher mit deinen eigenen Spielen.",
+      "apiKeyPlaceholder": "Saisonmanager API-Key",
+      "leagueIdPlaceholder": "Liga-ID",
+      "smTeamIdPlaceholder": "Saisonmanager-Team-ID",
+      "connectBtn": "Verbinden",
+      "connected": "Verbunden mit Liga {{leagueId}}, Team {{smTeamId}}",
+      "disconnectBtn": "Verbindung trennen"
     }
   },
   "organization": {
@@ -615,7 +642,10 @@
     "opponentSearchAriaLabel": "Spielfelder nach Gegner durchsuchen",
     "noBoardsMatchFilter": "Keine Spielfelder für diesen Filter",
     "categoryFilterAll": "Alle Kategorien",
-    "categoryFilterAriaLabel": "Nach Übungskategorie filtern"
+    "categoryFilterAriaLabel": "Nach Übungskategorie filtern",
+    "demoDataHint": "Noch nichts hier? Lege Demo-Daten an, um die anderen Bereiche direkt auszuprobieren.",
+    "demoDataCreateBtn": "Demo-Daten erstellen",
+    "demoDataCreating": "Wird erstellt…"
   },
   "notFound": {
     "title": "404",
@@ -1098,6 +1128,15 @@
       "next": "Weiter",
       "proceedAnyway": "Trotzdem weiter",
       "confirmFinal": "Account unwiderruflich löschen"
+    },
+    "deleteDemoData": {
+      "title": "Demo-Daten löschen?",
+      "message": "Das Demo-Team „Floorball Tigers“ wird mit allen Demo-Spielern, -Trainings, -Spielen und zugehörigen Daten endgültig entfernt.",
+      "realDataSafe": "Eigene, selbst erstellte Teams, Spieler und Spiele bleiben davon unberührt. Du kannst die Demo-Umgebung danach jederzeit erneut erstellen.",
+      "confirmLabel": "Gib zur Bestätigung {{phrase}} ein.",
+      "cancel": "Abbrechen",
+      "confirm": "Demo-Daten löschen",
+      "deleting": "Löscht…"
     }
   },
   "rules": {
@@ -1359,7 +1398,10 @@
     "assignFromRoster": "Aus Kader zuweisen",
     "assignFromRosterAriaLabel": "Spieler aus dem Kader zuweisen",
     "assignFromRosterNone": "– Kader-Spieler wählen –",
-    "emptyRosterHint": "Noch kein Kader angelegt – auf der Kader-Seite anlegbar."
+    "emptyRosterHint": "Noch kein Kader angelegt – auf der Kader-Seite anlegbar.",
+    "linkedUserAriaLabel": "Login-Account für {{name}} verknüpfen",
+    "linkedUserHint": "Verknüpft diesen Kader-Eintrag mit einem Team-Mitglied-Account, damit die Person ihre eigenen Statistiken im Dashboard sieht.",
+    "linkedUserNone": "Kein Account verknüpft"
   },
   "offline": {
     "offlineBanner_one": "Offline – Änderungen werden gespeichert, sobald wieder online ({{count}} ausstehend)",
@@ -1446,7 +1488,7 @@
   },
   "tour": {
     "welcomeTitle": "Willkommen bei OpenFloorball!",
-    "welcomeBody": "Eine kurze Tour zeigt dir die wichtigsten Bereiche – jederzeit überspringbar.",
+    "welcomeBody": "Eine kurze Tour zeigt dir die wichtigsten Bereiche – inklusive einer Demo-Testumgebung zum Ausprobieren – jederzeit überspringbar.",
     "boardsGroupTitle": "Boards",
     "boardsGroupBody": "Hier erstellst du Taktikboards und planst Trainingseinheiten.",
     "rosterGroupTitle": "Kader",
@@ -1456,7 +1498,9 @@
     "teamGroupTitle": "Team",
     "teamGroupBody": "Teile Neuigkeiten mit deinem Team und erstelle Umfragen.",
     "knowledgeGroupTitle": "Wissen",
-    "knowledgeGroupBody": "Durchsuche die Übungsbibliothek und dokumentiere Wissen für dein Team.",
+    "knowledgeGroupBody": "Durchsuche die Übungsbibliothek, das Floorball-Lexikon und dokumentiere Wissen für dein Team.",
+    "demoDataTitle": "Demo-Daten",
+    "demoDataBody": "Für deinen Account ist bereits eine Demo-Testumgebung mit Team, Kader, Trainings und Spielen angelegt. Du findest sie in den Einstellungen und kannst sie dort jederzeit löschen oder neu erstellen.",
     "settingsTitle": "Einstellungen",
     "settingsBody": "Passe Standardfarben, Sprache, Barrierefreiheit und mehr an – hier kannst du diese Tour auch jederzeit erneut starten.",
     "doneTitle": "Los geht's!",
@@ -1489,5 +1533,122 @@
     "exportBody": "Exportiere als GIF, MP4 oder PDF, oder erzeuge einen Link zum Teilen.",
     "doneTitle": "Los geht's!",
     "doneBody": "Du kannst diese Tour jederzeit über das Hilfe-Symbol oben rechts erneut starten."
+  },
+  "glossary": {
+    "title": "Floorball-Lexikon",
+    "subtitle": "Begriffe, Positionen und Taktik verständlich erklärt.",
+    "searchPlaceholder": "Begriff suchen…",
+    "searchAriaLabel": "Lexikon durchsuchen",
+    "categoryFilterAll": "Alle Kategorien",
+    "categories": {
+      "positionen": "Positionen",
+      "grundbegriffe": "Grundbegriffe",
+      "regeln": "Regeln",
+      "taktik": "Taktik",
+      "training": "Training",
+      "spielorganisation": "Spielorganisation"
+    },
+    "noResults": "Keine Begriffe gefunden.",
+    "relatedLabel": "Siehe auch",
+    "synonymsLabel": "Auch bekannt als"
+  },
+  "dashboard": {
+    "loading": "Dashboard wird geladen…",
+    "loadError": "Einige Daten konnten nicht geladen werden. Das Dashboard zeigt trotzdem, was verfügbar ist.",
+    "viewInCalendar": "Im Kalender ansehen",
+    "planRoute": "Route planen",
+    "sourceSaisonmanager": "Quelle: Saisonmanager",
+    "greeting": {
+      "withName": "Moin, {{name}} 👋",
+      "default": "Moin 👋",
+      "subtitle": "Bereit für das nächste Spiel?",
+      "week": "KW {{week}}",
+      "matchToday": "Nächstes Spiel heute",
+      "matchInDays": "Nächstes Spiel in {{count}} Tag",
+      "matchInDays_other": "Nächstes Spiel in {{count}} Tagen"
+    },
+    "countdown": {
+      "today": "Heute um {{time}} Uhr",
+      "daysHours": "In {{days}} Tagen, {{hours}} Std.",
+      "hoursMinutes": "In {{hours}} Std. {{minutes}} Min.",
+      "live": "Spiel läuft",
+      "past": "Spiel beendet"
+    },
+    "status": {
+      "cancelled": "Abgesagt",
+      "postponed": "Verlegt"
+    },
+    "availability": {
+      "groupLabel": "Deine Verfügbarkeit",
+      "pending": "Deine Rückmeldung: Noch offen",
+      "confirmedYes": "Du hast zugesagt.",
+      "confirmedMaybe": "Du bist eventuell dabei.",
+      "confirmedNo": "Du hast abgesagt.",
+      "saved": "Rückmeldung gespeichert",
+      "cancelledHint": "Dieser Termin wurde abgesagt.",
+      "externalHint": "Verfügbarkeit ist für extern verwaltete Spiele nicht möglich."
+    },
+    "nextMatch": {
+      "title": "Nächstes Spiel",
+      "empty": "Derzeit ist kein kommendes Spiel geplant.",
+      "emptyLink": "Zum Spielplan",
+      "vs": "gegen",
+      "ownTeam": "Dein Team",
+      "homeGame": "Heimspiel",
+      "awayGame": "Auswärtsspiel",
+      "dateLabel": "Datum",
+      "venueLabel": "Ort",
+      "openDetails": "Spieldetails öffnen"
+    },
+    "nextTraining": {
+      "title": "Nächstes Training",
+      "empty": "Derzeit ist kein kommendes Training geplant.",
+      "emptyLink": "Zum Trainingskalender",
+      "openDetails": "Training öffnen"
+    },
+    "playerStats": {
+      "title": "Meine Statistiken",
+      "notLinked": "Dein Account ist noch mit keinem Kader-Eintrag verknüpft, daher können hier keine persönlichen Statistiken angezeigt werden.",
+      "notLinkedLink": "Zum Kader",
+      "noData": "Noch keine Statistiken für diese Saison.",
+      "games": "Spiele",
+      "goals": "Tore",
+      "assists": "Assists",
+      "points": "Punkte",
+      "penaltyMinutes": "Strafminuten",
+      "goalsAgainst": "Gegentore",
+      "savePercentage": "Fangquote",
+      "recentGames": "Letzte Spiele",
+      "viewAll": "Alle Statistiken ansehen"
+    },
+    "lastMatch": {
+      "title": "Letztes Spiel",
+      "empty": "Noch kein Spiel absolviert.",
+      "performance": "Deine Leistung: {{goals}} Tore, {{assists}} Assists",
+      "openDetails": "Spielbericht ansehen"
+    },
+    "seasonOverview": {
+      "title": "Saisonüberblick",
+      "position": "Tabellenplatz",
+      "points": "Punkte",
+      "record": "S-U-N",
+      "goalDiff": "Tordifferenz",
+      "games": "Spiele"
+    },
+    "upcomingEvents": {
+      "title": "Nächste Termine",
+      "empty": "Keine anstehenden Termine.",
+      "game": "Spiel",
+      "training": "Training"
+    },
+    "quickLinks": {
+      "title": "Schnellzugriffe"
+    },
+    "venueMap": {
+      "title": "Spielort",
+      "iframeTitle": "Karte: {{venue}}",
+      "venueLabel": "Halle",
+      "openInOsm": "Route in OpenStreetMap öffnen"
+    }
   }
 }

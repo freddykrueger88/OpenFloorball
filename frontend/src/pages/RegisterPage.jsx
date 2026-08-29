@@ -25,6 +25,14 @@ export default function RegisterPage() {
     try {
       const res = await api.post('/auth/register', form);
       setUser(res.data.data.user);
+      // Onboarding-Ausbau: Demo-Testumgebung direkt nach der Registrierung
+      // anlegen (idempotent, siehe useDemoData.js/backend demoData-Service).
+      // Bewusst frontend-seitig statt im Register-Endpunkt selbst, damit ein
+      // Fehler hier niemals die Registrierung scheitern lässt und bestehende
+      // Backend-Tests, die einen frisch registrierten Account mit leeren
+      // Listen erwarten, unverändert bleiben – schlägt es fehl, sieht der
+      // Nutzer stattdessen den Empty-State-Hinweis auf BoardsPage.jsx.
+      try { await api.post('/demo-data'); } catch { /* siehe Kommentar oben */ }
       navigate('/boards', { replace: true });
     } catch (e) {
       const details = e.response?.data?.details;

@@ -27,6 +27,7 @@ const LoginPage      = lazy(() => import('./pages/LoginPage.jsx'));
 const RegisterPage   = lazy(() => import('./pages/RegisterPage.jsx'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage.jsx'));
 const ResetPasswordPage  = lazy(() => import('./pages/ResetPasswordPage.jsx'));
+const DashboardPage  = lazy(() => import('./pages/DashboardPage.jsx'));
 const BoardsPage     = lazy(() => import('./pages/BoardsPage.jsx'));
 const BoardEditorPage = lazy(() => import('./pages/BoardEditorPage.jsx'));
 const TrainingsPage       = lazy(() => import('./pages/TrainingsPage.jsx'));
@@ -49,6 +50,7 @@ const InvitePage      = lazy(() => import('./pages/InvitePage.jsx'));
 const SettingsPage    = lazy(() => import('./pages/SettingsPage.jsx'));
 const PrivacyPage     = lazy(() => import('./pages/PrivacyPage.jsx'));
 const RulesPage       = lazy(() => import('./pages/RulesPage.jsx'));
+const GlossaryPage    = lazy(() => import('./pages/GlossaryPage.jsx'));
 const NotFound       = lazy(() => import('./pages/NotFound.jsx'));
 
 function PrivateRoute({ children }) {
@@ -134,6 +136,7 @@ export default function App() {
             <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
             <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
             <Route path="/reset-password/:token" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
+            <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
             <Route path="/boards" element={<PrivateRoute><BoardsPage /></PrivateRoute>} />
             <Route path="/board/:id" element={<PrivateRoute><BoardEditorPage /></PrivateRoute>} />
             <Route path="/trainings" element={<PrivateRoute><TrainingsPage /></PrivateRoute>} />
@@ -156,6 +159,7 @@ export default function App() {
             <Route path="/invite/:token" element={<InvitePage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/rules" element={<RulesPage />} />
+            <Route path="/glossary" element={<GlossaryPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

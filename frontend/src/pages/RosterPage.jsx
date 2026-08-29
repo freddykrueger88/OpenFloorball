@@ -21,12 +21,18 @@ export default function RosterPage() {
   } = useRoster();
   // ROADMAP Phase 2: eigene Teams laden, um Kader-Einträge optional
   // team-geteilt statt rein persönlich anzulegen.
-  const { teams, fetchTeams } = useTeams();
+  const { teams, fetchTeams, fetchMembers } = useTeams();
 
   const [name,   setName  ] = useState('');
   const [number, setNumber] = useState('');
   const [role,   setRole  ] = useState('');
   const [teamId, setTeamId] = useState('');
+  // Spieler-Dashboard-Ausbau: Login-Account je team-geteiltem Kader-Eintrag
+  // verknüpfbar machen, damit der verknüpfte Account "seine" Statistiken/
+  // sein "nächstes Spiel" auf /dashboard sehen kann. Mitgliederliste je
+  // benötigtem Team wird lazy nachgeladen (kleine Vereine haben meist
+  // ohnehin nur ein Team).
+  const [membersByTeam, setMembersByTeam] = useState({});
 
   const load = useCallback(async () => {
     try { await fetchRoster(); } catch { /* error via hook */ }
@@ -34,6 +40,17 @@ export default function RosterPage() {
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { fetchTeams().catch(() => {}); }, [fetchTeams]);
+
+  useEffect(() => {
+    const teamIds = [...new Set(rosterPlayers.map((p) => p.teamId).filter(Boolean))];
+    teamIds.forEach((id) => {
+      if (membersByTeam[id]) return;
+      fetchMembers(id).then((members) => {
+        setMembersByTeam((prev) => ({ ...prev, [id]: members }));
+      }).catch(() => {});
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rosterPlayers, fetchMembers]);
 
   const teamsICanShareWith = teams.filter((tm) => tm.role === 'owner' || tm.role === 'coach');
 
@@ -170,6 +187,22 @@ export default function RosterPage() {
                 <span className={styles.teamBadge}>
                   {teams.find((tm) => tm._id === player.teamId)?.name ?? t('roster.teamBadgeFallback')}
                 </span>
+              )}
+              {player.teamId && membersByTeam[player.teamId] && (
+                <select
+                  className={styles.rowRoleSelect}
+                  value={player.linkedUserId ?? ''}
+                  onChange={(e) => updateRosterPlayer(player._id, { linkedUserId: e.target.value === '' ? null : e.target.value }, {
+                    baselineUpdatedAt: player.updatedAt, label: player.name,
+                  })}
+                  aria-label={t('roster.linkedUserAriaLabel', { name: player.name })}
+                  title={t('roster.linkedUserHint')}
+                >
+                  <option value="">{t('roster.linkedUserNone')}</option>
+                  {membersByTeam[player.teamId].map((m) => (
+                    <option key={m.userId} value={m.userId}>{m.email}</option>
+                  ))}
+                </select>
               )}
               <Button
                 variant="danger"

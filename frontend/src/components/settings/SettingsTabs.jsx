@@ -7,15 +7,24 @@
  * statt Wiederverwendung von board/BoardSidePanelTabs.jsx – die ist auf
  * die einklappbare Board-Editor-Situation zugeschnitten (Fokus soll auf
  * dem Feld bleiben), hier ist die Tab-Leiste dagegen die ganze Seite.
+ *
+ * `activeId`/`onActiveIdChange` sind optional (Vereine-Ausbau): ohne sie
+ * verwaltet die Komponente ihren aktiven Tab weiterhin selbst (bisheriges
+ * Verhalten, unverändert für alle bestehenden Aufrufer). Übergibt der
+ * Aufrufer beide Props, wird die Auswahl von außen gesteuert – nötig,
+ * damit SettingsPage.jsx nach dem Gründen eines Vereins direkt zum neu
+ * erschienenen "Vereine"-Tab wechseln kann.
  */
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './SettingsTabs.module.css';
 
-export default function SettingsTabs({ tabs }) {
+export default function SettingsTabs({ tabs, activeId: controlledActiveId, onActiveIdChange }) {
   const { t } = useTranslation();
-  const [activeId, setActiveId] = useState(tabs[0]?.id);
+  const [internalActiveId, setInternalActiveId] = useState(tabs[0]?.id);
+  const activeId = controlledActiveId ?? internalActiveId;
   const active = tabs.find((tab) => tab.id === activeId) ?? tabs[0];
+  const selectTab = (id) => (onActiveIdChange ? onActiveIdChange(id) : setInternalActiveId(id));
 
   if (tabs.length === 0) return null;
 
@@ -32,7 +41,7 @@ export default function SettingsTabs({ tabs }) {
               aria-selected={tab.id === active?.id}
               aria-controls={`settings-tabpanel-${tab.id}`}
               className={`${styles.tabBtn} ${tab.id === active?.id ? styles.active : ''}`}
-              onClick={() => setActiveId(tab.id)}
+              onClick={() => selectTab(tab.id)}
             >
               {tab.label}
             </button>

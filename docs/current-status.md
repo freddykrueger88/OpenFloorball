@@ -19,6 +19,15 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 
 ## Implementiert
 
+- **Spieler-Dashboard** (`/dashboard`) – Startseite mit nächstem Spiel
+  (Countdown, Ort, Heim/Auswärts, Status) und nächstem Training inkl.
+  direkter, optimistischer Zu-/Absage über das bestehende RSVP-System,
+  persönlichen Statistiken (sofern der Account mit einem Kader-Eintrag
+  verknüpft ist), letztem Spiel, Saisonüberblick, nächsten Terminen,
+  Schnellzugriffen und einer OpenStreetMap-Karte zum Spielort. Optionale,
+  rein lesende Anbindung an Floorball Deutschlands Saisonmanager für echte
+  Anstoßzeiten/Hallen/Tabellenplätze. Details:
+  [Spieler-Dashboard](./wiki/Spieler-Dashboard.md).
 - **Taktikboard-Editor**: IFF-konformes Spielfeld (Großfeld/Kleinfeld/
   Street/3vs3), Drag-&-Drop-Spielerplatzierung, Zeichenwerkzeuge
   (Bewegungs-/Pass-/Schusspfeile, Freihand, Trainingszonen), Kommentare
@@ -85,8 +94,20 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
 - **Team-Kader**, **Teams und Vereine** – zweistufiges Rollenmodell
   je Ebene, Vereine mit eigenem Dashboard (Umbenennen, Mitglieder,
   Teams des Vereins, Team-Anlage direkt im Verein, admin-only
-  vereinsweite Termin-Übersicht über alle Teams hinweg). Details:
+  vereinsweite Termin-Übersicht über alle Teams hinweg). Der
+  "Vereine"-Tab in den Einstellungen ist standardmäßig ausgeblendet und
+  erscheint erst, sobald ein Account einem Verein angehört – Einstieg
+  ist ein "Verein gründen"-Formular im Teams-Tab. Details:
   [docs/wiki/Teams-und-Vereine.md](./wiki/Teams-und-Vereine.md).
+- **Floorball-Lexikon** (`/glossary`, öffentlich erreichbar) – durchsuchbares
+  Begriffslexikon mit Kategorie-Filtern (Positionen, Grundbegriffe,
+  Regeln, Taktik, Training, Spielorganisation), statisch gepflegt in
+  `frontend/src/content/glossaryEntries.js`.
+- **Demo-Testumgebung** – wird nach der Registrierung automatisch
+  angelegt (Team, Kader, Trainings, Spiele mit Statistik-Ereignissen),
+  idempotent und über `is_demo`-Markierung sauber von echten Daten
+  getrennt; in den Einstellungen (Tab "Demo-Daten") jederzeit sicher
+  löschbar oder neu erstellbar.
 - **News/Ankündigungen** (`/news`) – Coach/Owner postet kurze
   Mitteilungen an sein Team, alle Mitglieder lesen sie chronologisch,
   bewusst kein Vollchat. Details: [docs/wiki/News.md](./wiki/News.md).

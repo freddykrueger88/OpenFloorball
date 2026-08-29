@@ -14,6 +14,13 @@
  * die Gruppen-Trigger (`nav-group-*`) statt auf einzelne Unterpunkte.
  * Die Editor-Tour deckt zusätzlich die zuvor fehlenden Tabs Linien/
  * Formationsvorlagen/Video ab.
+ *
+ * Ausbau 2026-08-29 (Onboarding-Ausbau: Lexikon/Demo-Daten): ein
+ * zusätzlicher Backdrop-Schritt vor "Einstellungen" erklärt die neu
+ * angelegte Demo-Testumgebung, statt die bereits fünf gruppierten
+ * Schritte auf die im Original-Auftrag vorgeschlagenen zehn Einzelschritte
+ * aufzublähen – das Lexikon wird stattdessen im bestehenden
+ * "Wissen"-Gruppenschritt mit erwähnt (siehe knowledgeGroupBody).
  */
 
 export const NAV_TOUR_STEPS = [
@@ -23,6 +30,7 @@ export const NAV_TOUR_STEPS = [
   { target: 'nav-group-games',     titleKey: 'tour.gamesGroupTitle',     bodyKey: 'tour.gamesGroupBody' },
   { target: 'nav-group-team',      titleKey: 'tour.teamGroupTitle',      bodyKey: 'tour.teamGroupBody' },
   { target: 'nav-group-knowledge', titleKey: 'tour.knowledgeGroupTitle', bodyKey: 'tour.knowledgeGroupBody' },
+  { target: null,               titleKey: 'tour.demoDataTitle',     bodyKey: 'tour.demoDataBody' },
   { target: 'nav-settings',     titleKey: 'tour.settingsTitle',     bodyKey: 'tour.settingsBody' },
   { target: null,               titleKey: 'tour.doneTitle',         bodyKey: 'tour.doneBody' },
 ];

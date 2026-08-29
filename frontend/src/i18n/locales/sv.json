@@ -28,7 +28,9 @@
       "games": "Matchverksamhet",
       "team": "Lag",
       "knowledge": "Kunskap"
-    }
+    },
+    "glossary": "Innebandylexikon",
+    "dashboard": "Översikt"
   },
   "field": {
     "large": "Fullstor plan (40×20 m)",
@@ -102,7 +104,8 @@
       "organizations": "Föreningar",
       "data": "Data",
       "admin": "Admin",
-      "libraryModeration": "Biblioteksrapporter"
+      "libraryModeration": "Biblioteksrapporter",
+      "demoData": "Demodata"
     },
     "languageDe": "Tyska",
     "languageEn": "Engelska",
@@ -211,7 +214,9 @@
         "org_admin": "Föreningsadmin"
       },
       "organizationAriaLabel": "Koppla till förening",
-      "noOrganization": "Ingen förening"
+      "noOrganization": "Ingen förening",
+      "foundOrganizationTitle": "Grunda en förening",
+      "foundOrganizationHint": "Tränar du flera lag under samma förening (t.ex. A-laget och U15)? Slå ihop dem i en förening för att använda föreningsövergripande scheman och speluppställningar. Har du bara ett lag behöver du inte det här – ditt lag är redan \"föreningen\"."
     },
     "organizations": {
       "intro": "En förening grupperar flera lag enbart för administration – den delar inte i sig trupper, spelböcker eller träningspass.",
@@ -231,6 +236,28 @@
         "admin": "Admin",
         "member": "Medlem"
       }
+    },
+    "demoData": {
+      "activeHint": "En demomiljö med lag, trupp, träningar och matcher är aktiv för det här kontot.",
+      "seededAt": "Skapad {{date}}",
+      "deleteTitle": "Ta bort demodata",
+      "deleteHint": "Tar endast bort demolaget \"Floorball Tigers\" med tillhörande demospelare, -träningar och -matcher. Din egen, själv skapade data påverkas inte.",
+      "deleteBtn": "Ta bort demodata",
+      "inactiveHint": "Skapa en demomiljö med exempellag, trupp, träningar och matcher för att testa OpenFloorball.",
+      "createBtn": "Skapa demodata",
+      "creating": "Skapar…",
+      "createSuccess": "Demodata har skapats.",
+      "deleteSuccess": "Demodata har tagits bort."
+    },
+    "saisonmanager": {
+      "title": "Saisonmanager",
+      "hint": "Valfritt: anslut det här laget till Floorball Deutschlands Saisonmanager för att se riktiga avsparkstider, hallar och tabellen i översikten. Utan anslutning fungerar allt som vanligt med dina egna matcher.",
+      "apiKeyPlaceholder": "Saisonmanager API-nyckel",
+      "leagueIdPlaceholder": "Liga-ID",
+      "smTeamIdPlaceholder": "Saisonmanager lag-ID",
+      "connectBtn": "Anslut",
+      "connected": "Ansluten till liga {{leagueId}}, lag {{smTeamId}}",
+      "disconnectBtn": "Koppla från"
     }
   },
   "organization": {
@@ -615,7 +642,10 @@
     "opponentSearchAriaLabel": "Sök tavlor efter motståndare",
     "noBoardsMatchFilter": "Inga tavlor matchar det här filtret",
     "categoryFilterAll": "Alla kategorier",
-    "categoryFilterAriaLabel": "Filtrera efter övningskategori"
+    "categoryFilterAriaLabel": "Filtrera efter övningskategori",
+    "demoDataHint": "Inget här än? Skapa demodata för att testa de andra delarna direkt.",
+    "demoDataCreateBtn": "Skapa demodata",
+    "demoDataCreating": "Skapar…"
   },
   "notFound": {
     "title": "404",
@@ -1098,6 +1128,15 @@
       "next": "Fortsätt",
       "proceedAnyway": "Fortsätt ändå",
       "confirmFinal": "Radera konto permanent"
+    },
+    "deleteDemoData": {
+      "title": "Ta bort demodata?",
+      "message": "Demolaget \"Floorball Tigers\" tas bort permanent tillsammans med alla demospelare, -träningar, -matcher och tillhörande data.",
+      "realDataSafe": "Dina egna lag, spelare och matcher påverkas inte. Du kan återskapa demomiljön när som helst efteråt.",
+      "confirmLabel": "Skriv {{phrase}} för att bekräfta.",
+      "cancel": "Avbryt",
+      "confirm": "Ta bort demodata",
+      "deleting": "Tar bort…"
     }
   },
   "rules": {
@@ -1359,7 +1398,10 @@
     "assignFromRoster": "Tilldela från trupp",
     "assignFromRosterAriaLabel": "Tilldela en spelare från truppen",
     "assignFromRosterNone": "– Välj truppspelare –",
-    "emptyRosterHint": "Ingen trupp ännu – skapa en på truppsidan."
+    "emptyRosterHint": "Ingen trupp ännu – skapa en på truppsidan.",
+    "linkedUserAriaLabel": "Länka ett konto för {{name}}",
+    "linkedUserHint": "Länkar denna truppmedlem till ett lagmedlems konto så att personen ser sin egen statistik i översikten.",
+    "linkedUserNone": "Inget konto länkat"
   },
   "offline": {
     "offlineBanner_one": "Offline – ändringar sparas när du är online igen ({{count}} väntande)",
@@ -1446,7 +1488,7 @@
   },
   "tour": {
     "welcomeTitle": "Välkommen till OpenFloorball!",
-    "welcomeBody": "En kort rundtur visar dig de viktigaste delarna – kan hoppas över när som helst.",
+    "welcomeBody": "En kort rundtur visar dig de viktigaste delarna – inklusive en demomiljö att testa – kan hoppas över när som helst.",
     "boardsGroupTitle": "Tavlor",
     "boardsGroupBody": "Skapa taktiktavlor och planera träningspass här.",
     "rosterGroupTitle": "Trupp",
@@ -1456,7 +1498,9 @@
     "teamGroupTitle": "Lag",
     "teamGroupBody": "Dela nyheter med ditt lag och skapa omröstningar.",
     "knowledgeGroupTitle": "Kunskap",
-    "knowledgeGroupBody": "Bläddra i övningsbiblioteket och dokumentera kunskap för ditt lag.",
+    "knowledgeGroupBody": "Bläddra i övningsbiblioteket, innebandylexikonet och dokumentera kunskap för ditt lag.",
+    "demoDataTitle": "Demodata",
+    "demoDataBody": "En demomiljö med lag, trupp, träningar och matcher har redan skapats för ditt konto. Du hittar den under Inställningar, där du när som helst kan ta bort eller återskapa den.",
     "settingsTitle": "Inställningar",
     "settingsBody": "Justera standardfärger, språk, tillgänglighet och mer – du kan även starta om den här rundturen här när som helst.",
     "doneTitle": "Klart!",
@@ -1489,5 +1533,122 @@
     "exportBody": "Exportera som GIF, MP4 eller PDF, eller skapa en delbar länk.",
     "doneTitle": "Klart!",
     "doneBody": "Du kan starta om den här rundturen när som helst via hjälpikonen uppe till höger."
+  },
+  "glossary": {
+    "title": "Innebandylexikon",
+    "subtitle": "Begrepp, positioner och taktik tydligt förklarat.",
+    "searchPlaceholder": "Sök begrepp…",
+    "searchAriaLabel": "Sök i lexikonet",
+    "categoryFilterAll": "Alla kategorier",
+    "categories": {
+      "positionen": "Positioner",
+      "grundbegriffe": "Grundbegrepp",
+      "regeln": "Regler",
+      "taktik": "Taktik",
+      "training": "Träning",
+      "spielorganisation": "Spelorganisation"
+    },
+    "noResults": "Inga begrepp hittades.",
+    "relatedLabel": "Se även",
+    "synonymsLabel": "Även känt som"
+  },
+  "dashboard": {
+    "loading": "Laddar översikt…",
+    "loadError": "Viss data kunde inte laddas. Översikten visar ändå det som finns tillgängligt.",
+    "viewInCalendar": "Visa i kalendern",
+    "planRoute": "Planera resväg",
+    "sourceSaisonmanager": "Källa: Saisonmanager",
+    "greeting": {
+      "withName": "Hej, {{name}} 👋",
+      "default": "Hej 👋",
+      "subtitle": "Redo för nästa match?",
+      "week": "Vecka {{week}}",
+      "matchToday": "Nästa match idag",
+      "matchInDays": "Nästa match om {{count}} dag",
+      "matchInDays_other": "Nästa match om {{count}} dagar"
+    },
+    "countdown": {
+      "today": "Idag kl {{time}}",
+      "daysHours": "Om {{days}} dagar, {{hours}} tim",
+      "hoursMinutes": "Om {{hours}} tim {{minutes}} min",
+      "live": "Matchen pågår",
+      "past": "Matchen är slut"
+    },
+    "status": {
+      "cancelled": "Inställd",
+      "postponed": "Flyttad"
+    },
+    "availability": {
+      "groupLabel": "Din tillgänglighet",
+      "pending": "Ditt svar: Ännu inget",
+      "confirmedYes": "Du är anmäld.",
+      "confirmedMaybe": "Du kanske kommer.",
+      "confirmedNo": "Du har avanmält dig.",
+      "saved": "Svar sparat",
+      "cancelledHint": "Den här händelsen är inställd.",
+      "externalHint": "Tillgänglighet är inte möjlig för externt hanterade matcher."
+    },
+    "nextMatch": {
+      "title": "Nästa match",
+      "empty": "Ingen kommande match inplanerad just nu.",
+      "emptyLink": "Till matchschemat",
+      "vs": "mot",
+      "ownTeam": "Ditt lag",
+      "homeGame": "Hemmamatch",
+      "awayGame": "Bortamatch",
+      "dateLabel": "Datum",
+      "venueLabel": "Plats",
+      "openDetails": "Öppna matchdetaljer"
+    },
+    "nextTraining": {
+      "title": "Nästa träning",
+      "empty": "Ingen kommande träning inplanerad just nu.",
+      "emptyLink": "Till träningskalendern",
+      "openDetails": "Öppna träning"
+    },
+    "playerStats": {
+      "title": "Min statistik",
+      "notLinked": "Ditt konto är ännu inte länkat till en truppmedlem, så personlig statistik kan inte visas här.",
+      "notLinkedLink": "Till truppen",
+      "noData": "Ingen statistik för den här säsongen än.",
+      "games": "Matcher",
+      "goals": "Mål",
+      "assists": "Assist",
+      "points": "Poäng",
+      "penaltyMinutes": "Utvisningsminuter",
+      "goalsAgainst": "Insläppta mål",
+      "savePercentage": "Räddningsprocent",
+      "recentGames": "Senaste matcherna",
+      "viewAll": "Visa all statistik"
+    },
+    "lastMatch": {
+      "title": "Senaste matchen",
+      "empty": "Ingen match spelad än.",
+      "performance": "Din insats: {{goals}} mål, {{assists}} assist",
+      "openDetails": "Visa matchrapport"
+    },
+    "seasonOverview": {
+      "title": "Säsongsöversikt",
+      "position": "Placering",
+      "points": "Poäng",
+      "record": "V-O-F",
+      "goalDiff": "Målskillnad",
+      "games": "Matcher"
+    },
+    "upcomingEvents": {
+      "title": "Kommande händelser",
+      "empty": "Inga kommande händelser.",
+      "game": "Match",
+      "training": "Träning"
+    },
+    "quickLinks": {
+      "title": "Genvägar"
+    },
+    "venueMap": {
+      "title": "Spelplats",
+      "iframeTitle": "Karta: {{venue}}",
+      "venueLabel": "Hall",
+      "openInOsm": "Öppna resväg i OpenStreetMap"
+    }
   }
 }

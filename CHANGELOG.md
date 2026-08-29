@@ -14,6 +14,51 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Spieler-Dashboard** (`/dashboard`, zusätzliche Route neben `/boards`):
+  neue Startseite mit nächstem Spiel (Countdown, Gegner, Halle, Heim/
+  Auswärts, Status) inkl. direkter Zu-/Absage (Dabei/Eventuell/Nicht dabei,
+  optimistisch mit Rollback bei Fehlern – nutzt das bestehende RSVP-System),
+  nächstem Training, persönlichen Statistiken, letztem Spiel, Saisonüberblick
+  und Schnellzugriffen. Dafür additiv ergänzt: Anstoßzeit/Halle/Adresse/
+  Koordinaten/Heim-Kennzeichnung/Status auf `games`/`training_sessions`
+  sowie eine optionale Verknüpfung zwischen Login-Account und Kader-Eintrag
+  (`roster_players.linked_user_id`, in den Team-Einstellungen bzw. auf
+  `/roster` setzbar) – ohne diese Verknüpfung zeigt die Statistik-Karte
+  einen ehrlichen Hinweis statt erfundener Zahlen. Kartenintegration über
+  einen `<iframe>`-OpenStreetMap-Embed (keine neue Maps-Abhängigkeit).
+  - **Optionale Saisonmanager-Anbindung** (`team_saisonmanager_links`,
+    owner-only in den Team-Einstellungen): verbindet ein Team rein lesend
+    mit Floorball Deutschlands Saisonmanager (`saisonmanager.de/api/v2`,
+    `X-Api-Key`-Auth) für echte Anstoßzeiten/Hallen/Tabellenplätze, sobald
+    eine Liga-Anbindung existiert – ohne Verbindung bleiben die eigenen,
+    lokal gepflegten Spiele die Quelle. Details:
+    [docs/wiki/Spieler-Dashboard.md](./docs/wiki/Spieler-Dashboard.md).
+  - **Serverseitiger Schutz gegen unzulässige RSVP-Änderungen**
+    (`rsvpsController.js::guardEditable`, gilt für Spiele UND
+    Trainingseinheiten, nicht nur das neue Dashboard-Widget): eine
+    Rückmeldung zu einem abgesagten oder bereits vergangenen Termin wird
+    jetzt mit 400 abgelehnt statt nur clientseitig per deaktiviertem Button
+    verhindert zu werden.
+- **Vereine-Ausbau**: Der "Vereine"-Tab in den Einstellungen ist jetzt
+  standardmäßig ausgeblendet und erscheint erst, sobald ein Account
+  Mitglied eines Vereins ist. Grund: für Trainer mit genau einem Team
+  IST das Team schon "der Verein" (z. B. "TB Uphusen" als Teamname) –
+  eine dauerhaft sichtbare, leere zweite Organisationsebene war nur
+  verwirrend. Einstieg für Trainer mit mehreren Mannschaften desselben
+  Vereins ist jetzt ein unauffälliges "Verein gründen"-Formular direkt
+  im Teams-Tab (`TeamsSection.jsx`); nach dem Anlegen erscheint der
+  volle Vereine-Tab automatisch (`SettingsPage.jsx`,
+  `OrganizationsSection.jsx`, `SettingsTabs.jsx` optional steuerbar
+  gemacht). Siehe [docs/wiki/Teams-und-Vereine.md](./docs/wiki/Teams-und-Vereine.md).
+- **Onboarding-Ausbau**: neues Floorball-Lexikon (`/glossary`, öffentlich
+  erreichbar wie `/rules`) mit Suche und sechs Kategorien, ~44 statisch
+  gepflegte Begriffe (Positionen, Grundbegriffe, Regeln, Taktik,
+  Training, Spielorganisation); Demo-Testumgebung wird nach der
+  Registrierung automatisch angelegt (Team, Kader, Trainings, Spiele
+  mit Statistik-Ereignissen, idempotent, per `is_demo`-Markierung sauber
+  vom eigenen Kader trennbar) und lässt sich in den Einstellungen
+  (`Demo-Daten`-Tab) sicher wieder löschen oder neu erstellen; die
+  Onboarding-Tour erwähnt jetzt beides zusätzlich.
 - Layer-System im Taktikboard-Editor (CLAUDE.md §10.2, "wie in
   professionellen Designprogrammen"): neuer "Layers"-Tab lässt acht
   Ebenen unabhängig ein-/ausblenden – Eigene Spieler, Gegner, Laufwege,

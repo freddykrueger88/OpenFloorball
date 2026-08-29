@@ -5,6 +5,21 @@
 Zwei getrennte, hierarchisch unabhängige Ebenen: **Teams** (eine
 Mannschaft) und **Organizations** (ein Verein mit mehreren Teams).
 
+## Wann brauche ich überhaupt einen Verein?
+
+Für die meisten Trainer mit genau einer Mannschaft **nicht** – das Team
+selbst ist dann schon "der Verein" (z. B. "TB Uphusen" als Teamname).
+Der Einstellungen-Tab "Vereine" ist deshalb standardmäßig ausgeblendet
+und erscheint erst, sobald der Account Mitglied eines Vereins ist.
+
+Trainierst du dagegen mehrere Mannschaften desselben Vereins (z. B. 1.
+Herren und U15, ggf. mit demselben Trainer für beide), lohnt sich ein
+Verein: er bündelt beide Teams organisatorisch für eine gemeinsame
+Terminübersicht und vereinsweite Playbooks, ohne Kader oder Trainings
+zwischen den Mannschaften zu vermischen. Einstieg dafür ist ein
+"Verein gründen"-Formular direkt im Teams-Tab der Einstellungen – nach
+dem Anlegen erscheint der volle "Vereine"-Tab automatisch.
+
 ## Teams
 
 | Rolle | Rechte |

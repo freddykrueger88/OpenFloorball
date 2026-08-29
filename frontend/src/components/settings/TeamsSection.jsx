@@ -2,17 +2,26 @@
  * TeamsSection – Teams anlegen/verwalten (ROADMAP Phase 2), UI/UX-Audit
  * Stufe 3 – aus der vormals 1011-Zeilen-SettingsPage.jsx ausgelagert,
  * reines Verschieben ohne Logik-Änderung.
+ *
+ * Vereine-Ausbau: bekommt den Vereins-Zustand jetzt per `organizationsApi`
+ * von SettingsPage.jsx injiziert (dieselbe Instanz wie OrganizationsSection,
+ * kein zweiter Fetch). Solange der Account in keinem Verein ist, zeigt
+ * diese Section zusätzlich einen unauffälligen "Verein gründen"-Hinweis –
+ * der eigentliche "Vereine"-Tab existiert erst, sobald organizations.length
+ * > 0 ist (siehe SettingsPage.jsx). Grund: für die meisten Trainer mit
+ * genau einem Team IST das Team schon "ihr Verein" (z.B. "TB Uphusen"),
+ * eine dauerhaft sichtbare, leere zweite Ebene wäre nur verwirrend.
  */
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import useAuthStore from '../../store/authStore.js';
 import { useTeams } from '../../hooks/useTeams.js';
-import { useOrganizations } from '../../hooks/useOrganizations.js';
 import Button from '../common/Button.jsx';
+import TeamSaisonmanagerSettings from './TeamSaisonmanagerSettings.jsx';
 import styles from '../../pages/SettingsPage.module.css';
 
-export default function TeamsSection() {
+export default function TeamsSection({ organizationsApi, onOrganizationFounded }) {
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const {
@@ -23,8 +32,7 @@ export default function TeamsSection() {
   useEffect(() => { fetchTeams().catch(() => {}); }, [fetchTeams]);
 
   // Für die optionale "Team einem Verein zuordnen"-Auswahl beim Anlegen
-  const { organizations, fetchOrganizations } = useOrganizations();
-  useEffect(() => { fetchOrganizations().catch(() => {}); }, [fetchOrganizations]);
+  const { organizations, createOrganization } = organizationsApi;
   const adminOrgs = organizations.filter((o) => o.role === 'admin');
 
   const [newTeamName,    setNewTeamName]    = useState('');
@@ -32,6 +40,22 @@ export default function TeamsSection() {
   const [expandedTeamId, setExpandedTeamId] = useState(null);
   const [membersByTeam,  setMembersByTeam]  = useState({});
   const [inviteForm,     setInviteForm]     = useState({ email: '', role: 'coach' });
+  const [foundOrgName,   setFoundOrgName]   = useState('');
+  const [foundOrgError,  setFoundOrgError]  = useState(null);
+
+  const handleFoundOrganization = async (e) => {
+    e.preventDefault();
+    const trimmed = foundOrgName.trim();
+    if (!trimmed) return;
+    setFoundOrgError(null);
+    try {
+      await createOrganization(trimmed);
+      setFoundOrgName('');
+      onOrganizationFounded?.();
+    } catch (err) {
+      setFoundOrgError(err.message);
+    }
+  };
 
   const handleCreateTeam = async (e) => {
     e.preventDefault();
@@ -184,6 +208,8 @@ export default function TeamsSection() {
                     </form>
                   )}
 
+                  {team.role === 'owner' && <TeamSaisonmanagerSettings teamId={team._id} />}
+
                   <ul className={styles.memberList} role="list">
                     {(membersByTeam[team._id] ?? []).map((m) => (
                       <li key={m._id} className={styles.memberRow}>
@@ -234,6 +260,25 @@ export default function TeamsSection() {
             </li>
           ))}
         </ul>
+      )}
+
+      {organizations.length === 0 && (
+        <form className={styles.subForm} onSubmit={handleFoundOrganization}>
+          <h3 className={styles.subTitle}>{t('settings.teams.foundOrganizationTitle')}</h3>
+          <p className={styles.hint}>{t('settings.teams.foundOrganizationHint')}</p>
+          <input
+            className={styles.textInput}
+            value={foundOrgName}
+            onChange={(e) => setFoundOrgName(e.target.value)}
+            placeholder={t('settings.organizations.namePlaceholder')}
+            maxLength={80}
+            aria-label={t('settings.organizations.namePlaceholder')}
+          />
+          <Button type="submit" variant="secondary" size="md" className={styles.submitBtn} disabled={!foundOrgName.trim()}>
+            {t('settings.organizations.createBtn')}
+          </Button>
+          {foundOrgError && <p className={styles.msgError}><AlertTriangle size={16} aria-hidden="true" /> {foundOrgError}</p>}
+        </form>
       )}
     </section>
   );

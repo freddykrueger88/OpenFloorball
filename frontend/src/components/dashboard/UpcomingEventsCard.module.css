@@ -1,0 +1,20 @@
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.title { font-size: var(--text-base); font-weight: 700; color: var(--color-text); }
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.item { display: flex; align-items: flex-start; gap: var(--space-2); }
+.icon { color: var(--color-primary); margin-top: 2px; flex-shrink: 0; }
+.details { display: flex; flex-direction: column; min-width: 0; }
+.eventLink { font-size: var(--text-sm); font-weight: 600; color: var(--color-text); text-decoration: none; overflow-wrap: anywhere; }
+.eventLink:hover { color: var(--color-primary); }
+.eventMeta { font-size: var(--text-xs); color: var(--color-text-muted); }
+
+.emptyHint { color: var(--color-text-muted); font-size: var(--text-sm); }

@@ -35,6 +35,7 @@ function buildNavGroups(t) {
       labelKey: 'nav.groups.boards',
       tourId: 'nav-group-boards',
       links: [
+        { to: '/dashboard', label: t('nav.dashboard') },
         { to: '/boards', label: t('nav.boards') },
         { to: '/trainings', label: t('nav.trainings') },
       ],
@@ -75,6 +76,7 @@ function buildNavGroups(t) {
       links: [
         { to: '/library', label: t('nav.library') },
         { to: '/knowledge', label: t('nav.knowledge') },
+        { to: '/glossary', label: t('nav.glossary') },
       ],
     },
   ];

@@ -5,6 +5,21 @@
 Two separate, hierarchically independent levels: **teams** (a single
 squad) and **organizations** (a club with multiple teams).
 
+## Do I even need a club?
+
+For most coaches running exactly one squad, **no** – the team itself
+already is "the club" (e.g. "TB Uphusen" as the team name). The
+"Organizations" settings tab is hidden by default and only appears once
+the account is a member of a club.
+
+If you coach several squads of the same club instead (e.g. the 1st
+men's team and U15, possibly with the same coach for both), a club
+becomes worthwhile: it groups both teams organisationally for a shared
+schedule overview and club-wide playbooks, without mixing rosters or
+trainings between the squads. The entry point is a "Found a club" form
+right inside the Teams settings tab – once created, the full
+"Organizations" tab appears automatically.
+
 ## Teams
 
 | Role | Permissions |

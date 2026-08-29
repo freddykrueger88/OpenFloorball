@@ -5,20 +5,24 @@
  * eigenen Seite (OrganizationPage.jsx, verlinkt aus der Liste unten) –
  * bewusst nicht mehr dupliziert hier, damit es nur eine Stelle mit
  * Mitgliederverwaltung gibt.
+ *
+ * Vereine-Ausbau: bekommt den Vereins-Zustand jetzt per `organizationsApi`
+ * von SettingsPage.jsx injiziert statt selbst useOrganizations() zu rufen
+ * – dieser Tab existiert ohnehin nur, solange organizations.length > 0
+ * (siehe SettingsPage.jsx), ein zweiter, eigener Fetch wäre nur
+ * redundant.
  */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { AlertTriangle } from 'lucide-react';
-import { useOrganizations } from '../../hooks/useOrganizations.js';
 import Button from '../common/Button.jsx';
 import styles from '../../pages/SettingsPage.module.css';
 import linkStyles from './OrganizationsSection.module.css';
 
-export default function OrganizationsSection() {
+export default function OrganizationsSection({ organizationsApi }) {
   const { t } = useTranslation();
-  const { organizations, error: orgsError, fetchOrganizations, createOrganization } = useOrganizations();
-  useEffect(() => { fetchOrganizations().catch(() => {}); }, [fetchOrganizations]);
+  const { organizations, error: orgsError, createOrganization } = organizationsApi;
 
   const [newOrgName, setNewOrgName] = useState('');
 

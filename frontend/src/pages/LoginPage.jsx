@@ -10,7 +10,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const setUser = useAuthStore((s) => s.setUser);
-  const from = location.state?.from?.pathname || '/boards';
+  const from = location.state?.from?.pathname || '/dashboard';
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);

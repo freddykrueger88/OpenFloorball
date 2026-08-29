@@ -62,7 +62,7 @@ function PrivateRoute({ children }) {
 
 function PublicRoute({ children }) {
   const user = useAuthStore((s) => s.user);
-  if (user) return <Navigate to="/boards" replace />;
+  if (user) return <Navigate to="/dashboard" replace />;
   return children;
 }
 
@@ -131,7 +131,7 @@ export default function App() {
         {user && <TourOverlay tourId="nav" steps={NAV_TOUR_STEPS} settingsKey="tourCompleted" />}
         <Suspense fallback={<Loader />}>
           <Routes>
-            <Route path="/" element={<Navigate to="/boards" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/login"    element={<PublicRoute><LoginPage /></PublicRoute>} />
             <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
             <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />

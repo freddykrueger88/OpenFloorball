@@ -113,7 +113,7 @@
 }
 .actionLinkPrimary {
   background: var(--color-primary);
-  color: var(--color-on-primary, #fff);
+  color: var(--color-text-inverse);
   font-weight: 600;
 }
 .actionLink {

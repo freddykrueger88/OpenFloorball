@@ -16,6 +16,7 @@ import FieldMiniature from '../components/field/FieldMiniature.jsx';
 import BoardPickerModal from '../components/trainings/BoardPickerModal.jsx';
 import CommentsPanel from '../components/comments/CommentsPanel.jsx';
 import RsvpSection from '../components/rsvp/RsvpSection.jsx';
+import CarpoolSection from '../components/carpool/CarpoolSection.jsx';
 import TrainingAttendanceSection from '../components/trainingAttendance/TrainingAttendanceSection.jsx';
 import Button from '../components/common/Button.jsx';
 import styles from './TrainingSessionPage.module.css';
@@ -384,6 +385,7 @@ export default function TrainingSessionPage() {
       )}
 
       <RsvpSection resourceKind="trainings" resourceId={id} teamId={session.teamId} />
+      <CarpoolSection resourceKind="trainings" resourceId={id} teamId={session.teamId} />
       <TrainingAttendanceSection sessionId={id} />
 
       <div className={styles.commentsSection}>

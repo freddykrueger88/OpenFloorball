@@ -19,6 +19,7 @@ import { assertBoardAccess } from '../utils/boardAccess.js';
 import { addDays } from '../utils/dateMath.js';
 import { deleteCommentsForResource } from './commentsController.js';
 import { deleteRsvpsForResource } from './rsvpsController.js';
+import { deleteCarpoolOffersForResource } from './carpoolsController.js';
 
 // Roadmap-Audit "Serientermine": eine Serie über eine Saison (z.B.
 // 2×/Woche, mehrere Teams) sprengt den ursprünglichen Anti-Abuse-Cap
@@ -264,6 +265,7 @@ export async function deleteSession(req, res) {
     // explizit aufräumen, sonst blieben verwaiste Kommentare zurück.
     await deleteCommentsForResource('training_session', req.params.id);
     await deleteRsvpsForResource('training_session', req.params.id);
+    await deleteCarpoolOffersForResource('training_session', req.params.id);
     res.json(success({ message: 'Trainingseinheit gelöscht' }));
   } catch (err) {
     logger.error('[deleteSession]', err);

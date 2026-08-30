@@ -1329,6 +1329,75 @@ export async function runMigrations() {
     // meisten Kader-Einträge sind nicht mit einem echten Konto verknüpft.
     await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS birthday DATE;`);
 
+    // ── carpool_offers (ISSUE 028: Fahrgemeinschaften) ──────────────────────
+    // Polymorph wie rsvps/comments (resource_type-Diskriminator, kein DB-FK
+    // auf resource_id) – Aufräumen läuft explizit über
+    // deleteCarpoolOffersForResource/deleteCarpoolOffersForUser, analog
+    // deleteRsvpsForResource/-ForUser.
+    //
+    // share_token ist NICHT optional wie exports.share_token – JEDES Angebot
+    // bekommt beim Anlegen sofort einen Token (kein separater "Link
+    // erzeugen"-Schritt wie bei Board-Shares), damit ein Elternteil ohne
+    // Account direkt über den Link mitfahren/absagen kann (bestätigte
+    // Design-Entscheidung, siehe BACKLOG.md ISSUE 028).
+    //
+    // Datensparsamkeit (CLAUDE.md §5.1/§5.3): meeting_point ist Freitext,
+    // den der Anbieter selbst wählt – keine Adress-/Telefonfelder.
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS carpool_offers (
+        id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        resource_type TEXT NOT NULL CHECK (resource_type IN ('game', 'training_session')),
+        resource_id   UUID NOT NULL,
+        user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        meeting_point TEXT NOT NULL,
+        total_seats   INTEGER NOT NULL CHECK (total_seats BETWEEN 1 AND 8),
+        note          TEXT NOT NULL DEFAULT '',
+        share_token   UUID NOT NULL UNIQUE DEFAULT uuid_generate_v4(),
+        created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`
+      DROP TRIGGER IF EXISTS trg_carpool_offers_updated_at ON carpool_offers;
+      CREATE TRIGGER trg_carpool_offers_updated_at
+        BEFORE UPDATE ON carpool_offers
+        FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_carpool_offers_resource ON carpool_offers(resource_type, resource_id);`);
+
+    // ── carpool_claims ───────────────────────────────────────────────────
+    // Echte Junction (wie game_squad/training_attendance), aber auf
+    // carpool_offers statt games/training_sessions – EINE Elternressource
+    // (der Angebot-Datensatz selbst), daher kein polymorpher Diskriminator
+    // nötig. ON DELETE CASCADE auf offer_id UND user_id bedeutet: Löschen
+    // eines Angebots ODER eines Nutzer-Accounts räumt zugehörige Claims
+    // automatisch ab, KEIN manueller Cleanup-Helper nötig (anders als bei
+    // carpool_offers selbst).
+    //
+    // Genau eines von user_id/claimant_name ist gesetzt: authentifizierte
+    // Team-Mitglieder claimen über ihren Account (user_id), anonyme
+    // Mitfahrer:innen (share_token-Pfad, typischerweise Eltern ohne
+    // Account) geben nur einen Anzeigenamen an (claimant_name).
+    // cancel_token erlaubt der anonymen Person, ihren EIGENEN Claim ohne
+    // Login wieder zu löschen (es gibt keine Session, über die sich "mein
+    // Eintrag" sonst feststellen ließe).
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS carpool_claims (
+        id             UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        offer_id       UUID NOT NULL REFERENCES carpool_offers(id) ON DELETE CASCADE,
+        user_id        UUID REFERENCES users(id) ON DELETE CASCADE,
+        claimant_name  TEXT,
+        cancel_token   UUID NOT NULL UNIQUE DEFAULT uuid_generate_v4(),
+        created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CHECK ((user_id IS NULL) <> (claimant_name IS NULL))
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_carpool_claims_offer_id ON carpool_claims(offer_id);`);
+    // Verhindert Doppel-Claim desselben authentifizierten Nutzers auf
+    // dasselbe Angebot; anonyme Claims (user_id NULL) sind hiervon nicht
+    // betroffen, da NULL in einem UNIQUE-Index nie mit sich selbst kollidiert.
+    await client.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_carpool_claims_offer_user_unique ON carpool_claims(offer_id, user_id) WHERE user_id IS NOT NULL;`);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

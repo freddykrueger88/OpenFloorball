@@ -33,6 +33,8 @@ import libraryRoutes from './library.js';
 import aiRoutes from './ai.js';
 import { createCommentRoutes } from './comments.js';
 import { createRsvpRoutes } from './rsvps.js';
+import { createCarpoolRoutes } from './carpools.js';
+import carpoolShareRoutes from './carpoolShare.js';
 import gameSquadRoutes from './gameSquad.js';
 import trainingAttendanceRoutes from './trainingAttendance.js';
 import gameEventsRoutes from './gameEvents.js';
@@ -59,6 +61,8 @@ const gameCommentRoutes = createCommentRoutes('game', {
 });
 const sessionRsvpRoutes = createRsvpRoutes('training_session', { assertRead: assertSessionRead });
 const gameRsvpRoutes = createRsvpRoutes('game', { assertRead: assertGameRead });
+const sessionCarpoolRoutes = createCarpoolRoutes('training_session', { assertRead: assertSessionRead, assertWrite: assertSessionWrite });
+const gameCarpoolRoutes = createCarpoolRoutes('game', { assertRead: assertGameRead, assertWrite: assertGameWrite });
 
 const router = Router();
 
@@ -74,6 +78,10 @@ router.use('/games/:id/comments', gameCommentRoutes);
 router.use('/trainings/:id/rsvps', sessionRsvpRoutes);
 router.use('/trainings/:id/attendance', trainingAttendanceRoutes);
 router.use('/games/:id/rsvps', gameRsvpRoutes);
+router.use('/trainings/:id/carpools', sessionCarpoolRoutes);
+router.use('/games/:id/carpools', gameCarpoolRoutes);
+// Öffentliche Fahrgemeinschafts-Ansicht – bewusst NICHT hinter authenticate
+router.use('/carpools', carpoolShareRoutes);
 router.use('/games/:id/squad', gameSquadRoutes);
 router.use('/games/:id/events', gameEventsRoutes);
 router.use('/games/:id/clock', gameClockRoutes);

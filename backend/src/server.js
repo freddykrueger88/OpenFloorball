@@ -117,7 +117,8 @@ if (process.env.NODE_ENV !== 'test') {
     skip: (req) => req.path === '/auth/login' || req.path === '/auth/register'
       || req.path === '/auth/forgot-password' || req.path === '/auth/reset-password'
       || req.path === '/ai/training-plan' || req.path === '/ai/tactic-suggestion'
-      || req.path === '/ai/analysis' || req.path === '/ai/knowledge-query',
+      || req.path === '/ai/analysis' || req.path === '/ai/knowledge-query'
+      || (req.path.startsWith('/carpools/') && req.method !== 'GET'),
   }));
 
   // Getrennt statt ein gemeinsamer Limiter für den ganzen /api/auth/-Pfad:
@@ -200,6 +201,20 @@ if (process.env.NODE_ENV !== 'test') {
     standardHeaders: true,
     legacyHeaders: false,
     message: { success: false, message: 'Zu viele KI-Anfragen, bitte warten.' },
+  }));
+
+  // Öffentliche Fahrgemeinschafts-Endpunkte (ISSUE 028, kein Login) – GET
+  // (Angebot ansehen) bleibt unter dem allgemeinen /api/-Limit wie
+  // /api/share/:token; nur die anonymen Schreibzugriffe (Platz
+  // beanspruchen/zurückziehen) sind hier zusätzlich eng begrenzt, da dies
+  // der erste anonyme WRITE-Pfad der App ist (siehe carpoolShareController.js).
+  app.use('/api/carpools', rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Zu viele Anfragen, bitte warten.' },
+    skip: (req) => req.method === 'GET',
   }));
 }
 

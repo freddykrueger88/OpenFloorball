@@ -47,6 +47,7 @@ const LinesPage           = lazy(() => import('./pages/LinesPage.jsx'));
 const LibraryPage         = lazy(() => import('./pages/LibraryPage.jsx'));
 const KnowledgePage       = lazy(() => import('./pages/KnowledgePage.jsx'));
 const SharePage       = lazy(() => import('./pages/SharePage.jsx'));
+const CarpoolSharePage = lazy(() => import('./pages/CarpoolSharePage.jsx'));
 const InvitePage      = lazy(() => import('./pages/InvitePage.jsx'));
 const SettingsPage    = lazy(() => import('./pages/SettingsPage.jsx'));
 const PrivacyPage     = lazy(() => import('./pages/PrivacyPage.jsx'));
@@ -158,6 +159,7 @@ export default function App() {
             <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
             <Route path="/organizations/:id" element={<PrivateRoute><OrganizationPage /></PrivateRoute>} />
             <Route path="/share/:token" element={<SharePage />} />
+            <Route path="/carpool/:token" element={<CarpoolSharePage />} />
             <Route path="/invite/:token" element={<InvitePage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/rules" element={<RulesPage />} />

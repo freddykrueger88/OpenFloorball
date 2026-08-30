@@ -414,6 +414,49 @@
       "private": "Private"
     }
   },
+  "carpool": {
+    "title": "Carpooling",
+    "ariaLabel": "Carpooling",
+    "loading": "Loading ride offers…",
+    "empty": "No ride offers yet.",
+    "you": "You",
+    "offerForm": {
+      "meetingPointPlaceholder": "Meeting point (e.g. clubhouse, 2pm)",
+      "meetingPointAriaLabel": "Meeting point",
+      "seatsLabel": "Free seats",
+      "seatsAriaLabel": "Number of free seats",
+      "notePlaceholder": "Note (optional)",
+      "noteAriaLabel": "Note",
+      "submitBtn": "Create offer"
+    },
+    "seatsFree": "{{free}}/{{total}} free",
+    "seatsFull": "Full",
+    "riderListAriaLabel": "Riders",
+    "claimBtn": "Join ride",
+    "withdrawClaimBtn": "Withdraw",
+    "deleteOfferBtn": "Delete offer",
+    "deleteOfferAriaLabel": "Delete offer",
+    "copyLink": "Copy link",
+    "copyLinkAriaLabel": "Copy shareable link",
+    "linkCopied": "Copied!",
+    "shareHint": "This link can also be shared with people without an account (e.g. parents).",
+    "errors": {
+      "full": "No free seats left.",
+      "alreadyClaimed": "You have already claimed a seat for this offer."
+    }
+  },
+  "carpoolSharePage": {
+    "title": "Ride offer",
+    "loading": "Loading…",
+    "linkInvalid": "Link invalid or the offer has been removed.",
+    "claimNamePlaceholder": "Your name",
+    "claimNameAriaLabel": "Your name",
+    "claimBtn": "I'll join",
+    "withdrawBtn": "Cancel",
+    "withdrawnHint": "If you lose this link/browser, only the person who offered the ride can free up your seat again.",
+    "seatsFree": "{{free}}/{{total}} free",
+    "seatsFull": "Full"
+  },
   "matchSquad": {
     "title": "Match Squad",
     "ariaLabel": "Match squad for this game",

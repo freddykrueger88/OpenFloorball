@@ -414,6 +414,49 @@
       "private": "Privat"
     }
   },
+  "carpool": {
+    "title": "Fahrgemeinschaften",
+    "ariaLabel": "Fahrgemeinschaften",
+    "loading": "Lädt Fahrangebote…",
+    "empty": "Noch keine Fahrangebote.",
+    "you": "Du",
+    "offerForm": {
+      "meetingPointPlaceholder": "Treffpunkt (z.B. Vereinsheim, 14:00 Uhr)",
+      "meetingPointAriaLabel": "Treffpunkt",
+      "seatsLabel": "Freie Plätze",
+      "seatsAriaLabel": "Anzahl freier Plätze",
+      "notePlaceholder": "Notiz (optional)",
+      "noteAriaLabel": "Notiz",
+      "submitBtn": "Angebot anlegen"
+    },
+    "seatsFree": "{{free}}/{{total}} frei",
+    "seatsFull": "Voll besetzt",
+    "riderListAriaLabel": "Mitfahrer:innen",
+    "claimBtn": "Mitfahren",
+    "withdrawClaimBtn": "Zurückziehen",
+    "deleteOfferBtn": "Angebot löschen",
+    "deleteOfferAriaLabel": "Angebot löschen",
+    "copyLink": "Link kopieren",
+    "copyLinkAriaLabel": "Teilbaren Link kopieren",
+    "linkCopied": "Kopiert!",
+    "shareHint": "Diesen Link kann auch teilen, wer keinen Account hat (z.B. Eltern).",
+    "errors": {
+      "full": "Keine freien Plätze mehr.",
+      "alreadyClaimed": "Du hast für dieses Angebot bereits einen Platz beansprucht."
+    }
+  },
+  "carpoolSharePage": {
+    "title": "Fahrangebot",
+    "loading": "Lädt…",
+    "linkInvalid": "Link ungültig oder das Angebot wurde entfernt.",
+    "claimNamePlaceholder": "Dein Name",
+    "claimNameAriaLabel": "Dein Name",
+    "claimBtn": "Ich fahre mit",
+    "withdrawBtn": "Absagen",
+    "withdrawnHint": "Wenn du diesen Link/Browser verlierst, kann nur die anbietende Person deinen Platz wieder freigeben.",
+    "seatsFree": "{{free}}/{{total}} frei",
+    "seatsFull": "Voll besetzt"
+  },
   "matchSquad": {
     "title": "Match-Kader",
     "ariaLabel": "Match-Kader für dieses Spiel",

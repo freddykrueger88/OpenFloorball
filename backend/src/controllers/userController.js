@@ -15,6 +15,7 @@ import { COOKIE_OPTS } from '../utils/cookies.js';
 import { buildUserExport, BACKUP_FORMAT } from '../services/exportUserData.js';
 import { deleteCommentsForUser } from './commentsController.js';
 import { deleteRsvpsForUser } from './rsvpsController.js';
+import { deleteCarpoolOffersForUser } from './carpoolsController.js';
 import { resolveOpponentId } from './opponentsController.js';
 
 const MAX_FRAMES_PER_BOARD = 50;
@@ -66,6 +67,7 @@ export async function deleteAccount(req, res) {
     // blieben Kommentare anderer Nutzer als verwaiste Zeilen zurück.
     await deleteCommentsForUser(req.user.id);
     await deleteRsvpsForUser(req.user.id);
+    await deleteCarpoolOffersForUser(req.user.id);
     await pool.query('DELETE FROM users WHERE id = $1', [req.user.id]);
     res.clearCookie('token', { ...COOKIE_OPTS, maxAge: 0 });
 

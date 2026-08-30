@@ -35,4 +35,18 @@ describe('LayerVisibilityPanel', () => {
     render(<LayerVisibilityPanel visibility={{ zone: false }} onToggle={() => {}} />);
     expect(screen.getByRole('button', { name: 'Trainingszonen einblenden' })).toHaveAttribute('aria-pressed', 'false');
   });
+
+  it('bietet "Gegner platzieren" an, solange keine gegnerischen Spieler existieren (ISSUE 025)', () => {
+    const onAddOpponents = vi.fn();
+    render(<LayerVisibilityPanel visibility={{}} onToggle={() => {}} hasAwayPlayers={false} onAddOpponents={onAddOpponents} />);
+
+    const addBtn = screen.getByRole('button', { name: 'Gegner platzieren' });
+    fireEvent.click(addBtn);
+    expect(onAddOpponents).toHaveBeenCalled();
+  });
+
+  it('zeigt "Gegner platzieren" nicht an, sobald gegnerische Spieler vorhanden sind', () => {
+    render(<LayerVisibilityPanel visibility={{}} onToggle={() => {}} hasAwayPlayers={true} onAddOpponents={() => {}} />);
+    expect(screen.queryByRole('button', { name: 'Gegner platzieren' })).not.toBeInTheDocument();
+  });
 });

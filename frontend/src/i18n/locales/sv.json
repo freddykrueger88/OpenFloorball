@@ -307,6 +307,8 @@
     "name": "Namn (valfritt)",
     "namePlaceholder": "t.ex. Anna Andersson",
     "passwordHint": "Minst 8 tecken, versaler/gemener och en siffra",
+    "birthday": "Födelsedatum",
+    "birthdayHint": "Används bland annat för födelsedagspåminnelsen på instrumentpanelen",
     "forgotPasswordLink": "Glömt lösenord?",
     "forgotPasswordTitle": "Återställ lösenord",
     "forgotPasswordDesc": "Ange din e-postadress. Om ett konto finns för den skickar vi en länk för att återställa ditt lösenord.",
@@ -355,7 +357,7 @@
       "comments": "Kommentarer",
       "history": "Historik",
       "settings": "Inställningar",
-      "layers": "Lager"
+      "layers": "Synlighet"
     },
     "collapsePanel": "Fäll ihop panel",
     "expandPanel": "Fäll ut panel"
@@ -378,7 +380,7 @@
     "pinDialogSaving": "Fäster…"
   },
   "layers": {
-    "hint": "Dölj enskilda lager för att fokusera på specifika element – gäller bara den här vyn, sparas inte.",
+    "hint": "Dölj enskilda element för att fokusera på specifika saker – gäller bara den här vyn, sparas inte.",
     "home": "Egna spelare",
     "away": "Motståndare",
     "move": "Rörelsepilar",
@@ -388,7 +390,8 @@
     "zone": "Träningszoner",
     "comments": "Kommentarnålar",
     "hideAriaLabel": "Dölj {{layer}}",
-    "showAriaLabel": "Visa {{layer}}"
+    "showAriaLabel": "Visa {{layer}}",
+    "addOpponents": "Placera motståndare"
   },
   "rsvp": {
     "title": "Närvaro",

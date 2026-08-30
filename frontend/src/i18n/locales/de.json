@@ -307,6 +307,8 @@
     "name": "Name (optional)",
     "namePlaceholder": "z.B. Max Mustermann",
     "passwordHint": "Mind. 8 Zeichen, Groß-/Kleinbuchstaben und eine Zahl",
+    "birthday": "Geburtsdatum",
+    "birthdayHint": "Wird u.a. für die Geburtstags-Erinnerung im Dashboard genutzt",
     "forgotPasswordLink": "Passwort vergessen?",
     "forgotPasswordTitle": "Passwort zurücksetzen",
     "forgotPasswordDesc": "Gib deine E-Mail-Adresse ein. Falls dazu ein Konto existiert, schicken wir dir einen Link zum Zurücksetzen.",
@@ -355,7 +357,7 @@
       "comments": "Kommentare",
       "history": "Verlauf",
       "settings": "Einstellungen",
-      "layers": "Ebenen"
+      "layers": "Sichtbarkeit"
     },
     "collapsePanel": "Menü einklappen",
     "expandPanel": "Menü ausklappen"
@@ -378,7 +380,7 @@
     "pinDialogSaving": "Wird angepinnt…"
   },
   "layers": {
-    "hint": "Blende einzelne Ebenen aus, um dich auf bestimmte Elemente zu konzentrieren – wirkt nur für diese Ansicht, wird nicht gespeichert.",
+    "hint": "Blende einzelne Elemente aus, um dich auf bestimmte Dinge zu konzentrieren – wirkt nur für diese Ansicht, wird nicht gespeichert.",
     "home": "Eigene Spieler",
     "away": "Gegner",
     "move": "Laufwege",
@@ -388,7 +390,8 @@
     "zone": "Trainingszonen",
     "comments": "Kommentar-Pins",
     "hideAriaLabel": "{{layer}} ausblenden",
-    "showAriaLabel": "{{layer}} einblenden"
+    "showAriaLabel": "{{layer}} einblenden",
+    "addOpponents": "Gegner platzieren"
   },
   "rsvp": {
     "title": "Anwesenheit",

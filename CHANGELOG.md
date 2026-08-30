@@ -14,6 +14,29 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Geburtsdatum als Pflichtfeld** bei der Registrierung (`users.birthday`,
+  additive Migration, validiert gegen Zukunfts-/Unsinnsdaten). Bestandsnutzer
+  ohne Geburtsdatum bekommen einmalig einen nicht-schließbaren Dialog
+  (`BirthdayGateDialog`) zum Nachtragen, bevor sie Tour/App weiter nutzen
+  können (`PUT /api/auth/birthday`). Neuer `GET /api/teams/birthdays`
+  liefert die Geburtstage aller Teamkolleg:innen (dedupliziert über alle
+  eigenen Teams). Neue Dashboard-Karte `BirthdayCard` zeigt heutige/nächste
+  Geburtstage; ein Klick auf den Party-Popper löst ein kleines,
+  abhängigkeitsfreies Canvas-Konfetti aus (respektiert
+  `prefers-reduced-motion`). Neue, jährlich wiederkehrende
+  "Geburtstag"-Kategorie im Kalender (eigener, nicht-klickbarer Chip-Typ).
+
+### Fixed
+- **Spieler-Dashboard wirkte gequetscht**: der CSS-Token `--space-5` wurde
+  von allen Dashboard-Karten sowie ~20 weiteren Stellen im Code (u. a.
+  BoardsPage, GamesPage, LibraryPage, OpponentsPage, TrainingsPage, mehrere
+  Modals) für Padding/Gap referenziert, war in `tokens.css` aber nie
+  definiert. Eine ungültige `var()`-Referenz macht die gesamte
+  CSS-Eigenschaft ungültig, wodurch die betroffenen Innen-/Außenabstände
+  seit Einführung dieser Stellen unbemerkt auf `0` zurückfielen. Fehlenden
+  Token `--space-5: 1.25rem` ergänzt (passt sich in die bestehende
+  N×0,25rem-Skala ein); Dashboard-Grid-Abstand zusätzlich auf `--space-6`
+  angehoben.
 - **Spieler-Dashboard** (`/dashboard`, zusätzliche Route neben `/boards`):
   neue Startseite mit nächstem Spiel (Countdown, Gegner, Halle, Heim/
   Auswärts, Status) inkl. direkter Zu-/Absage (Dabei/Eventuell/Nicht dabei,

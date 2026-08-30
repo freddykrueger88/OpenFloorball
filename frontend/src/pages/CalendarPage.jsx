@@ -13,9 +13,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight, Volleyball, Clipboard } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Volleyball, Clipboard, Cake } from 'lucide-react';
 import { useGames } from '../hooks/useGames.js';
 import { useTrainingSessions } from '../hooks/useTrainingSessions.js';
+import { useTeamBirthdays } from '../hooks/useTeamBirthdays.js';
+import { getMonthOccurrences } from '../utils/birthdaySelectors.js';
 import Button from '../components/common/Button.jsx';
 import CalendarFeedPanel from '../components/calendar/CalendarFeedPanel.jsx';
 import styles from './CalendarPage.module.css';
@@ -39,12 +41,14 @@ export default function CalendarPage() {
   const navigate = useNavigate();
   const { games, fetchGames } = useGames();
   const { sessions, fetchSessions } = useTrainingSessions();
+  const { birthdays, fetchBirthdays } = useTeamBirthdays();
 
   const today = new Date();
   const [view, setView] = useState({ year: today.getFullYear(), month: today.getMonth() });
 
   useEffect(() => { fetchGames().catch(() => {}); }, [fetchGames]);
   useEffect(() => { fetchSessions().catch(() => {}); }, [fetchSessions]);
+  useEffect(() => { fetchBirthdays().catch(() => {}); }, [fetchBirthdays]);
 
   const locale = i18n.language === 'en' ? 'en-US' : 'de-DE';
   const monthLabel = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(view.year, view.month, 1));
@@ -68,6 +72,20 @@ export default function CalendarPage() {
     }
     return map;
   }, [games, sessions]);
+
+  // Geburtstage sind jährlich wiederkehrend (kein festes Kalenderjahr in
+  // den Daten) – anders als games/sessions daher an view.year/view.month
+  // gebunden statt an einer absoluten Datums-Map über alle Monate.
+  const birthdaysByDay = useMemo(() => {
+    const map = new Map();
+    for (const b of birthdays) {
+      for (const day of getMonthOccurrences(b.birthday, view.year, view.month)) {
+        if (!map.has(day)) map.set(day, []);
+        map.get(day).push(b);
+      }
+    }
+    return map;
+  }, [birthdays, view.year, view.month]);
 
   const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -109,6 +127,7 @@ export default function CalendarPage() {
       <div className={styles.legend}>
         <span className={styles.legendItem}><Volleyball size={14} aria-hidden="true" className={styles.legendGame} /> {t('calendar.legendGames')}</span>
         <span className={styles.legendItem}><Clipboard size={14} aria-hidden="true" className={styles.legendSession} /> {t('calendar.legendTrainings')}</span>
+        <span className={styles.legendItem}><Cake size={14} aria-hidden="true" className={styles.legendBirthday} /> {t('calendar.legendBirthdays')}</span>
       </div>
 
       <div className={styles.gridWrap}>
@@ -120,10 +139,12 @@ export default function CalendarPage() {
             if (day === null) return <div key={`blank-${idx}`} className={styles.cellBlank} />;
             const key = dateKey(view.year, view.month, day);
             const dayEvents = eventsByDate.get(key);
-            const allEvents = dayEvents ? [
-              ...dayEvents.games.map((g) => ({ kind: 'game', id: g._id, label: g.opponent || t('calendar.unnamedGame') })),
-              ...dayEvents.sessions.map((s) => ({ kind: 'session', id: s._id, label: s.name })),
-            ] : [];
+            const dayBirthdays = birthdaysByDay.get(day) ?? [];
+            const allEvents = [
+              ...(dayEvents?.games.map((g) => ({ kind: 'game', id: g._id, label: g.opponent || t('calendar.unnamedGame') })) ?? []),
+              ...(dayEvents?.sessions.map((s) => ({ kind: 'session', id: s._id, label: s.name })) ?? []),
+              ...dayBirthdays.map((b) => ({ kind: 'birthday', id: b._id, label: b.name })),
+            ];
             const visible = allEvents.slice(0, MAX_CHIPS_PER_DAY);
             const overflow = allEvents.length - visible.length;
             return (
@@ -131,15 +152,21 @@ export default function CalendarPage() {
                 <span className={styles.dayNumber}>{day}</span>
                 <div className={styles.chips}>
                   {visible.map((ev) => (
-                    <button
-                      key={`${ev.kind}-${ev.id}`}
-                      type="button"
-                      className={`${styles.chip} ${ev.kind === 'game' ? styles.chipGame : styles.chipSession}`}
-                      onClick={() => navigate(ev.kind === 'game' ? `/games/${ev.id}` : `/trainings/${ev.id}`)}
-                      title={ev.label}
-                    >
-                      {ev.label}
-                    </button>
+                    ev.kind === 'birthday' ? (
+                      <span key={`birthday-${ev.id}`} className={`${styles.chip} ${styles.chipBirthday}`} title={ev.label}>
+                        <Cake size={12} aria-hidden="true" /> {ev.label}
+                      </span>
+                    ) : (
+                      <button
+                        key={`${ev.kind}-${ev.id}`}
+                        type="button"
+                        className={`${styles.chip} ${ev.kind === 'game' ? styles.chipGame : styles.chipSession}`}
+                        onClick={() => navigate(ev.kind === 'game' ? `/games/${ev.id}` : `/trainings/${ev.id}`)}
+                        title={ev.label}
+                      >
+                        {ev.label}
+                      </button>
+                    )
                   ))}
                   {overflow > 0 && <span className={styles.overflow}>{t('calendar.moreCount', { count: overflow })}</span>}
                 </div>

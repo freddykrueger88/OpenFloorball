@@ -518,6 +518,7 @@
     "today": "Idag",
     "legendGames": "Matcher",
     "legendTrainings": "Träningar",
+    "legendBirthdays": "Födelsedagar",
     "unnamedGame": "Match utan motståndare",
     "moreCount_one": "+{{count}} till",
     "moreCount_other": "+{{count}} till",
@@ -1107,6 +1108,13 @@
       "queuedAt": "Sparad offline {{date}}",
       "discardBtn": "Kasta"
     },
+    "birthdayGate": {
+      "title": "Lägg till ditt födelsedatum",
+      "hint": "Födelsedatum är numera ett obligatoriskt fält – används bland annat för födelsedagspåminnelsen på instrumentpanelen. Lägg till det en gång, sedan fortsätter du som vanligt.",
+      "confirm": "Spara",
+      "saving": "Sparar…",
+      "error": "Födelsedatum kunde inte sparas."
+    },
     "fieldTypeChange": {
       "title": "Byt plantyp?",
       "message": "Planen ändras till \"{{targetLabel}}\". Befintliga spelarpositioner och ritningar i alla bildrutor skalas proportionellt för att passa den nya planen.",
@@ -1580,6 +1588,15 @@
     "status": {
       "cancelled": "Inställd",
       "postponed": "Flyttad"
+    },
+    "birthdays": {
+      "title": "Födelsedagar",
+      "celebrateAriaLabel": "Utlös konfetti",
+      "confettiAnnouncement": "Konfettiregn utlöst 🎉",
+      "empty": "Inga lagkamraters födelsedagar registrerade ännu.",
+      "todayEntry": "{{name}} fyller år idag och blir {{age}}!",
+      "nextEntry": "Om {{count}} dag fyller {{name}} år (blir {{age}}).",
+      "nextEntry_other": "Om {{count}} dagar fyller {{name}} år (blir {{age}})."
     },
     "availability": {
       "groupLabel": "Din tillgänglighet",

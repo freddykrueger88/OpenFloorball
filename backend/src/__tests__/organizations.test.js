@@ -14,7 +14,7 @@ const uniqueEmail = (tag) => `${TEST_EMAIL_PREFIX}${tag}-${Math.floor(Math.rando
 
 async function registerAndLogin(tag) {
   const email = uniqueEmail(tag);
-  const res = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+  const res = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
   return { email, cookie: res.headers['set-cookie'][0] };
 }
 
@@ -236,11 +236,11 @@ describe('Bugfix: Ersteller-Account-Löschung darf den Verein nicht mitreißen',
   // gelöscht zu werden.
   it('Verein bleibt erhalten, wenn der ursprüngliche Ersteller die Gruppe verlässt und danach seinen Account löscht', async () => {
     const creatorEmail = uniqueEmail('creator');
-    const creatorRes = await request(app).post('/api/auth/register').send({ email: creatorEmail, password: 'Testpass123' });
+    const creatorRes = await request(app).post('/api/auth/register').send({ email: creatorEmail, password: 'Testpass123', birthday: '1990-01-01'});
     const creatorCookie = creatorRes.headers['set-cookie'][0];
 
     const successorEmail = uniqueEmail('successor');
-    const successorRes = await request(app).post('/api/auth/register').send({ email: successorEmail, password: 'Testpass123' });
+    const successorRes = await request(app).post('/api/auth/register').send({ email: successorEmail, password: 'Testpass123', birthday: '1990-01-01'});
     const successorCookie = successorRes.headers['set-cookie'][0];
 
     const orgRes = await request(app)

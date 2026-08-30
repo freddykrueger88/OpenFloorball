@@ -17,7 +17,7 @@ beforeAll(async () => {
   email = uniqueEmail('user');
   const res = await request(app)
     .post('/api/auth/register')
-    .send({ email, password: 'Testpass123' });
+    .send({ email, password: 'Testpass123', birthday: '1990-01-01'});
   cookie = res.headers['set-cookie'][0];
 });
 

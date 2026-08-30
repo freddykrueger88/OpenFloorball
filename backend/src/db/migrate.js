@@ -1322,6 +1322,13 @@ export async function runMigrations() {
         FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
     `);
 
+    // ── Geburtstag: Pflichtfeld bei Neu-Registrierung, für Bestandsnutzer
+    // per BirthdayGateDialog.jsx einmalig nachgetragen (daher hier NULLable,
+    // die Pflicht wird auf Anwendungsebene in routes/auth.js erzwungen).
+    // Nur users – nicht roster_players, siehe Architekturentscheidung: die
+    // meisten Kader-Einträge sind nicht mit einem echten Konto verknüpft.
+    await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS birthday DATE;`);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

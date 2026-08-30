@@ -9,6 +9,7 @@ import { validate } from '../middleware/validate.js';
 import {
   getTeams, getTeam, createTeam, updateTeam, deleteTeam,
   getMembers, inviteMember, updateMemberRole, removeMember,
+  getMyBirthdays,
 } from '../controllers/teamsController.js';
 
 const router = Router();
@@ -26,6 +27,7 @@ router.post  ('/',      [
   body('organizationId').optional({ nullable: true }).isUUID().withMessage('Ungültige Vereins-ID'),
   validate,
 ], createTeam);
+router.get   ('/birthdays', getMyBirthdays);
 router.get   ('/:id',    [validateTeamId, validate], getTeam);
 router.put   ('/:id',    [validateTeamId, validateName, validate], updateTeam);
 router.delete('/:id',    [validateTeamId, validate], deleteTeam);

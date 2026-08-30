@@ -32,6 +32,24 @@ function hashResetToken(rawToken) {
 }
 
 // ── Validierungsregeln ─────────────────────────
+// Geburtsdatum: bei Neu-Registrierung Pflichtfeld (siehe BirthdayGateDialog
+// für Bestandsnutzer ohne Geburtsdatum), plausibilisiert statt nur formal
+// geprüft – ein Datum in der Zukunft oder vor über 120 Jahren ist immer
+// ein Eingabefehler, kein echtes Geburtsdatum.
+const birthdayValidation = body('birthday')
+  .notEmpty().withMessage('Geburtsdatum ist erforderlich')
+  .bail()
+  .isISO8601().withMessage('Ungültiges Geburtsdatum')
+  .bail()
+  .custom((value) => {
+    const date = new Date(value);
+    if (date > new Date()) throw new Error('Geburtsdatum darf nicht in der Zukunft liegen');
+    const minDate = new Date();
+    minDate.setFullYear(minDate.getFullYear() - 120);
+    if (date < minDate) throw new Error('Geburtsdatum ist unrealistisch');
+    return true;
+  });
+
 const registerValidation = [
   body('email').isEmail().normalizeEmail().withMessage('Ungültige E-Mail-Adresse'),
   body('password')
@@ -40,6 +58,7 @@ const registerValidation = [
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage('Passwort muss Groß-, Kleinbuchstaben und eine Zahl enthalten'),
   body('name').optional().trim().isLength({ max: 100 }).withMessage('Name zu lang'),
+  birthdayValidation,
 ];
 
 const loginValidation = [
@@ -69,7 +88,7 @@ router.post('/register', registerValidation, async (req, res) => {
     return res.status(422).json(error('Validierungsfehler', errors.array()));
   }
 
-  const { email, password, name } = req.body;
+  const { email, password, name, birthday } = req.body;
 
   try {
     // Prüfen ob bereits ein User existiert → erster User = Admin
@@ -88,10 +107,10 @@ router.post('/register', registerValidation, async (req, res) => {
 
     // User anlegen
     const result = await pool.query(
-      `INSERT INTO users (email, password_hash, role, display_name)
-       VALUES ($1, $2, $3, $4)
-       RETURNING id, email, role, display_name, created_at`,
-      [email, passwordHash, role, name || null]
+      `INSERT INTO users (email, password_hash, role, display_name, birthday)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, email, role, display_name, birthday, created_at`,
+      [email, passwordHash, role, name || null, birthday]
     );
     const user = result.rows[0];
 
@@ -124,7 +143,7 @@ router.post('/register', registerValidation, async (req, res) => {
 
     logger.info(`User registered: ${user.id} (role: ${role})`);
     notifyAdminsOfNewUser({ email: user.email, name: user.display_name }, { isFirstUser });
-    return res.status(201).json(created({ user: { id: user.id, email: user.email, role: user.role, name: user.display_name } }));
+    return res.status(201).json(created({ user: { id: user.id, email: user.email, role: user.role, name: user.display_name, birthday: user.birthday } }));
   } catch (err) {
     logger.error('Register error:', err);
     return res.status(500).json(error('Interner Serverfehler'));
@@ -142,7 +161,7 @@ router.post('/login', loginValidation, async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT id, email, password_hash, role, display_name FROM users WHERE email = $1',
+      'SELECT id, email, password_hash, role, display_name, birthday FROM users WHERE email = $1',
       [email]
     );
 
@@ -162,7 +181,7 @@ router.post('/login', loginValidation, async (req, res) => {
     res.cookie('token', token, COOKIE_OPTS);
 
     logger.info(`User logged in: ${user.id}`);
-    return res.json(success({ user: { id: user.id, email: user.email, role: user.role, name: user.display_name } }));
+    return res.json(success({ user: { id: user.id, email: user.email, role: user.role, name: user.display_name, birthday: user.birthday } }));
   } catch (err) {
     logger.error('Login error:', err);
     return res.status(500).json(error('Interner Serverfehler'));
@@ -196,7 +215,7 @@ router.post('/logout', authenticate, async (req, res) => {
 router.get('/me', authenticate, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, email, role, display_name AS name, created_at FROM users WHERE id = $1',
+      'SELECT id, email, role, display_name AS name, birthday, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
     if (result.rows.length === 0) {
@@ -225,6 +244,26 @@ router.put('/name', authenticate, [
     return res.json(success({ user: result.rows[0] }));
   } catch (err) {
     logger.error('Update name error:', err);
+    return res.status(500).json(error('Interner Serverfehler'));
+  }
+});
+
+// ── PUT /api/auth/birthday ──────────────────────
+// Für Bestandsnutzer ohne Geburtsdatum (vor Einführung des Pflichtfelds
+// registriert) – wird über BirthdayGateDialog.jsx einmalig erzwungen.
+router.put('/birthday', authenticate, [birthdayValidation], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json(error('Validierungsfehler', errors.array()));
+  }
+  try {
+    const result = await pool.query(
+      'UPDATE users SET birthday = $1 WHERE id = $2 RETURNING id, email, role, display_name AS name, birthday',
+      [req.body.birthday, req.user.id]
+    );
+    return res.json(success({ user: result.rows[0] }));
+  } catch (err) {
+    logger.error('Update birthday error:', err);
     return res.status(500).json(error('Interner Serverfehler'));
   }
 });

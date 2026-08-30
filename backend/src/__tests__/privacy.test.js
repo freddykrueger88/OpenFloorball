@@ -16,7 +16,7 @@ beforeAll(async () => {
   await connectRedis();
   await runMigrations();
   const email = uniqueEmail('owner');
-  const res = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+  const res = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
   owner = { id: res.body.data.user.id, email, cookie: res.headers['set-cookie'][0] };
 });
 

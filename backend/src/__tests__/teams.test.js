@@ -10,7 +10,7 @@ const uniqueEmail = (tag) => `${TEST_EMAIL_PREFIX}${tag}-${Math.floor(Math.rando
 
 async function registerAndLogin(tag) {
   const email = uniqueEmail(tag);
-  const res = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+  const res = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
   return { email, cookie: res.headers['set-cookie'][0] };
 }
 
@@ -216,11 +216,11 @@ describe('Bugfix: Ersteller-Account-Löschung darf das Team nicht mitreißen', (
   // gelöscht zu werden.
   it('Team bleibt erhalten, wenn der ursprüngliche Ersteller die Gruppe verlässt und danach seinen Account löscht', async () => {
     const creatorEmail = uniqueEmail('creator');
-    const creatorRes = await request(app).post('/api/auth/register').send({ email: creatorEmail, password: 'Testpass123' });
+    const creatorRes = await request(app).post('/api/auth/register').send({ email: creatorEmail, password: 'Testpass123', birthday: '1990-01-01'});
     const creatorCookie = creatorRes.headers['set-cookie'][0];
 
     const successorEmail = uniqueEmail('successor');
-    const successorRes = await request(app).post('/api/auth/register').send({ email: successorEmail, password: 'Testpass123' });
+    const successorRes = await request(app).post('/api/auth/register').send({ email: successorEmail, password: 'Testpass123', birthday: '1990-01-01'});
     const successorCookie = successorRes.headers['set-cookie'][0];
 
     const teamRes = await request(app)
@@ -258,5 +258,41 @@ describe('Bugfix: Ersteller-Account-Löschung darf das Team nicht mitreißen', (
 
     const dbCheck = await pool.query('SELECT created_by FROM teams WHERE id = $1', [bugTeamId]);
     expect(dbCheck.rows[0].created_by).toBeNull();
+  });
+});
+
+describe('GET /api/teams/birthdays', () => {
+  it('zeigt Geburtstage von Teamkolleg:innen, dedupliziert über mehrere gemeinsame Teams, ohne fremde Nutzer', async () => {
+    const alice = await registerAndLogin('bday-alice');
+    const bob = await registerAndLogin('bday-bob');
+    const outsider = await registerAndLogin('bday-outsider');
+    await pool.query("UPDATE users SET birthday = '1985-05-05' WHERE email = $1", [alice.email]);
+    await pool.query("UPDATE users SET birthday = '1992-11-30' WHERE email = $1", [bob.email]);
+    // Nutzer ohne Geburtsdatum dürfen nicht auftauchen
+    await pool.query("UPDATE users SET birthday = NULL WHERE email = $1", [outsider.email]);
+
+    const teamARes = await request(app).post('/api/teams').set('Cookie', alice.cookie).send({ name: 'Bday Team A' });
+    const teamAId = teamARes.body.data._id;
+    const teamBRes = await request(app).post('/api/teams').set('Cookie', alice.cookie).send({ name: 'Bday Team B' });
+    const teamBId = teamBRes.body.data._id;
+
+    // Bob teilt mit Alice gleich zwei Teams – muss trotzdem nur einmal
+    // in der Liste erscheinen.
+    await request(app).post(`/api/teams/${teamAId}/members`).set('Cookie', alice.cookie).send({ email: bob.email, role: 'member' });
+    await request(app).post(`/api/teams/${teamBId}/members`).set('Cookie', alice.cookie).send({ email: bob.email, role: 'member' });
+    await request(app).post(`/api/teams/${teamAId}/members`).set('Cookie', alice.cookie).send({ email: outsider.email, role: 'member' });
+
+    const res = await request(app).get('/api/teams/birthdays').set('Cookie', alice.cookie);
+    expect(res.status).toBe(200);
+    expect(res.body.data).toHaveLength(2); // alice + bob (dedupliziert), nicht outsider (kein Geburtstag)
+    expect(res.body.data.some((b) => String(b.birthday).startsWith('1985-05-05'))).toBe(true);
+    expect(res.body.data.some((b) => String(b.birthday).startsWith('1992-11-30'))).toBe(true);
+  });
+
+  it('ein Nutzer ohne gemeinsames Team sieht keine fremden Geburtstage', async () => {
+    const loner = await registerAndLogin('bday-loner');
+    const res = await request(app).get('/api/teams/birthdays').set('Cookie', loner.cookie);
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual([]);
   });
 });

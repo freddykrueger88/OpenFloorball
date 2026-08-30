@@ -14,6 +14,19 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- **Issue 028: Fahrgemeinschaften für Spiele und Trainings**. Team-
+  Mitglieder können eine Fahrt zu einem Spiel/Training anbieten
+  (Treffpunkt als Freitext, freie Plätze, optionale Notiz), andere
+  Mitglieder nehmen einen Platz wahr – direkt auf der Spiel-/Trainings-
+  Detailseite, analog RSVP/Kommentare. Zusätzlich ein tokenbasierter
+  öffentlicher Link (`/carpool/:token`), damit auch Personen ohne
+  eigenen Account (typischerweise Eltern im Nachwuchsbereich) mitfahren
+  oder ihre Zusage zurückziehen können – der erste anonyme
+  Schreib-Zugriff der Plattform, entsprechend mit einer
+  Datenbank-Transaktion samt Zeilensperre gegen Überbuchung unter
+  Nebenläufigkeit sowie einem eigenen, engeren Rate-Limit abgesichert.
+  Datensparsamkeit: kein Adress-/Telefonfeld, die öffentliche Ansicht
+  gibt nie eine E-Mail-Adresse preis.
 - **Geburtsdatum als Pflichtfeld** bei der Registrierung (`users.birthday`,
   additive Migration, validiert gegen Zukunfts-/Unsinnsdaten). Bestandsnutzer
   ohne Geburtsdatum bekommen einmalig einen nicht-schließbaren Dialog

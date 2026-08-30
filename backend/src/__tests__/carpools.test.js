@@ -133,7 +133,9 @@ for (const resource of RESOURCES) {
       const offer = getRes.body.data.find((o) => o._id === offerId);
       expect(offer.claims).toHaveLength(1);
       expect(offer.claims[0].userId).toBeTruthy();
-      expect(offer.claims[0].claimantName).toBeNull();
+      // Für authentifizierte Claims dient die E-Mail als Anzeigename (wie
+      // beim RSVP-Roster) – nur anonyme Token-Claims haben claimant_name.
+      expect(offer.claims[0].claimantName).toBe(member.email);
 
       const secondClaimant = await registerAndLogin('second-claimant');
       await request(app).post(`/api/teams/${teamId}/members`).set('Cookie', owner.cookie).send({ email: secondClaimant.email, role: 'member' });

@@ -25,7 +25,7 @@ describe('POST /api/auth/register', () => {
     const email = uniqueEmail('register');
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ email, password: 'Testpass123' });
+      .send({ email, password: 'Testpass123', birthday: '1990-01-01'});
 
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
@@ -36,11 +36,11 @@ describe('POST /api/auth/register', () => {
 
   it('lehnt eine bereits registrierte E-Mail mit 409 ab', async () => {
     const email = uniqueEmail('dup');
-    await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+    await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
 
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ email, password: 'AnderesPass123' });
+      .send({ email, password: 'AnderesPass123', birthday: '1990-01-01'});
 
     expect(res.status).toBe(409);
   });
@@ -48,7 +48,7 @@ describe('POST /api/auth/register', () => {
   it('lehnt ungültige E-Mail-Adressen mit 422 ab', async () => {
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ email: 'keine-email', password: 'Testpass123' });
+      .send({ email: 'keine-email', password: 'Testpass123', birthday: '1990-01-01'});
 
     expect(res.status).toBe(422);
   });
@@ -56,9 +56,44 @@ describe('POST /api/auth/register', () => {
   it('lehnt zu schwache Passwörter mit 422 ab', async () => {
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ email: uniqueEmail('weak'), password: 'nurklein' });
+      .send({ email: uniqueEmail('weak'), password: 'nurklein', birthday: '1990-01-01'});
 
     expect(res.status).toBe(422);
+  });
+
+  it('lehnt ein fehlendes Geburtsdatum mit 422 ab', async () => {
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ email: uniqueEmail('no-birthday'), password: 'Testpass123' });
+
+    expect(res.status).toBe(422);
+  });
+
+  it('lehnt ein Geburtsdatum in der Zukunft mit 422 ab', async () => {
+    const futureDate = new Date();
+    futureDate.setFullYear(futureDate.getFullYear() + 1);
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ email: uniqueEmail('future-birthday'), password: 'Testpass123', birthday: futureDate.toISOString().slice(0, 10) });
+
+    expect(res.status).toBe(422);
+  });
+
+  it('lehnt ein unrealistisch weit zurückliegendes Geburtsdatum mit 422 ab', async () => {
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ email: uniqueEmail('ancient-birthday'), password: 'Testpass123', birthday: '1850-01-01' });
+
+    expect(res.status).toBe(422);
+  });
+
+  it('speichert ein gültiges Geburtsdatum und liefert es zurück', async () => {
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ email: uniqueEmail('valid-birthday'), password: 'Testpass123', birthday: '1995-06-15' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.user.birthday).toMatch(/^1995-06-15/);
   });
 
   it('registriert erfolgreich, auch wenn bereits ein Admin existiert (Admin-Benachrichtigungsmail)', async () => {
@@ -66,12 +101,12 @@ describe('POST /api/auth/register', () => {
     // Mail an alle Admins bei jeder Neuregistrierung) die Registrierung
     // selbst nicht beeinträchtigt, unabhängig von der Testreihenfolge.
     const adminEmail = uniqueEmail('existing-admin');
-    const adminRes = await request(app).post('/api/auth/register').send({ email: adminEmail, password: 'Testpass123' });
+    const adminRes = await request(app).post('/api/auth/register').send({ email: adminEmail, password: 'Testpass123', birthday: '1990-01-01'});
     await pool.query("UPDATE users SET role = 'admin' WHERE id = $1", [adminRes.body.data.user.id]);
 
     const res = await request(app)
       .post('/api/auth/register')
-      .send({ email: uniqueEmail('second'), name: 'Zweiter Nutzer', password: 'Testpass123' });
+      .send({ email: uniqueEmail('second'), name: 'Zweiter Nutzer', password: 'Testpass123', birthday: '1990-01-01'});
 
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
@@ -83,7 +118,7 @@ describe('POST /api/auth/login', () => {
   const password = 'Testpass123';
 
   beforeAll(async () => {
-    await request(app).post('/api/auth/register').send({ email, password });
+    await request(app).post('/api/auth/register').send({ email, password, birthday: '1990-01-01'});
   });
 
   it('meldet mit korrekten Zugangsdaten an und setzt ein Cookie', async () => {
@@ -113,7 +148,7 @@ describe('GET /api/auth/me + POST /api/auth/logout', () => {
   let cookie;
 
   beforeAll(async () => {
-    const res = await request(app).post('/api/auth/register').send({ email, password });
+    const res = await request(app).post('/api/auth/register').send({ email, password, birthday: '1990-01-01'});
     cookie = res.headers['set-cookie'][0];
   });
 
@@ -126,6 +161,7 @@ describe('GET /api/auth/me + POST /api/auth/logout', () => {
     const res = await request(app).get('/api/auth/me').set('Cookie', cookie);
     expect(res.status).toBe(200);
     expect(res.body.data.user.email).toBe(email);
+    expect(res.body.data.user.birthday).toMatch(/^1990-01-01/);
   });
 
   it('invalidiert das Cookie nach Logout (Redis-Blacklist)', async () => {
@@ -137,6 +173,59 @@ describe('GET /api/auth/me + POST /api/auth/logout', () => {
   });
 });
 
+describe('PUT /api/auth/birthday', () => {
+  // Simuliert einen Bestandsnutzer ohne Geburtsdatum (vor Einführung des
+  // Pflichtfelds registriert) – direkt in der DB auf NULL gesetzt, weil die
+  // Registrierung selbst inzwischen immer ein Geburtsdatum verlangt.
+  let cookie;
+  let userId;
+
+  beforeAll(async () => {
+    const email = uniqueEmail('birthday-gate');
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ email, password: 'Testpass123', birthday: '1990-01-01' });
+    cookie = res.headers['set-cookie'][0];
+    userId = res.body.data.user.id;
+    await pool.query('UPDATE users SET birthday = NULL WHERE id = $1', [userId]);
+  });
+
+  it('lehnt ohne Authentifizierung mit 401 ab', async () => {
+    const res = await request(app).put('/api/auth/birthday').send({ birthday: '1990-01-01' });
+    expect(res.status).toBe(401);
+  });
+
+  it('lehnt ein fehlendes Geburtsdatum mit 422 ab', async () => {
+    const res = await request(app).put('/api/auth/birthday').set('Cookie', cookie).send({});
+    expect(res.status).toBe(422);
+  });
+
+  it('lehnt ein Geburtsdatum in der Zukunft mit 422 ab', async () => {
+    const futureDate = new Date();
+    futureDate.setFullYear(futureDate.getFullYear() + 1);
+    const res = await request(app)
+      .put('/api/auth/birthday')
+      .set('Cookie', cookie)
+      .send({ birthday: futureDate.toISOString().slice(0, 10) });
+    expect(res.status).toBe(422);
+  });
+
+  it('trägt ein gültiges Geburtsdatum nach und schließt die Lücke bei /me', async () => {
+    const meBefore = await request(app).get('/api/auth/me').set('Cookie', cookie);
+    expect(meBefore.body.data.user.birthday).toBeNull();
+
+    const res = await request(app)
+      .put('/api/auth/birthday')
+      .set('Cookie', cookie)
+      .send({ birthday: '1988-03-20' });
+    expect(res.status).toBe(200);
+    expect(res.body.data.user.birthday).toMatch(/^1988-03-20/);
+
+    const meAfter = await request(app).get('/api/auth/me').set('Cookie', cookie);
+    expect(meAfter.body.data.user.birthday).toMatch(/^1988-03-20/);
+  });
+});
+
 describe('POST /api/auth/forgot-password', () => {
   it('lehnt eine ungültige E-Mail-Adresse mit 422 ab', async () => {
     const res = await request(app).post('/api/auth/forgot-password').send({ email: 'keine-email' });
@@ -145,7 +234,7 @@ describe('POST /api/auth/forgot-password', () => {
 
   it('liefert dieselbe generische Erfolgsmeldung für eine existierende Adresse', async () => {
     const email = uniqueEmail('forgot-existing');
-    await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+    await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
 
     const res = await request(app).post('/api/auth/forgot-password').send({ email });
     expect(res.status).toBe(200);
@@ -162,7 +251,7 @@ describe('POST /api/auth/forgot-password', () => {
 
   it('legt für eine existierende Adresse einen Reset-Token an', async () => {
     const email = uniqueEmail('forgot-token');
-    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
     const userId = registerRes.body.data.user.id;
 
     await request(app).post('/api/auth/forgot-password').send({ email });
@@ -173,7 +262,7 @@ describe('POST /api/auth/forgot-password', () => {
 
   it('macht bei einem erneuten Request den vorherigen Token dieses Nutzers ungültig (nur ein aktiver Token)', async () => {
     const email = uniqueEmail('forgot-superseded');
-    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
     const userId = registerRes.body.data.user.id;
 
     await request(app).post('/api/auth/forgot-password').send({ email });
@@ -225,7 +314,7 @@ describe('POST /api/auth/reset-password', () => {
 
   it('lehnt ein abgelaufenes Token mit 400 ab', async () => {
     const email = uniqueEmail('reset-expired');
-    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
     const userId = registerRes.body.data.user.id;
     const rawToken = await insertResetToken(userId, { expiresInMs: -1000 }); // bereits abgelaufen
 
@@ -237,7 +326,7 @@ describe('POST /api/auth/reset-password', () => {
 
   it('setzt mit einem gültigen Token das Passwort erfolgreich zurück und erlaubt Login mit dem neuen Passwort', async () => {
     const email = uniqueEmail('reset-valid');
-    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
     const userId = registerRes.body.data.user.id;
     const rawToken = await insertResetToken(userId);
 
@@ -255,7 +344,7 @@ describe('POST /api/auth/reset-password', () => {
 
   it('lehnt eine zweite Verwendung desselben Tokens ab (einmal verwendbar)', async () => {
     const email = uniqueEmail('reset-single-use');
-    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
     const userId = registerRes.body.data.user.id;
     const rawToken = await insertResetToken(userId);
 

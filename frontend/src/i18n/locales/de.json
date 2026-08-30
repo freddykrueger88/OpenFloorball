@@ -518,6 +518,7 @@
     "today": "Heute",
     "legendGames": "Spiele",
     "legendTrainings": "Trainings",
+    "legendBirthdays": "Geburtstage",
     "unnamedGame": "Spiel ohne Gegner",
     "moreCount_one": "+{{count}} weiterer",
     "moreCount_other": "+{{count}} weitere",
@@ -1107,6 +1108,13 @@
       "queuedAt": "Offline gespeichert am {{date}}",
       "discardBtn": "Verwerfen"
     },
+    "birthdayGate": {
+      "title": "Geburtsdatum ergänzen",
+      "hint": "Das Geburtsdatum ist mittlerweile ein Pflichtfeld – u.a. für die Geburtstags-Erinnerung im Dashboard. Bitte einmalig nachtragen, danach wie gewohnt weiterarbeiten.",
+      "confirm": "Speichern",
+      "saving": "Speichert…",
+      "error": "Geburtsdatum konnte nicht gespeichert werden."
+    },
     "fieldTypeChange": {
       "title": "Spielfeld-Typ ändern?",
       "message": "Das Spielfeld wird auf „{{targetLabel}}“ umgestellt. Bestehende Spielerpositionen und Zeichnungen in allen Frames werden proportional an das neue Feld angepasst.",
@@ -1580,6 +1588,15 @@
     "status": {
       "cancelled": "Abgesagt",
       "postponed": "Verlegt"
+    },
+    "birthdays": {
+      "title": "Geburtstage",
+      "celebrateAriaLabel": "Konfetti auslösen",
+      "confettiAnnouncement": "Konfetti-Regen ausgelöst 🎉",
+      "empty": "Noch keine Geburtstage im Team hinterlegt.",
+      "todayEntry": "{{name}} hat heute Geburtstag und wird {{age}}!",
+      "nextEntry": "In {{count}} Tag hat {{name}} Geburtstag (wird {{age}}).",
+      "nextEntry_other": "In {{count}} Tagen hat {{name}} Geburtstag (wird {{age}})."
     },
     "availability": {
       "groupLabel": "Deine Verfügbarkeit",

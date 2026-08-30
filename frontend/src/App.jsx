@@ -11,6 +11,7 @@ import Header from './components/layout/Header.jsx';
 import Footer from './components/layout/Footer.jsx';
 import OfflineBanner from './components/layout/OfflineBanner.jsx';
 import TourOverlay from './components/layout/TourOverlay.jsx';
+import BirthdayGateDialog from './components/layout/BirthdayGateDialog.jsx';
 import useOfflineStore from './store/offlineStore.js';
 import { syncOfflineQueue } from './utils/offlineSync.js';
 import { getQueueCounts } from './utils/offlineQueue.js';
@@ -128,7 +129,8 @@ export default function App() {
         <LiveRegion />
         <OfflineBanner />
         <Header />
-        {user && <TourOverlay tourId="nav" steps={NAV_TOUR_STEPS} settingsKey="tourCompleted" />}
+        {user && !user.birthday && <BirthdayGateDialog />}
+        {user && user.birthday && <TourOverlay tourId="nav" steps={NAV_TOUR_STEPS} settingsKey="tourCompleted" />}
         <Suspense fallback={<Loader />}>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

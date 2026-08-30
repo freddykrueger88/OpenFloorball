@@ -15,7 +15,7 @@ beforeAll(async () => {
   await runMigrations();
   const res = await request(app)
     .post('/api/auth/register')
-    .send({ email: uniqueEmail('user'), password: 'Testpass123' });
+    .send({ email: uniqueEmail('user'), password: 'Testpass123', birthday: '1990-01-01'});
   cookie = res.headers['set-cookie'][0];
 });
 

@@ -22,7 +22,7 @@ beforeAll(async () => {
 describe('DELETE /api/user/account', () => {
   it('lehnt eine falsche E-Mail-Bestätigung mit 400 ab', async () => {
     const email = uniqueEmail('wrongconfirm');
-    const res = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+    const res = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
     const cookie = res.headers['set-cookie'][0];
 
     const delRes = await request(app)
@@ -34,7 +34,7 @@ describe('DELETE /api/user/account', () => {
 
   it('löscht Account + Boards und invalidiert das Cookie', async () => {
     const email = uniqueEmail('success');
-    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
     const cookie = registerRes.headers['set-cookie'][0];
     const userId = registerRes.body.data.user.id;
 
@@ -50,7 +50,7 @@ describe('DELETE /api/user/account', () => {
     // Aufräumung sonst. Ein Kommentar eines DRITTEN Nutzers (Kollaborator)
     // blieb ohne den Fix als verwaiste Zeile zurück.
     const collaboratorEmail = uniqueEmail('collaborator');
-    const collaboratorRes = await request(app).post('/api/auth/register').send({ email: collaboratorEmail, password: 'Testpass123' });
+    const collaboratorRes = await request(app).post('/api/auth/register').send({ email: collaboratorEmail, password: 'Testpass123', birthday: '1990-01-01'});
     const collaboratorCookie = collaboratorRes.headers['set-cookie'][0];
     await request(app)
       .post(`/api/boards/${boardId}/collaborators`)
@@ -84,7 +84,7 @@ describe('DELETE /api/user/account', () => {
 
   it('lehnt Löschung des letzten Admins mit 403 ab', async () => {
     const email = uniqueEmail('lastadmin');
-    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+    const registerRes = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
     const cookie = registerRes.headers['set-cookie'][0];
     const userId = registerRes.body.data.user.id;
     // Frühere Tests in dieser Datei können durch "erster User = Admin" bereits

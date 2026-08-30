@@ -518,6 +518,7 @@
     "today": "Today",
     "legendGames": "Games",
     "legendTrainings": "Trainings",
+    "legendBirthdays": "Birthdays",
     "unnamedGame": "Game without opponent",
     "moreCount_one": "+{{count}} more",
     "moreCount_other": "+{{count}} more",
@@ -1107,6 +1108,13 @@
       "queuedAt": "Saved offline on {{date}}",
       "discardBtn": "Discard"
     },
+    "birthdayGate": {
+      "title": "Add your date of birth",
+      "hint": "Date of birth is now a required field – used for the birthday reminder on the dashboard, among other things. Please add it once, then continue as usual.",
+      "confirm": "Save",
+      "saving": "Saving…",
+      "error": "Couldn't save your date of birth."
+    },
     "fieldTypeChange": {
       "title": "Change field type?",
       "message": "The field will be changed to \"{{targetLabel}}\". Existing player positions and drawings in all frames will be scaled proportionally to fit the new field.",
@@ -1580,6 +1588,15 @@
     "status": {
       "cancelled": "Cancelled",
       "postponed": "Postponed"
+    },
+    "birthdays": {
+      "title": "Birthdays",
+      "celebrateAriaLabel": "Trigger confetti",
+      "confettiAnnouncement": "Confetti rain triggered 🎉",
+      "empty": "No teammate birthdays on file yet.",
+      "todayEntry": "{{name}} has a birthday today and turns {{age}}!",
+      "nextEntry": "In {{count}} day, {{name}} has a birthday (turning {{age}}).",
+      "nextEntry_other": "In {{count}} days, {{name}} has a birthday (turning {{age}})."
     },
     "availability": {
       "groupLabel": "Your availability",

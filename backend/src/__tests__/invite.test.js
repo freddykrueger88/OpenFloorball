@@ -10,7 +10,7 @@ const uniqueEmail = (tag) => `${TEST_EMAIL_PREFIX}${tag}-${Math.floor(Math.rando
 
 async function registerAndLogin(tag) {
   const email = uniqueEmail(tag);
-  const res = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+  const res = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
   return { email, cookie: res.headers['set-cookie'][0] };
 }
 
@@ -77,7 +77,7 @@ describe('Registrierung löst offene Einladungen automatisch ein', () => {
 
     const registerRes = await request(app)
       .post('/api/auth/register')
-      .send({ email: invitedEmail, password: 'Testpass123' });
+      .send({ email: invitedEmail, password: 'Testpass123', birthday: '1990-01-01'});
     expect(registerRes.status).toBe(201);
     const newUserCookie = registerRes.headers['set-cookie'][0];
 
@@ -102,7 +102,7 @@ describe('Registrierung löst offene Einladungen automatisch ein', () => {
     const token = tokenRow.rows[0].token;
     expect(addRes.status).toBe(201);
 
-    await request(app).post('/api/auth/register').send({ email: invitedEmail, password: 'Testpass123' });
+    await request(app).post('/api/auth/register').send({ email: invitedEmail, password: 'Testpass123', birthday: '1990-01-01'});
 
     const res = await request(app).get(`/api/invite/${token}`);
     expect(res.status).toBe(404);

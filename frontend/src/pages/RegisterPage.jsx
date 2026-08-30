@@ -14,7 +14,7 @@ export default function RegisterPage() {
   // Vorbefüllung, wenn über einen Einladungs-Link gekommen (siehe
   // InvitePage.jsx) – die eigentliche Zuordnung passiert serverseitig
   // rein über den E-Mail-Abgleich bei der Registrierung.
-  const [form, setForm] = useState({ email: searchParams.get('email') ?? '', password: '', name: '' });
+  const [form, setForm] = useState({ email: searchParams.get('email') ?? '', password: '', name: '', birthday: '' });
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
 
@@ -33,7 +33,7 @@ export default function RegisterPage() {
       // Listen erwarten, unverändert bleiben – schlägt es fehl, sieht der
       // Nutzer stattdessen den Empty-State-Hinweis auf BoardsPage.jsx.
       try { await api.post('/demo-data'); } catch { /* siehe Kommentar oben */ }
-      navigate('/boards', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (e) {
       const details = e.response?.data?.details;
       const detailMsg = Array.isArray(details) ? details.map((d) => d.message).join(' ') : null;
@@ -97,6 +97,20 @@ export default function RegisterPage() {
               placeholder="••••••••"
             />
             <span className="form-hint">{t('auth.passwordHint')}</span>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="birthday">{t('auth.birthday')}</label>
+            <input
+              id="birthday"
+              type="date"
+              autoComplete="bday"
+              required
+              max={new Date().toISOString().slice(0, 10)}
+              value={form.birthday}
+              onChange={(e) => setForm({ ...form, birthday: e.target.value })}
+            />
+            <span className="form-hint">{t('auth.birthdayHint')}</span>
           </div>
 
           <button type="submit" className="btn btn-primary btn-full" disabled={loading}>

@@ -12,7 +12,7 @@ async function registerAndLogin(tag) {
   const email = uniqueEmail(tag);
   const res = await request(app)
     .post('/api/auth/register')
-    .send({ email, password: 'Testpass123' });
+    .send({ email, password: 'Testpass123', birthday: '1990-01-01'});
   return { email, cookie: res.headers['set-cookie'][0] };
 }
 

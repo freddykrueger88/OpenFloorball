@@ -23,6 +23,7 @@ import SeasonOverviewCard from '../components/dashboard/SeasonOverviewCard.jsx';
 import UpcomingEventsCard from '../components/dashboard/UpcomingEventsCard.jsx';
 import QuickLinksCard from '../components/dashboard/QuickLinksCard.jsx';
 import VenueMapCard from '../components/dashboard/VenueMapCard.jsx';
+import BirthdayCard from '../components/dashboard/BirthdayCard.jsx';
 import styles from './DashboardPage.module.css';
 
 export default function DashboardPage() {
@@ -65,6 +66,7 @@ export default function DashboardPage() {
           <SeasonOverviewCard overview={seasonOverview} />
           <UpcomingEventsCard events={upcomingEvents} />
           <VenueMapCard match={nextMatch} />
+          <BirthdayCard />
           <QuickLinksCard />
         </div>
       )}

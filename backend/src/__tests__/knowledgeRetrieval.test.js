@@ -11,7 +11,7 @@ const uniqueEmail = (tag) => `${TEST_EMAIL_PREFIX}${tag}-${Math.floor(Math.rando
 
 async function registerUser(tag) {
   const email = uniqueEmail(tag);
-  const res = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123' });
+  const res = await request(app).post('/api/auth/register').send({ email, password: 'Testpass123', birthday: '1990-01-01'});
   return res.body.data.user.id;
 }
 

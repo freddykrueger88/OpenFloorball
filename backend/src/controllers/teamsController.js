@@ -166,6 +166,33 @@ export async function deleteTeam(req, res) {
   }
 }
 
+// GET /api/teams/birthdays – Geburtstage aller Teamkolleg:innen (über alle
+// eigenen Teams hinweg, dedupliziert), für das Dashboard-Widget. Nur Nutzer
+// mit gesetztem Geburtsdatum (opt-in durch das Ausfüllen selbst) – kein
+// Kader-Eintrag ohne verknüpftes Konto (siehe Architekturentscheidung:
+// Geburtsdatum lebt ausschließlich in users, nicht in roster_players).
+export async function getMyBirthdays(req, res) {
+  try {
+    const result = await pool.query(
+      `SELECT DISTINCT ON (u.id) u.id, COALESCE(u.display_name, u.email) AS name, u.birthday
+       FROM team_members tm
+       JOIN users u ON u.id = tm.user_id
+       WHERE tm.team_id IN (SELECT team_id FROM team_members WHERE user_id = $1)
+         AND u.birthday IS NOT NULL
+       ORDER BY u.id`,
+      [req.user.id]
+    );
+    res.json(success(result.rows.map((row) => ({
+      _id:      row.id,
+      name:     row.name,
+      birthday: row.birthday,
+    }))));
+  } catch (err) {
+    logger.error('[getMyBirthdays]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
 // GET /api/teams/:id/members – jedes Mitglied darf die Liste sehen
 export async function getMembers(req, res) {
   try {

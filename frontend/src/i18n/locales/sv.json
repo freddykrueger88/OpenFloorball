@@ -414,6 +414,49 @@
       "private": "Privat"
     }
   },
+  "carpool": {
+    "title": "Samåkning",
+    "ariaLabel": "Samåkning",
+    "loading": "Laddar samåkningserbjudanden…",
+    "empty": "Inga samåkningserbjudanden än.",
+    "you": "Du",
+    "offerForm": {
+      "meetingPointPlaceholder": "Mötesplats (t.ex. klubbstugan, 14:00)",
+      "meetingPointAriaLabel": "Mötesplats",
+      "seatsLabel": "Lediga platser",
+      "seatsAriaLabel": "Antal lediga platser",
+      "notePlaceholder": "Anteckning (valfritt)",
+      "noteAriaLabel": "Anteckning",
+      "submitBtn": "Skapa erbjudande"
+    },
+    "seatsFree": "{{free}}/{{total}} lediga",
+    "seatsFull": "Fullbokad",
+    "riderListAriaLabel": "Medåkare",
+    "claimBtn": "Åk med",
+    "withdrawClaimBtn": "Dra tillbaka",
+    "deleteOfferBtn": "Ta bort erbjudande",
+    "deleteOfferAriaLabel": "Ta bort erbjudande",
+    "copyLink": "Kopiera länk",
+    "copyLinkAriaLabel": "Kopiera delbar länk",
+    "linkCopied": "Kopierad!",
+    "shareHint": "Den här länken kan även delas med personer utan konto (t.ex. föräldrar).",
+    "errors": {
+      "full": "Inga lediga platser kvar.",
+      "alreadyClaimed": "Du har redan reserverat en plats för detta erbjudande."
+    }
+  },
+  "carpoolSharePage": {
+    "title": "Samåkningserbjudande",
+    "loading": "Laddar…",
+    "linkInvalid": "Länken är ogiltig eller erbjudandet har tagits bort.",
+    "claimNamePlaceholder": "Ditt namn",
+    "claimNameAriaLabel": "Ditt namn",
+    "claimBtn": "Jag åker med",
+    "withdrawBtn": "Avboka",
+    "withdrawnHint": "Om du tappar bort den här länken/webbläsaren kan bara den som erbjuder skjutsen frigöra din plats igen.",
+    "seatsFree": "{{free}}/{{total}} lediga",
+    "seatsFull": "Fullbokad"
+  },
   "matchSquad": {
     "title": "Matchtrupp",
     "ariaLabel": "Matchtrupp för den här matchen",

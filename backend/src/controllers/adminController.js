@@ -7,6 +7,8 @@ import logger from '../utils/logger.js';
 import { success, error } from '../utils/apiResponse.js';
 import { rescheduleBackupCron, runBackupNow } from '../services/backupCron.js';
 import { deleteCommentsForUser } from './commentsController.js';
+import { deleteRsvpsForUser } from './rsvpsController.js';
+import { deleteCarpoolOffersForUser } from './carpoolsController.js';
 
 async function adminCount() {
   const result = await pool.query("SELECT COUNT(*) FROM users WHERE role = 'admin'");
@@ -42,10 +44,15 @@ export async function deleteUser(req, res) {
     }
 
     // Siehe userController.deleteAccount: Boards/Trainingseinheiten werden
-    // per CASCADE hart gelöscht, ohne die dortige Kommentar-Aufräumung zu
-    // durchlaufen – vorher explizit anstoßen, sonst blieben Kommentare
-    // anderer Nutzer als verwaiste Zeilen zurück.
+    // per CASCADE hart gelöscht, ohne die dortige Kommentar-/RSVP-/
+    // Fahrgemeinschafts-Aufräumung zu durchlaufen – vorher explizit
+    // anstoßen, sonst blieben Zeilen anderer Nutzer verwaist zurück.
+    // Bugfix (ISSUE 028): deleteRsvpsForUser fehlte hier bisher, obwohl
+    // userController.deleteAccount es schon aufruft – admin-initiiertes
+    // Löschen ließ RSVP-Zeilen verwaist zurück.
     await deleteCommentsForUser(req.params.id);
+    await deleteRsvpsForUser(req.params.id);
+    await deleteCarpoolOffersForUser(req.params.id);
     await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
     logger.info(`Admin ${req.user.id} deleted user ${req.params.id}`);
     res.json(success({ message: 'Benutzer gelöscht' }));

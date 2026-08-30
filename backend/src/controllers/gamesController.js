@@ -19,6 +19,7 @@ import { success, created, error } from '../utils/apiResponse.js';
 import { getUserTeamIds, assertTeamAccess } from '../utils/teamAccess.js';
 import { deleteCommentsForResource } from './commentsController.js';
 import { deleteRsvpsForResource } from './rsvpsController.js';
+import { deleteCarpoolOffersForResource } from './carpoolsController.js';
 import { deleteVideosForGame } from './gameVideosController.js';
 import { resolveOpponentId } from './opponentsController.js';
 
@@ -255,6 +256,7 @@ export async function deleteGame(req, res) {
     // blieben verwaiste Zeilen zurück (comments hat kein DB-FK auf games).
     await deleteCommentsForResource('game', req.params.id);
     await deleteRsvpsForResource('game', req.params.id);
+    await deleteCarpoolOffersForResource('game', req.params.id);
     res.json(success({ message: 'Spiel gelöscht' }));
   } catch (err) {
     logger.error('[deleteGame]', err);

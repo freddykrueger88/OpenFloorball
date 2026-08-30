@@ -36,6 +36,7 @@ import { useMatchLines } from '../hooks/useMatchLines.js';
 import { formatDate } from '../utils/formatDate.js';
 import useAnnounceStore from '../store/announceStore.js';
 import RsvpSection from '../components/rsvp/RsvpSection.jsx';
+import CarpoolSection from '../components/carpool/CarpoolSection.jsx';
 import MatchSquadSection from '../components/matchSquad/MatchSquadSection.jsx';
 import LineStatsSection from '../components/lineStats/LineStatsSection.jsx';
 import { SHOT_OUTCOMES } from '../constants/shotOptions.js';
@@ -576,6 +577,7 @@ export default function GamePage() {
       )}
 
       <RsvpSection resourceKind="games" resourceId={id} teamId={game.teamId} />
+      <CarpoolSection resourceKind="games" resourceId={id} teamId={game.teamId} />
 
       <MatchSquadSection gameId={id} />
 

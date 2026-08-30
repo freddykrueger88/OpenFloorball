@@ -42,7 +42,11 @@ export default function NextMatchCard({ match }) {
         <h2 id="next-match-title" className={styles.title}>{t('dashboard.nextMatch.title')}</h2>
         {isCancelled && <span className={`${styles.badge} ${styles.badgeCancelled}`}>{t('dashboard.status.cancelled')}</span>}
         {isPostponed && <span className={`${styles.badge} ${styles.badgePostponed}`}>{t('dashboard.status.postponed')}</span>}
-        {next.source === 'saisonmanager' && <span className={styles.sourceBadge}>{t('dashboard.sourceSaisonmanager')}</span>}
+        {next.source === 'saisonmanager' && (
+          <span className={styles.sourceBadge} title={t('dashboard.sourceSaisonmanagerTooltip')}>
+            {t('dashboard.sourceSaisonmanager')}
+          </span>
+        )}
       </div>
 
       <MatchCountdown targetDate={targetDate} />

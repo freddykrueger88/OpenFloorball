@@ -21,7 +21,9 @@ export default function SeasonOverviewCard({ overview }) {
       <section className={styles.card} aria-labelledby="season-overview-title">
         <div className={styles.header}>
           <h2 id="season-overview-title" className={styles.title}>{t('dashboard.seasonOverview.title')}</h2>
-          <span className={styles.sourceBadge}>{t('dashboard.sourceSaisonmanager')}</span>
+          <span className={styles.sourceBadge} title={t('dashboard.sourceSaisonmanagerTooltip')}>
+            {t('dashboard.sourceSaisonmanager')}
+          </span>
         </div>
         <dl className={styles.grid}>
           <div className={styles.stat}><dt>{t('dashboard.seasonOverview.position')}</dt><dd>{own.position}</dd></div>

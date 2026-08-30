@@ -1568,7 +1568,8 @@
     "loadError": "Viss data kunde inte laddas. Översikten visar ändå det som finns tillgängligt.",
     "viewInCalendar": "Visa i kalendern",
     "planRoute": "Planera resväg",
-    "sourceSaisonmanager": "Källa: Saisonmanager",
+    "sourceSaisonmanager": "Källa: Saisonmanager (inofficiell)",
+    "sourceSaisonmanagerTooltip": "Data: Saisonmanager / Floorball Verband Deutschland e. V. – inofficiell koppling, inget officiellt partnerskap eller godkännande.",
     "greeting": {
       "withName": "Hej, {{name}} 👋",
       "default": "Hej 👋",

@@ -1,8 +1,10 @@
 /**
- * LayerVisibilityPanel – Layer-System (CLAUDE.md §10.2): "Wie in
- * professionellen Designprogrammen" – ein dediziertes Panel zum Ein-/
- * Ausblenden von Spieler/Gegner/Laufwege/Passwege/Schüsse/Freihand/
- * Trainingszonen/Kommentar-Pins auf dem Taktikboard.
+ * LayerVisibilityPanel – Sichtbarkeits-Panel (CLAUDE.md §10.2, vormals
+ * "Ebenen/Layers" benannt – Nutzer-Feedback: das Wording passte nicht zu
+ * einer reinen Ein-/Ausblenden-Funktion, siehe boardEditor.tabs.layers):
+ * ein dediziertes Panel zum Ein-/Ausblenden von Spieler/Gegner/Laufwege/
+ * Passwege/Schüsse/Freihand/Trainingszonen/Kommentar-Pins auf dem
+ * Taktikboard.
  *
  * Bewusst reiner Sicht-Filter, kein gespeicherter Board-Zustand: anders
  * als in Photoshop/Figma sind diese "Layer" keine eigenständigen
@@ -13,7 +15,7 @@
  * Editor-Öffnen zurück auf "alles sichtbar".
  */
 import { useTranslation } from 'react-i18next';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, UserPlus } from 'lucide-react';
 import styles from './LayerVisibilityPanel.module.css';
 
 const LAYERS = [
@@ -27,12 +29,23 @@ const LAYERS = [
   { key: 'comments', labelKey: 'layers.comments' },
 ];
 
-export default function LayerVisibilityPanel({ visibility, onToggle }) {
+export default function LayerVisibilityPanel({ visibility, onToggle, hasAwayPlayers = true, onAddOpponents }) {
   const { t } = useTranslation();
 
   return (
     <section className={styles.panel} aria-label={t('boardEditor.tabs.layers')}>
       <p className={styles.hint}>{t('layers.hint')}</p>
+
+      {/* ISSUE 025: neue Boards platzieren keine Gegner mehr automatisch –
+          ohne diesen Hinweis + Aktion würde der "Gegner"-Schalter unten
+          folgenlos wirken, weil es schlicht keine Gegner-Spieler gibt. */}
+      {!hasAwayPlayers && onAddOpponents && (
+        <button type="button" className={styles.addOpponentsBtn} onClick={onAddOpponents}>
+          <UserPlus size={16} aria-hidden="true" />
+          <span>{t('layers.addOpponents')}</span>
+        </button>
+      )}
+
       <div className={styles.grid} role="group" aria-label={t('boardEditor.tabs.layers')}>
         {LAYERS.map((layer) => {
           const isVisible = visibility[layer.key] !== false;

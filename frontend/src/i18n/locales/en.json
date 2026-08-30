@@ -307,6 +307,8 @@
     "name": "Name (optional)",
     "namePlaceholder": "e.g. John Doe",
     "passwordHint": "Min. 8 characters, upper/lowercase letters and a number",
+    "birthday": "Date of birth",
+    "birthdayHint": "Used for the birthday reminder on the dashboard, among other things",
     "forgotPasswordLink": "Forgot password?",
     "forgotPasswordTitle": "Reset password",
     "forgotPasswordDesc": "Enter your email address. If an account exists for it, we'll send you a link to reset your password.",
@@ -355,7 +357,7 @@
       "comments": "Comments",
       "history": "History",
       "settings": "Settings",
-      "layers": "Layers"
+      "layers": "Visibility"
     },
     "collapsePanel": "Collapse panel",
     "expandPanel": "Expand panel"
@@ -378,7 +380,7 @@
     "pinDialogSaving": "Pinning…"
   },
   "layers": {
-    "hint": "Hide individual layers to focus on specific elements – only affects this view, nothing is saved.",
+    "hint": "Hide individual elements to focus on specific things – only affects this view, nothing is saved.",
     "home": "Own players",
     "away": "Opponents",
     "move": "Movement arrows",
@@ -388,7 +390,8 @@
     "zone": "Training zones",
     "comments": "Comment pins",
     "hideAriaLabel": "Hide {{layer}}",
-    "showAriaLabel": "Show {{layer}}"
+    "showAriaLabel": "Show {{layer}}",
+    "addOpponents": "Place opponents"
   },
   "rsvp": {
     "title": "Attendance",

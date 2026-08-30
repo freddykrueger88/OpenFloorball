@@ -20,7 +20,6 @@ import {
   Redo2,
   Keyboard,
   Layers,
-  Layers2,
   Star,
   Video,
   Download,
@@ -446,6 +445,16 @@ export default function BoardEditorPage() {
     setLayerVisibility((prev) => ({ ...prev, [key]: prev[key] === false ? true : false }));
   }, []);
 
+  // ISSUE 025: neue Boards platzieren keine gegnerischen Spieler mehr
+  // automatisch – ohne diese Aktion gäbe es nie welche zum Ein-/Ausblenden,
+  // der "Gegner"-Schalter im Sichtbarkeits-Panel liefe ins Leere.
+  const hasAwayPlayers = drawing.players.some((p) => p.team === 'away');
+  const handleAddOpponents = useCallback(() => {
+    const awayDefaults = buildDefaultPlayers(field.fieldType, { includeAway: true })
+      .filter((p) => p.team === 'away');
+    drawing.applyFormation([...drawing.players, ...awayDefaults], 'addOpponents');
+  }, [drawing, field.fieldType]);
+
   // Anpinnen eines Kommentars: { x, y } zwischen Feld-Klick (mit dem
   // 'comment'-Werkzeug) und dem Dialog, der den Text erfasst.
   const [pendingCommentPin, setPendingCommentPin] = useState(null);
@@ -829,11 +838,13 @@ export default function BoardEditorPage() {
             {
               id: 'layers',
               label: t('boardEditor.tabs.layers'),
-              icon: <Layers2 size={16} aria-hidden="true" />,
+              icon: <Eye size={16} aria-hidden="true" />,
               content: (
                 <LayerVisibilityPanel
                   visibility={layerVisibility}
                   onToggle={toggleLayerVisibility}
+                  hasAwayPlayers={hasAwayPlayers}
+                  onAddOpponents={canEdit ? handleAddOpponents : undefined}
                 />
               ),
             },

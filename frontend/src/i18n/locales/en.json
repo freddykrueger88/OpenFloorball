@@ -1568,7 +1568,8 @@
     "loadError": "Some data could not be loaded. The dashboard still shows whatever is available.",
     "viewInCalendar": "View in calendar",
     "planRoute": "Plan route",
-    "sourceSaisonmanager": "Source: Saisonmanager",
+    "sourceSaisonmanager": "Source: Saisonmanager (unofficial)",
+    "sourceSaisonmanagerTooltip": "Data: Saisonmanager / Floorball Verband Deutschland e. V. – unofficial integration, no official partnership or endorsement.",
     "greeting": {
       "withName": "Hi, {{name}} 👋",
       "default": "Hi 👋",

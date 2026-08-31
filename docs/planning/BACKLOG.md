@@ -563,6 +563,19 @@ P2
 
 ## Gegnerische Spieler nicht automatisch auf dem Feld platzieren
 
+Status: ✅ umgesetzt. Neue Boards platzieren nur noch Home + Ball
+(`boardsController.js` ruft `buildDefaultPlayers(fieldType, { includeAway: false })`).
+Pro-Spieler-Sichtbarkeit existiert (`visible`-Feld, Fallback
+`visible !== false` für bestehende Boards), inkl. Toggle im
+`PlayerInfoPanel.jsx` und Übersicht/Wiedereinblenden über
+`LayerVisibilityPanel.jsx`/`FieldSettingsPanel.jsx`. Feldtyp-Wechsel
+skaliert bestehende Spieler statt sie auf Defaults zurückzusetzen
+(`BoardEditorPage.jsx::handleConfirmFieldTypeChange`), reintroduziert
+also ebenfalls keine Gegner. `frontend/src/hooks/usePlayerState.js`
+ist toter Code (kein Importer mehr) und hat dadurch noch den alten
+`includeAway`-Default – ohne Funktionsauswirkung, aber Aufräum-
+Kandidat für eine spätere Housekeeping-Runde.
+
 ### Beschreibung
 
 Beim Anlegen eines neuen Boards (`boardsController.js` →
@@ -648,6 +661,12 @@ P1
 # ISSUE 026
 
 ## GDPR-Backup-Export um Spiel- und Trainings-Domäne erweitern
+
+Status: ✅ umgesetzt (2026-08-28, siehe Kommentar in
+`exportUserData.js`). `buildUserExport`/`importAccount` decken Spiele,
+Trainings-Anwesenheit und Spielerentwicklungsnotizen additiv ab (keine
+neue `BACKUP_FORMAT`-Version nötig). `PrivacyPage.jsx`
+(`privacyPage.dataCategories.*`) nennt Spiele/Training bereits.
 
 ### Beschreibung
 
@@ -1156,6 +1175,14 @@ Bei jedem neuen Issue prüfen:
 
 ## Trainingsseite grafisch überarbeiten (Abstände/Übersichtlichkeit)
 
+Status (2026-08-31): ✅ umgesetzt. `TrainingSessionPage.module.css`
+bekam ein `.layout`-Grid (mobile-first 1 Spalte, ab 960px zweispaltig
+`minmax(0,2fr) minmax(300px,1fr)`, Vorbild `DashboardPage.module.css`).
+Haupt-Inhalt (Meta/Serien/Notizen/Übungsliste/Hinzufügen-Button) läuft
+in der linken Spalte, RSVP/Fahrgemeinschaften/Anwesenheit/Kommentare in
+der rechten – kein zusätzliches Panel ergänzt, nur die bestehende
+Struktur umsortiert. Visuell auf 1400px und 420px Breite gegengeprüft.
+
 ### Beschreibung
 
 Nutzer-Feedback: Die Trainingseinheit-Detailseite (`TrainingSessionPage.jsx`)
@@ -1199,6 +1226,14 @@ P2 – UX-Politur, keine funktionale Einschränkung.
 
 ## Fahrgemeinschaften: Anbieter-Name nicht sichtbar
 
+Status (2026-08-31): ✅ umgesetzt. `fetchOffersForResource` joint jetzt
+zusätzlich auf `users` für `carpool_offers.user_id`, `createOffer`
+liefert `offererName` bereits in der POST-Antwort mit (kein zweiter
+Roundtrip). `CarpoolSection.jsx` zeigt "Angeboten von {{name}}" pro
+Angebot (eigenes Angebot als "Du"). Öffentliche Freigabeseite
+(`carpoolShareController.js`) bewusst unangetastet gelassen – hat eine
+eigene, separate Query ohne den neuen JOIN.
+
 ### Beschreibung
 
 Nutzer-Feedback: Bei einem Fahrangebot (ISSUE 028, `CarpoolSection.jsx`)
@@ -1234,6 +1269,19 @@ P2 – kleine, klar umrissene Ergänzung.
 # ISSUE 031
 
 ## Export-Funktionen: Sichtbarkeits-Filter (z.B. Gegner ausblenden) wird nicht respektiert
+
+Status (2026-08-31): ✅ umgesetzt. Produktentscheidung geklärt: Export
+respektiert die aktuelle Sichtbarkeits-Auswahl ("wie sichtbar
+exportieren", WYSIWYG). Neue, getestete Hilfsfunktionen
+`filterVisiblePlayers`/`filterVisibleElements`
+(`frontend/src/utils/layerVisibilityFilter.js`) spiegeln die Filterlogik
+aus `PlayerLayer.jsx`/`DrawingLayer.jsx` und werden jetzt in
+`BoardEditorPage.jsx::renderFrame` angewandt, bevor `players`/`elements`
+an `FloorballFieldStatic` gehen – wirkt für alle vier Export-Wege (GIF,
+MP4, PNG-Frame-Share, PDF), da sie denselben `renderFrame` teilen.
+`gameReportExport` (Spielbericht-PDF) geprüft: zeichnet keine Spieler/
+Elemente (reiner Text-/Listen-PDF aus `game_events`/`game_squad`), daher
+nicht betroffen.
 
 ### Beschreibung
 

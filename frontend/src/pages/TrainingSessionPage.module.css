@@ -51,11 +51,26 @@
   white-space: nowrap;
 }
 
+/* Nutzer-Feedback (2026-08-31): oberer Bereich (Meta/Serien/Notizen)
+   wirkte "nicht aufgeräumt", weil er als einziger Abschnitt der Seite
+   ohne die sonst durchgängige Card-Umrahmung (background+border+radius,
+   siehe .itemRow unten, CarpoolSection.module.css, DashboardPage-Cards)
+   direkt auf dem Seitenhintergrund lag. */
+.metaCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+}
+
 .metaRow {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
-  margin-bottom: var(--space-3);
 }
 .metaField {
   display: flex;
@@ -94,7 +109,6 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
-  margin-bottom: var(--space-3);
 }
 .seriesForm {
   display: flex;
@@ -122,7 +136,6 @@
   font-size: var(--text-sm);
   color: var(--color-text);
   resize: vertical;
-  margin-bottom: var(--space-6);
 }
 .notes:focus-visible {
   outline: none;
@@ -130,12 +143,23 @@
   box-shadow: 0 0 0 3px var(--color-primary-highlight);
 }
 
+/* Analog .metaCard oben: Übungsliste + "Übung hinzufügen" als eigene Card,
+   statt lose auf dem Seitenhintergrund zu stehen. */
+.itemsCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
 .errorBanner {
   padding: var(--space-3) var(--space-4);
   background: var(--color-error-highlight);
   color: var(--color-error);
   border-radius: var(--radius-md);
-  margin-bottom: var(--space-4);
   font-size: var(--text-sm);
 }
 
@@ -149,7 +173,7 @@
 .itemList {
   list-style: none;
   padding: 0;
-  margin: 0 0 var(--space-6);
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -161,7 +185,10 @@
   align-items: center;
   gap: var(--space-4);
   padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
+  /* surface-offset statt surface: liegt jetzt innerhalb von .itemsCard
+     (ebenfalls surface) – ohne den Farbversatz wäre die Zeilen-Kontur nur
+     noch die Border, kaum als eigene Karte erkennbar. */
+  background: var(--color-surface-offset);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
 }
@@ -258,6 +285,9 @@
 }
 
 .mainColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
   min-width: 0;
 }
 

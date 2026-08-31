@@ -40,6 +40,7 @@ import { POSITION_HINTS } from '../constants/positionHints.js';
 import { EDITOR_TOUR_STEPS } from '../constants/tourSteps.js';
 import { rescalePlayers, rescaleElements } from '../utils/fieldRescale.js';
 import { teamColorToFillStroke, normalizeStoredColor } from '../utils/color.js';
+import { filterVisiblePlayers, filterVisibleElements } from '../utils/layerVisibilityFilter.js';
 import useAnnounceStore from '../store/announceStore.js';
 import useThemeStore from '../store/themeStore.js';
 import useAuthStore from '../store/authStore.js';
@@ -585,19 +586,25 @@ export default function BoardEditorPage() {
 
   // Issue #15 – renderFrame: rendert einen Frame offline als PNG via Konva
   // Nutzt Konva.Stage direkt (kein React), um ein unsichtbares Canvas zu erstellen
+  //
+  // ISSUE 031: Export soll exakt das zeigen, was gerade im Editor sichtbar
+  // ist (WYSIWYG) – filterVisiblePlayers/filterVisibleElements spiegeln
+  // dieselbe Filterlogik wie PlayerLayer.jsx/DrawingLayer.jsx auf den
+  // Export-Renderpfad, statt die bewusst reine Session-Sichtbarkeit (kein
+  // Board-/Frame-Feld) zu ändern.
   const renderFrame = useCallback(async (frame) => {
     const { default: FloorballFieldStatic } = await import('../components/field/FloorballFieldStatic.js');
     return FloorballFieldStatic({
       fieldType: field.fieldType,
       width: EXPORT_W,
       height: EXPORT_H,
-      players: frame.players ?? [],
-      elements: frame.elements ?? [],
+      players: filterVisiblePlayers(frame.players ?? [], layerVisibility),
+      elements: filterVisibleElements(frame.elements ?? [], layerVisibility),
       homeColor: teamColorToFillStroke(homeColor, DEFAULT_TEAM_COLORS.home.fill),
       awayColor: teamColorToFillStroke(awayColor, DEFAULT_TEAM_COLORS.away.fill),
       ballColor,
     });
-  }, [field.fieldType, homeColor, awayColor, ballColor]);
+  }, [field.fieldType, homeColor, awayColor, ballColor, layerVisibility]);
 
   return (
     <main className={styles.page} role="main" id="main-content">

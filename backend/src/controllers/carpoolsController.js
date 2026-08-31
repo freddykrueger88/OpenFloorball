@@ -23,6 +23,11 @@ function toApiOffer(row) {
   return {
     _id:          row.id,
     userId:       row.user_id,
+    // ISSUE 030: Anzeigename des Anbieters – analog den Claims (Zeile
+    // unten) die E-Mail als Anzeigename für Team-interne Ansicht (kein
+    // öffentlicher Endpunkt, siehe carpoolShareController.js für die
+    // bewusst abweichende Datensparsamkeit auf der ÖFFENTLICHEN Seite).
+    offererName:  row.offerer_email ?? null,
     meetingPoint: row.meeting_point,
     totalSeats:   row.total_seats,
     note:         row.note,
@@ -46,7 +51,7 @@ function toApiOffer(row) {
 
 async function fetchOffersForResource(resourceType, resourceId, currentUserId) {
   const result = await pool.query(
-    `SELECT o.*,
+    `SELECT o.*, ou.email AS offerer_email,
             COALESCE(
               json_agg(
                 json_build_object(
@@ -56,10 +61,11 @@ async function fetchOffersForResource(resourceType, resourceId, currentUserId) {
               ) FILTER (WHERE c.id IS NOT NULL), '[]'
             ) AS claims
      FROM carpool_offers o
+     LEFT JOIN users ou ON ou.id = o.user_id
      LEFT JOIN carpool_claims c ON c.offer_id = o.id
      LEFT JOIN users u ON u.id = c.user_id
      WHERE o.resource_type = $1 AND o.resource_id = $2
-     GROUP BY o.id
+     GROUP BY o.id, ou.email
      ORDER BY o.created_at ASC`,
     [resourceType, resourceId, currentUserId]
   );
@@ -97,7 +103,13 @@ export function makeCarpoolHandlers(resourceType, { assertRead, assertWrite }) {
          VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
         [resourceType, resourceId, req.user.id, meetingPoint, totalSeats, note]
       );
-      res.status(201).json(created(toApiOffer({ ...result.rows[0], claims: [] })));
+      // ISSUE 030: offerer_email direkt mitliefern, damit die Antwort auf
+      // POST bereits den Anzeigenamen enthält (kein zweiter Roundtrip nötig,
+      // konsistent mit fetchOffersForResource oben).
+      const offererResult = await pool.query('SELECT email FROM users WHERE id = $1', [req.user.id]);
+      res.status(201).json(created(toApiOffer({
+        ...result.rows[0], offerer_email: offererResult.rows[0]?.email ?? null, claims: [],
+      })));
     } catch (err) {
       logger.error('[createOffer]', err);
       res.status(500).json(error('Interner Serverfehler'));

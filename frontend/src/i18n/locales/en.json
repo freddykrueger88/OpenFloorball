@@ -422,6 +422,7 @@
     "loading": "Loading ride offers…",
     "empty": "No ride offers yet.",
     "you": "You",
+    "offeredBy": "Offered by {{name}}",
     "offerForm": {
       "meetingPointPlaceholder": "Meeting point (e.g. clubhouse, 2pm)",
       "meetingPointAriaLabel": "Meeting point",

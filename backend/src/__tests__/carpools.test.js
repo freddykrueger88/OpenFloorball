@@ -107,6 +107,9 @@ for (const resource of RESOURCES) {
       expect(res.body.data.totalSeats).toBe(3);
       expect(res.body.data.claims).toEqual([]);
       expect(res.body.data.shareToken).toBeTruthy();
+      // ISSUE 030: Anbieter-Name (E-Mail, wie bei Claims) muss bereits in
+      // der POST-Antwort mitgeliefert werden, kein zweiter Roundtrip nötig.
+      expect(res.body.data.offererName).toBe(member.email);
     });
 
     it('lehnt ein Angebot mit ungültiger Platzzahl mit 422 ab', async () => {
@@ -131,6 +134,9 @@ for (const resource of RESOURCES) {
 
       const getRes = await request(app).get(`${resource.basePath}/${resourceId}/carpools`).set('Cookie', owner.cookie);
       const offer = getRes.body.data.find((o) => o._id === offerId);
+      // ISSUE 030: der Anbieter-Name muss auch im GET (nicht nur direkt nach
+      // dem POST) mitkommen – hier über den JOIN in fetchOffersForResource.
+      expect(offer.offererName).toBe(owner.email);
       expect(offer.claims).toHaveLength(1);
       expect(offer.claims[0].userId).toBeTruthy();
       // Für authentifizierte Claims dient die E-Mail als Anzeigename (wie

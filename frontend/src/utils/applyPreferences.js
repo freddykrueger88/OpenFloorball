@@ -3,6 +3,7 @@
  * document-Attribute an (Issue #18: Darstellung & Barrierefreiheit)
  */
 import useThemeStore from '../store/themeStore.js';
+import useSeasonalThemeStore from '../store/seasonalThemeStore.js';
 import i18n from '../i18n/i18n.js';
 
 export function applyGlobalPreferences(prefs = {}) {
@@ -29,5 +30,12 @@ export function applyGlobalPreferences(prefs = {}) {
     root.setAttribute('data-colorblind-mode', prefs.colorBlindMode);
   } else {
     root.removeAttribute('data-colorblind-mode');
+  }
+
+  // Saisonale Deko-Themes (Halloween): Store-Default ist bereits AN, hier
+  // nur übernehmen, wenn der Nutzer aktiv abgeschaltet hat – ein fehlendes
+  // Feld (nie gespeichert) darf nicht versehentlich als "aus" gelten.
+  if (typeof prefs.seasonalThemesEnabled === 'boolean') {
+    useSeasonalThemeStore.getState().setEnabled(prefs.seasonalThemesEnabled);
   }
 }

@@ -160,6 +160,18 @@ export default function PreferencesSection() {
           />
           {t('settings.dyslexiaFont')}
         </label>
+
+        {/* Halloween & Co. (SeasonalOverlay.jsx/seasonalThemeStore.js):
+            Default AN (Opt-out), fehlendes Feld darf nicht als "aus"
+            gelten – daher `!== false` statt `!!`. */}
+        <label className={styles.checkboxRow}>
+          <input
+            type="checkbox"
+            checked={settings?.seasonalThemesEnabled !== false}
+            onChange={(e) => patch({ seasonalThemesEnabled: e.target.checked })}
+          />
+          {t('settings.seasonalThemes')}
+        </label>
       </section>
 
       <section className={styles.section}>

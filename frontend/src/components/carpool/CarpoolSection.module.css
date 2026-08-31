@@ -56,6 +56,12 @@
 .seatsFree { background: var(--color-surface-offset); color: var(--color-success); }
 .seatsFull { background: var(--color-surface-offset); color: var(--color-text-faint); }
 
+.offeredBy {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  margin: 0;
+}
+
 .note {
   font-size: var(--text-xs);
   color: var(--color-text-muted);

@@ -422,6 +422,7 @@
     "loading": "Lädt Fahrangebote…",
     "empty": "Noch keine Fahrangebote.",
     "you": "Du",
+    "offeredBy": "Angeboten von {{name}}",
     "offerForm": {
       "meetingPointPlaceholder": "Treffpunkt (z.B. Vereinsheim, 14:00 Uhr)",
       "meetingPointAriaLabel": "Treffpunkt",

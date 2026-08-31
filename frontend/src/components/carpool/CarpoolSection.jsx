@@ -79,6 +79,12 @@ export default function CarpoolSection({ resourceKind, resourceId, teamId }) {
                     {freeSeats === 0 ? t('carpool.seatsFull') : t('carpool.seatsFree', { free: freeSeats, total: offer.totalSeats })}
                   </span>
                 </div>
+                {/* ISSUE 030: wer bietet die Fahrt überhaupt an – vorher nur
+                    an den Claims (Mitfahrer:innen), nicht am Angebot selbst
+                    sichtbar. */}
+                <p className={styles.offeredBy}>
+                  {t('carpool.offeredBy', { name: isOwner ? t('carpool.you') : (offer.offererName ?? t('carpool.you')) })}
+                </p>
                 {offer.note && <p className={styles.note}>{offer.note}</p>}
 
                 {offer.claims.length > 0 && (

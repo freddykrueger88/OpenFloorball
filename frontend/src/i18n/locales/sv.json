@@ -422,6 +422,7 @@
     "loading": "Laddar samåkningserbjudanden…",
     "empty": "Inga samåkningserbjudanden än.",
     "you": "Du",
+    "offeredBy": "Erbjuds av {{name}}",
     "offerForm": {
       "meetingPointPlaceholder": "Mötesplats (t.ex. klubbstugan, 14:00)",
       "meetingPointAriaLabel": "Mötesplats",

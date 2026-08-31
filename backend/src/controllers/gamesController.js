@@ -63,6 +63,12 @@ function toApiGame(row) {
     teamId:    row.team_id,
     playedAt:  toDateString(row.played_at),
     notes:     row.notes,
+    // Saisonmanager-Sync (teamSaisonmanagerController.js): externalSource
+    // markiert, dass Datum/Gegner/Ort etc. bei jedem Dashboard-Laden von
+    // Saisonmanager überschrieben werden – Frontend kann das z.B. für einen
+    // Hinweis nutzen, statt den Nutzer eine scheinbar wirkungslose manuelle
+    // Änderung machen zu lassen.
+    externalSource: row.external_source,
     clockPeriod:          row.clock_period,
     clockStatus:          row.clock_status,
     clockElapsedSeconds:  row.clock_elapsed_seconds,

@@ -1398,6 +1398,25 @@ export async function runMigrations() {
     // betroffen, da NULL in einem UNIQUE-Index nie mit sich selbst kollidiert.
     await client.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_carpool_claims_offer_user_unique ON carpool_claims(offer_id, user_id) WHERE user_id IS NOT NULL;`);
 
+    // ── games: Saisonmanager-Spielplan-Sync ─────────────────────────────
+    // Nutzer-Feedback (2026-08-31): Saisonmanager-Anbindung fütterte bisher
+    // nur die Dashboard-Karten (live abgerufen, nie gespeichert), Kalender/
+    // Spiele-Seite lesen aber ausschließlich aus `games` – Saisonmanager-
+    // Spiele erschienen dort nie. `external_source`/`external_id` markieren
+    // synchronisierte Zeilen und dienen als Upsert-Schlüssel (Saisonmanagers
+    // `game_id` ist laut deren offizieller OpenAPI-Spec ein Pflichtfeld,
+    // stabil über Terminverschiebungen hinweg – robuster als ein
+    // Datum+Gegner-Composite-Key). Partial-Unique-Index statt einer
+    // NOT-NULL-Spalte, da normale, manuell angelegte Spiele weiterhin
+    // external_source/external_id NULL haben.
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS external_source TEXT;`);
+    await client.query(`ALTER TABLE games ADD COLUMN IF NOT EXISTS external_id TEXT;`);
+    await client.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_games_external_unique
+        ON games(team_id, external_source, external_id)
+        WHERE external_source IS NOT NULL;
+    `);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

@@ -147,3 +147,102 @@ describe('GET /api/teams/:id/saisonmanager/next-match + /table', () => {
     expect(res.status).toBe(404);
   });
 });
+
+// Nutzer-Feedback (2026-08-31): Saisonmanager-Termine tauchten nirgends
+// außerhalb der Dashboard-Karten auf (kein Kalender/keine Spiele-Seite),
+// weil next-match/table nur live abriefen, nie in `games` speicherten.
+// getNextMatch synct jetzt bei jedem Aufruf zusätzlich den vollständigen
+// Spielplan in echte games-Zeilen (externalId=Saisonmanagers game_id).
+describe('GET /api/teams/:id/saisonmanager/next-match – Spielplan-Sync in games', () => {
+  const originalFetch = global.fetch;
+  afterEach(() => { global.fetch = originalFetch; });
+
+  function mockSchedule(games) {
+    global.fetch = jest.fn((url) => {
+      if (url.includes('/schedule.json')) return Promise.resolve({ ok: true, json: async () => games });
+      return Promise.resolve({ ok: true, json: async () => [] });
+    });
+  }
+
+  it('legt eigene Spiele aus dem Spielplan als games-Zeilen an (externalSource=saisonmanager)', async () => {
+    await request(app).put(`/api/teams/${teamId}/saisonmanager`).set('Cookie', owner.cookie)
+      .send({ apiKey: 'sync-k-1', leagueId: 1, smTeamId: 111 });
+    mockSchedule([
+      { game_id: 9001, date: '2099-09-01', time: '18:00', home_team_id: 111, home_team_name: 'SM-Link-Team', guest_team_id: 222, guest_team_name: 'Sync-Gegner', arena_name: 'Sync-Halle', arena_address: 'Sync-Adresse' },
+      { game_id: 9002, date: '2099-09-08', time: '19:00', home_team_id: 333, home_team_name: 'Anderer', guest_team_id: 111, guest_team_name: 'SM-Link-Team' },
+    ]);
+
+    const res = await request(app).get(`/api/teams/${teamId}/saisonmanager/next-match`).set('Cookie', member.cookie);
+    expect(res.status).toBe(200);
+
+    const rows = await pool.query(
+      `SELECT opponent, played_at, venue_name, is_home, status, external_id FROM games
+       WHERE team_id = $1 AND external_source = 'saisonmanager' ORDER BY external_id`,
+      [teamId]
+    );
+    expect(rows.rows).toHaveLength(2);
+    expect(rows.rows[0]).toEqual(expect.objectContaining({
+      opponent: 'Sync-Gegner', venue_name: 'Sync-Halle', is_home: true, status: 'scheduled', external_id: '9001',
+    }));
+    expect(rows.rows[1]).toEqual(expect.objectContaining({ opponent: 'Anderer', is_home: false, external_id: '9002' }));
+  });
+
+  it('überschreibt bei erneutem Sync (Saisonmanager hat immer Vorrang vor manuellen Änderungen)', async () => {
+    await request(app).put(`/api/teams/${teamId}/saisonmanager`).set('Cookie', owner.cookie)
+      .send({ apiKey: 'sync-k-2', leagueId: 1, smTeamId: 111 });
+    mockSchedule([
+      { game_id: 9101, date: '2099-10-01', home_team_id: 111, home_team_name: 'SM-Link-Team', guest_team_id: 222, guest_team_name: 'Erster Stand', arena_name: 'Halle 1' },
+    ]);
+    await request(app).get(`/api/teams/${teamId}/saisonmanager/next-match`).set('Cookie', member.cookie);
+
+    // Manuelle Korrektur simulieren, wie ein Coach sie machen könnte
+    const before = await pool.query(`SELECT id FROM games WHERE team_id = $1 AND external_id = '9101'`, [teamId]);
+    await pool.query(`UPDATE games SET opponent = 'Manuell geändert' WHERE id = $1`, [before.rows[0].id]);
+
+    // Erneuter Sync mit aktualisiertem Spielplan – muss die manuelle
+    // Änderung überschreiben, nicht respektieren (Nutzer-Entscheidung).
+    // Eigener api_key wie bei den bestehenden Tests oben: sonst liefert der
+    // modulweite 5-Minuten-Cache in saisonmanagerClient.js für denselben
+    // Pfad weiterhin die erste Mock-Antwort statt der hier neuen.
+    await request(app).put(`/api/teams/${teamId}/saisonmanager`).set('Cookie', owner.cookie)
+      .send({ apiKey: 'sync-k-2b', leagueId: 1, smTeamId: 111 });
+    mockSchedule([
+      { game_id: 9101, date: '2099-10-02', home_team_id: 111, home_team_name: 'SM-Link-Team', guest_team_id: 222, guest_team_name: 'Verlegt und korrigiert', arena_name: 'Halle 2' },
+    ]);
+    await request(app).get(`/api/teams/${teamId}/saisonmanager/next-match`).set('Cookie', member.cookie);
+
+    const after = await pool.query(`SELECT opponent, venue_name FROM games WHERE id = $1`, [before.rows[0].id]);
+    expect(after.rows[0].opponent).toBe('Verlegt und korrigiert');
+    expect(after.rows[0].venue_name).toBe('Halle 2');
+  });
+
+  it('markiert ein per notice_type="Canceled" abgesagtes Spiel als status=cancelled', async () => {
+    await request(app).put(`/api/teams/${teamId}/saisonmanager`).set('Cookie', owner.cookie)
+      .send({ apiKey: 'sync-k-3', leagueId: 1, smTeamId: 111 });
+    mockSchedule([
+      { game_id: 9201, date: '2099-11-01', home_team_id: 111, home_team_name: 'SM-Link-Team', guest_team_id: 222, guest_team_name: 'Abgesagt', notice_type: 'Canceled' },
+    ]);
+    await request(app).get(`/api/teams/${teamId}/saisonmanager/next-match`).set('Cookie', member.cookie);
+
+    const row = await pool.query(`SELECT status FROM games WHERE team_id = $1 AND external_id = '9201'`, [teamId]);
+    expect(row.rows[0].status).toBe('cancelled');
+  });
+
+  it('lässt manuell angelegte Spiele (kein external_source) beim Sync unangetastet', async () => {
+    const manual = await pool.query(
+      `INSERT INTO games (user_id, team_id, opponent) VALUES ($1, $2, 'Manuelles Spiel') RETURNING id, opponent`,
+      [owner.id, teamId]
+    );
+    await request(app).put(`/api/teams/${teamId}/saisonmanager`).set('Cookie', owner.cookie)
+      .send({ apiKey: 'sync-k-4', leagueId: 1, smTeamId: 111 });
+    mockSchedule([
+      { game_id: 9301, date: '2099-12-01', home_team_id: 111, home_team_name: 'SM-Link-Team', guest_team_id: 222, guest_team_name: 'Sync-Spiel' },
+    ]);
+    await request(app).get(`/api/teams/${teamId}/saisonmanager/next-match`).set('Cookie', member.cookie);
+
+    const stillThere = await pool.query(`SELECT opponent, external_source FROM games WHERE id = $1`, [manual.rows[0].id]);
+    expect(stillThere.rows[0].opponent).toBe('Manuelles Spiel');
+    expect(stillThere.rows[0].external_source).toBeNull();
+  });
+
+});

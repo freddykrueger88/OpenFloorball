@@ -244,6 +244,36 @@
   flex-shrink: 0;
 }
 
+/* ISSUE 029: Haupt-Inhalt (Metadaten/Übungsliste) und Sekundär-Panels
+   (RSVP/Fahrgemeinschaften/Anwesenheit/Kommentare) nebeneinander statt
+   strikt untereinander gestapelt – Vorbild DashboardPage.module.css
+   (mobile-first 1 Spalte, ab einer Breite zweispaltig). min-width: 0 auf
+   beiden Spalten verhindert, dass lange Inhalte (z.B. itemBoardName) die
+   Grid-Spalte über ihren Anteil hinaus aufweiten. */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.mainColumn {
+  min-width: 0;
+}
+
+.sideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+@media (min-width: 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+  }
+}
+
 .commentsSection {
-  margin-top: var(--space-8);
+  margin-top: 0;
 }

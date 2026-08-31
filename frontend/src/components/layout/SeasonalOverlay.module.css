@@ -1,0 +1,47 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 140; /* knapp unter Header.module.css (150) – Nav bleibt oben */
+}
+
+/* ADHS-freundlicher Modus (base.css) deaktiviert Animationen bereits
+   global, ließe die Fledermäuse aber statisch stehen – "weniger
+   dekorative Ablenkung" (settings.adhdMode) meint hier die ganze
+   Deko, nicht nur ihre Bewegung. */
+:global([data-adhd-mode='true']) .overlay {
+  display: none;
+}
+
+.cobweb {
+  position: absolute;
+  top: 0;
+  width: 96px;
+  height: 96px;
+  color: var(--color-text-faint);
+  opacity: 0.4;
+}
+.cobwebLeft  { left: 0; }
+.cobwebRight { right: 0; transform: scaleX(1); }
+
+.bat {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  font-size: 1.4rem;
+  opacity: 0.55;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+  animation: drift 26s linear infinite;
+}
+.bat1 { animation-delay: 0s;  top: 8%;  }
+.bat2 { animation-delay: -9s; top: 16%; font-size: 1.1rem; }
+.bat3 { animation-delay: -17s; top: 4%; font-size: 1.6rem; }
+
+@keyframes drift {
+  0%   { transform: translate(-10vw, 0) scale(1); opacity: 0; }
+  8%   { opacity: 0.55; }
+  50%  { transform: translate(55vw, 6vh) scale(1); }
+  92%  { opacity: 0.55; }
+  100% { transform: translate(120vw, -4vh) scale(1); opacity: 0; }
+}

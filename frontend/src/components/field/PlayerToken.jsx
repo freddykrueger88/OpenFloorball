@@ -20,6 +20,8 @@ import { useRef, useState } from 'react';
 import { Circle, Group, Text, Ring, Rect, RegularPolygon } from 'react-konva';
 import { useTranslation } from 'react-i18next';
 import { POSITION_HINTS } from '../../constants/positionHints.js';
+import { useSeasonalThemeActive } from '../../store/seasonalThemeStore.js';
+import { halloweenGlyphFor } from '../../utils/seasonalTheme.js';
 
 // Token-Größe relativ zur Spielfeldbreite (konstant egal wie groß der Canvas)
 const TOKEN_RADIUS_M = 0.75; // Meter
@@ -55,6 +57,13 @@ export default function PlayerToken({
   // durchgezogenem Rand.
   const isGoalkeeper = player.role === 'TW';
   const strokeDash = player.team === 'away' ? [6, 3] : undefined;
+  // Halloween (nur am 31.10., abschaltbar in den Einstellungen – siehe
+  // seasonalThemeStore.js): Kürbis/Gespenst/Spinne statt Kreis/Raute. Der
+  // team-farbige Ring bleibt als Konturlinie erhalten, damit die
+  // Team-Zuordnung weiterhin auf einen Blick erkennbar ist, nicht nur über
+  // das Glyph.
+  const halloweenActive = useSeasonalThemeActive();
+  const halloweenGlyph = halloweenActive ? halloweenGlyphFor(player) : null;
   const [hovered, setHovered] = useState(false);
   const { i18n } = useTranslation();
   const hintLang  = i18n.language?.startsWith('en') ? 'en' : 'de';
@@ -125,8 +134,18 @@ export default function PlayerToken({
         offsetY={2}
       />
 
-      {/* Haupt-Form: Torwart als Raute, Feldspieler als Kreis */}
-      {isGoalkeeper ? (
+      {/* Haupt-Form: Torwart als Raute, Feldspieler als Kreis – an
+          Halloween (31.10., abschaltbar) stattdessen ein Emoji-Glyph,
+          der team-farbige Ring bleibt als Kontur erhalten (Team-Zuordnung
+          weiterhin auf einen Blick erkennbar). */}
+      {halloweenGlyph ? (
+        <Circle
+          radius={radius}
+          stroke={isSelected ? '#facc15' : strokeColor}
+          strokeWidth={isSelected ? 3 : 2}
+          dash={strokeDash}
+        />
+      ) : isGoalkeeper ? (
         <RegularPolygon
           sides={4}
           radius={radius}
@@ -152,21 +171,57 @@ export default function PlayerToken({
         />
       )}
 
-      {/* Positions-Label */}
-      <Text
-        text={player.role}
-        fontSize={fontSize}
-        fontFamily="Inter, system-ui, sans-serif"
-        fontStyle="bold"
-        fill="#ffffff"
-        align="center"
-        verticalAlign="middle"
-        width={radius * 2}
-        height={radius * 2}
-        offsetX={radius}
-        offsetY={radius}
-        listening={false}
-      />
+      {halloweenGlyph && (
+        // ACHTUNG: bewusst OHNE width/height/align/verticalAlign – Konva
+        // (getestet: konva@9) berechnet die Breite von Emoji-Zeichenketten
+        // beim Zeilenumbruch falsch und rendert den Text dann gar nicht
+        // (leer statt sichtbar), sobald eine feste width gesetzt ist. Die
+        // Zentrierung läuft stattdessen über eine an Emoji-Glyphen (recht
+        // quadratisch) angenäherte offsetX/offsetY-Schätzung.
+        <Text
+          text={halloweenGlyph}
+          fontSize={radius * 1.7}
+          offsetX={radius * 0.85}
+          offsetY={radius * 0.9}
+          listening={false}
+        />
+      )}
+
+      {/* Positions-Label – an Halloween als kleines Badge unten rechts statt
+          zentriert über dem Emoji (bliebe sonst unleserlich). */}
+      {halloweenGlyph ? (
+        <Group x={radius * 0.6} y={radius * 0.6} listening={false}>
+          <Circle radius={radius * 0.48} fill="rgba(15, 17, 23, 0.85)" stroke="rgba(255,255,255,0.3)" strokeWidth={1} />
+          <Text
+            text={player.role}
+            fontSize={radius * 0.4}
+            fontFamily="Inter, system-ui, sans-serif"
+            fontStyle="bold"
+            fill="#ffffff"
+            align="center"
+            verticalAlign="middle"
+            width={radius * 0.96}
+            height={radius * 0.96}
+            offsetX={radius * 0.48}
+            offsetY={radius * 0.48}
+          />
+        </Group>
+      ) : (
+        <Text
+          text={player.role}
+          fontSize={fontSize}
+          fontFamily="Inter, system-ui, sans-serif"
+          fontStyle="bold"
+          fill="#ffffff"
+          align="center"
+          verticalAlign="middle"
+          width={radius * 2}
+          height={radius * 2}
+          offsetX={radius}
+          offsetY={radius}
+          listening={false}
+        />
+      )}
 
       {/* Spielername (Issue #29) – nur wenn vorhanden & sichtbar geschaltet */}
       {displayName && (

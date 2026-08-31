@@ -10,6 +10,7 @@ import LiveRegion from './components/a11y/LiveRegion.jsx';
 import Header from './components/layout/Header.jsx';
 import Footer from './components/layout/Footer.jsx';
 import OfflineBanner from './components/layout/OfflineBanner.jsx';
+import SeasonalOverlay from './components/layout/SeasonalOverlay.jsx';
 import TourOverlay from './components/layout/TourOverlay.jsx';
 import BirthdayGateDialog from './components/layout/BirthdayGateDialog.jsx';
 import useOfflineStore from './store/offlineStore.js';
@@ -128,6 +129,7 @@ export default function App() {
       <BrowserRouter>
         <ColorBlindFilters />
         <LiveRegion />
+        <SeasonalOverlay />
         <OfflineBanner />
         <Header />
         {user && !user.birthday && <BirthdayGateDialog />}

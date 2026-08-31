@@ -204,192 +204,198 @@ export default function TrainingSessionPage() {
         </Button>
       </header>
 
-      <div className={styles.metaRow}>
-        <label className={styles.metaField}>
-          {t('trainings.dateLabel')}
-          <input
-            type="date"
-            className={styles.dateInput}
-            value={scheduledDate}
-            onChange={(e) => commitScheduledDate(e.target.value)}
-            aria-label={t('trainings.dateAriaLabel')}
-          />
-        </label>
-        <input
-          type="text"
-          className={styles.goalInput}
-          value={goal}
-          onChange={(e) => setGoal(e.target.value)}
-          onBlur={commitGoal}
-          placeholder={t('trainings.goalPlaceholder')}
-          maxLength={200}
-          aria-label={t('trainings.goalAriaLabel')}
-        />
-      </div>
+      <div className={styles.layout}>
+        <div className={styles.mainColumn}>
+          <div className={styles.metaRow}>
+            <label className={styles.metaField}>
+              {t('trainings.dateLabel')}
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={scheduledDate}
+                onChange={(e) => commitScheduledDate(e.target.value)}
+                aria-label={t('trainings.dateAriaLabel')}
+              />
+            </label>
+            <input
+              type="text"
+              className={styles.goalInput}
+              value={goal}
+              onChange={(e) => setGoal(e.target.value)}
+              onBlur={commitGoal}
+              placeholder={t('trainings.goalPlaceholder')}
+              maxLength={200}
+              aria-label={t('trainings.goalAriaLabel')}
+            />
+          </div>
 
-      <div className={styles.seriesSection}>
-        {scheduledDate ? (
-          seriesOpen ? (
-            <form className={styles.seriesForm} onSubmit={handleCreateSeries}>
-              <label className={styles.metaField}>
-                {t('trainings.series.repeatLabel')}
-                <select
-                  className={styles.dateInput}
-                  value={seriesRepeat}
-                  onChange={(e) => setSeriesRepeat(e.target.value)}
-                  aria-label={t('trainings.series.repeatLabel')}
-                >
-                  <option value="daily">{t('trainings.series.daily')}</option>
-                  <option value="weekly">{t('trainings.series.weekly')}</option>
-                  <option value="biweekly">{t('trainings.series.biweekly')}</option>
-                </select>
-              </label>
-              <label className={styles.metaField}>
-                {t('trainings.series.untilLabel')}
-                <input
-                  type="date"
-                  className={styles.dateInput}
-                  value={seriesUntil}
-                  min={scheduledDate}
-                  onChange={(e) => setSeriesUntil(e.target.value)}
-                  required
-                  aria-label={t('trainings.series.untilAriaLabel')}
-                />
-              </label>
-              <Button type="submit" variant="primary" size="sm" disabled={loading || !seriesUntil}>
-                {t('trainings.series.submit')}
-              </Button>
-              <Button type="button" variant="secondary" size="sm" onClick={() => setSeriesOpen(false)}>
-                {t('trainings.cancelCreate')}
-              </Button>
-            </form>
-          ) : (
-            <Button variant="secondary" size="sm" onClick={() => setSeriesOpen(true)}>
-              {t('trainings.series.openButton')}
-            </Button>
-          )
-        ) : (
-          <p className={styles.seriesHint}>{t('trainings.series.needsDateHint')}</p>
-        )}
-        {seriesSuccessCount !== null && (
-          <p className={styles.seriesSuccess} role="status">{t('trainings.series.success', { count: seriesSuccessCount })}</p>
-        )}
-      </div>
-
-      <textarea
-        className={styles.notes}
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        onBlur={commitNotes}
-        placeholder={t('trainings.notesPlaceholder')}
-        maxLength={1000}
-        rows={2}
-        aria-label={t('trainings.notesAriaLabel')}
-      />
-
-      {(error || exportError || pdfError) && (
-        <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {error ?? exportError ?? pdfError}</div>
-      )}
-
-      {items.length === 0 ? (
-        <div className={styles.emptyState} role="status">
-          <p>{t('trainings.noItemsYet')}</p>
-        </div>
-      ) : (
-        <ol className={styles.itemList} aria-label={t('trainings.itemListAriaLabel')}>
-          {items.map((item, index) => (
-            <li key={item._id} className={styles.itemRow}>
-              <div className={styles.itemThumb}>
-                {item.boardName ? (
-                  <FieldMiniature fieldType={item.boardFieldType} theme={item.boardTheme} width={56} height={80} />
-                ) : (
-                  <span className={styles.itemThumbMissing} aria-hidden="true"><Ban size={20} aria-hidden="true" /></span>
-                )}
-              </div>
-
-              <div className={styles.itemBody}>
-                <span className={styles.itemBoardName}>
-                  {item.boardName ?? t('trainings.boardDeleted')}
-                </span>
-                <div className={styles.itemFields}>
-                  <label className={styles.itemField}>
-                    {t('trainings.durationLabel')}
+          <div className={styles.seriesSection}>
+            {scheduledDate ? (
+              seriesOpen ? (
+                <form className={styles.seriesForm} onSubmit={handleCreateSeries}>
+                  <label className={styles.metaField}>
+                    {t('trainings.series.repeatLabel')}
+                    <select
+                      className={styles.dateInput}
+                      value={seriesRepeat}
+                      onChange={(e) => setSeriesRepeat(e.target.value)}
+                      aria-label={t('trainings.series.repeatLabel')}
+                    >
+                      <option value="daily">{t('trainings.series.daily')}</option>
+                      <option value="weekly">{t('trainings.series.weekly')}</option>
+                      <option value="biweekly">{t('trainings.series.biweekly')}</option>
+                    </select>
+                  </label>
+                  <label className={styles.metaField}>
+                    {t('trainings.series.untilLabel')}
                     <input
-                      type="number"
-                      className={styles.durationInput}
-                      value={item.durationMinutes}
-                      min={1}
-                      max={240}
-                      onChange={(e) => updateItem(id, item._id, { durationMinutes: Number(e.target.value) })}
-                      aria-label={t('trainings.durationAriaLabel')}
+                      type="date"
+                      className={styles.dateInput}
+                      value={seriesUntil}
+                      min={scheduledDate}
+                      onChange={(e) => setSeriesUntil(e.target.value)}
+                      required
+                      aria-label={t('trainings.series.untilAriaLabel')}
                     />
                   </label>
-                  <input
-                    type="text"
-                    className={styles.noteInput}
-                    value={item.note}
-                    onChange={(e) => updateItem(id, item._id, { note: e.target.value })}
-                    placeholder={t('trainings.itemNotePlaceholder')}
-                    maxLength={300}
-                    aria-label={t('trainings.itemNoteAriaLabel')}
-                  />
-                </div>
-              </div>
+                  <Button type="submit" variant="primary" size="sm" disabled={loading || !seriesUntil}>
+                    {t('trainings.series.submit')}
+                  </Button>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => setSeriesOpen(false)}>
+                    {t('trainings.cancelCreate')}
+                  </Button>
+                </form>
+              ) : (
+                <Button variant="secondary" size="sm" onClick={() => setSeriesOpen(true)}>
+                  {t('trainings.series.openButton')}
+                </Button>
+              )
+            ) : (
+              <p className={styles.seriesHint}>{t('trainings.series.needsDateHint')}</p>
+            )}
+            {seriesSuccessCount !== null && (
+              <p className={styles.seriesSuccess} role="status">{t('trainings.series.success', { count: seriesSuccessCount })}</p>
+            )}
+          </div>
 
-              <div className={styles.itemActions}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  iconOnly
-                  onClick={() => moveItem(id, index, -1)}
-                  disabled={index === 0}
-                  aria-label={t('trainings.moveUp')}
-                >▲</Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  iconOnly
-                  onClick={() => moveItem(id, index, 1)}
-                  disabled={index === items.length - 1}
-                  aria-label={t('trainings.moveDown')}
-                >▼</Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  iconOnly
-                  onClick={() => removeItem(id, item._id)}
-                  aria-label={t('trainings.removeItemAriaLabel')}
-                  title={t('trainings.removeItemTitle')}
-                ><Trash2 size={16} aria-hidden="true" /></Button>
-              </div>
-            </li>
-          ))}
-        </ol>
-      )}
+          <textarea
+            className={styles.notes}
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            onBlur={commitNotes}
+            placeholder={t('trainings.notesPlaceholder')}
+            maxLength={1000}
+            rows={2}
+            aria-label={t('trainings.notesAriaLabel')}
+          />
 
-      <Button
-        variant="secondary"
-        size="md"
-        onClick={() => setShowPicker(true)}
-        disabled={!canAddItem}
-      >
-        <Plus size={16} aria-hidden="true" /> {t('trainings.addItem')}
-      </Button>
+          {(error || exportError || pdfError) && (
+            <div className={styles.errorBanner} role="alert"><AlertTriangle size={16} aria-hidden="true" /> {error ?? exportError ?? pdfError}</div>
+          )}
 
-      {showPicker && (
-        <BoardPickerModal
-          onConfirm={handleAddBoard}
-          onClose={() => setShowPicker(false)}
-          adding={adding}
-        />
-      )}
+          {items.length === 0 ? (
+            <div className={styles.emptyState} role="status">
+              <p>{t('trainings.noItemsYet')}</p>
+            </div>
+          ) : (
+            <ol className={styles.itemList} aria-label={t('trainings.itemListAriaLabel')}>
+              {items.map((item, index) => (
+                <li key={item._id} className={styles.itemRow}>
+                  <div className={styles.itemThumb}>
+                    {item.boardName ? (
+                      <FieldMiniature fieldType={item.boardFieldType} theme={item.boardTheme} width={56} height={80} />
+                    ) : (
+                      <span className={styles.itemThumbMissing} aria-hidden="true"><Ban size={20} aria-hidden="true" /></span>
+                    )}
+                  </div>
 
-      <RsvpSection resourceKind="trainings" resourceId={id} teamId={session.teamId} />
-      <CarpoolSection resourceKind="trainings" resourceId={id} teamId={session.teamId} />
-      <TrainingAttendanceSection sessionId={id} />
+                  <div className={styles.itemBody}>
+                    <span className={styles.itemBoardName}>
+                      {item.boardName ?? t('trainings.boardDeleted')}
+                    </span>
+                    <div className={styles.itemFields}>
+                      <label className={styles.itemField}>
+                        {t('trainings.durationLabel')}
+                        <input
+                          type="number"
+                          className={styles.durationInput}
+                          value={item.durationMinutes}
+                          min={1}
+                          max={240}
+                          onChange={(e) => updateItem(id, item._id, { durationMinutes: Number(e.target.value) })}
+                          aria-label={t('trainings.durationAriaLabel')}
+                        />
+                      </label>
+                      <input
+                        type="text"
+                        className={styles.noteInput}
+                        value={item.note}
+                        onChange={(e) => updateItem(id, item._id, { note: e.target.value })}
+                        placeholder={t('trainings.itemNotePlaceholder')}
+                        maxLength={300}
+                        aria-label={t('trainings.itemNoteAriaLabel')}
+                      />
+                    </div>
+                  </div>
 
-      <div className={styles.commentsSection}>
-        <CommentsPanel resourceKind="trainings" resourceId={id} />
+                  <div className={styles.itemActions}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      iconOnly
+                      onClick={() => moveItem(id, index, -1)}
+                      disabled={index === 0}
+                      aria-label={t('trainings.moveUp')}
+                    >▲</Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      iconOnly
+                      onClick={() => moveItem(id, index, 1)}
+                      disabled={index === items.length - 1}
+                      aria-label={t('trainings.moveDown')}
+                    >▼</Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      iconOnly
+                      onClick={() => removeItem(id, item._id)}
+                      aria-label={t('trainings.removeItemAriaLabel')}
+                      title={t('trainings.removeItemTitle')}
+                    ><Trash2 size={16} aria-hidden="true" /></Button>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
+
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => setShowPicker(true)}
+            disabled={!canAddItem}
+          >
+            <Plus size={16} aria-hidden="true" /> {t('trainings.addItem')}
+          </Button>
+
+          {showPicker && (
+            <BoardPickerModal
+              onConfirm={handleAddBoard}
+              onClose={() => setShowPicker(false)}
+              adding={adding}
+            />
+          )}
+        </div>
+
+        <div className={styles.sideColumn}>
+          <RsvpSection resourceKind="trainings" resourceId={id} teamId={session.teamId} />
+          <CarpoolSection resourceKind="trainings" resourceId={id} teamId={session.teamId} />
+          <TrainingAttendanceSection sessionId={id} />
+
+          <div className={styles.commentsSection}>
+            <CommentsPanel resourceKind="trainings" resourceId={id} />
+          </div>
+        </div>
       </div>
     </main>
   );

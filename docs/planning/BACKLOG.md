@@ -1152,6 +1152,136 @@ Bei jedem neuen Issue prüfen:
 
 ---
 
+# ISSUE 029
+
+## Trainingsseite grafisch überarbeiten (Abstände/Übersichtlichkeit)
+
+### Beschreibung
+
+Nutzer-Feedback: Die Trainingseinheit-Detailseite (`TrainingSessionPage.jsx`)
+wirkt "irgendwie alles untereinander", unübersichtlich, Abstände wirken
+falsch. Verstärkt seit ISSUE 028 (Fahrgemeinschaften), das eine weitere
+Sektion (`CarpoolSection`) zusätzlich zu Kopfzeile/Meta/Serien-Formular/
+Notizen/Übungsliste/`RsvpSection`/`TrainingAttendanceSection`/
+`CommentsPanel` in dieselbe einspaltige Abfolge einreiht
+(`TrainingSessionPage.module.css::.page` ist reines
+`max-width`+`padding`, keine Grid-/Spalten-Aufteilung für die
+Sekundär-Panels).
+
+---
+
+## Aufgaben
+
+* Layout der Detailseite überarbeiten – z.B. Haupt-Inhalt (Übungsliste/
+  Notizen) und Sekundär-Panels (RSVP/Fahrgemeinschaften/Anwesenheit/
+  Kommentare) in ein zweispaltiges Grid auf breiten Bildschirmen
+  aufteilen, statt alles strikt untereinander zu stapeln (Vorbild:
+  wie andere Seiten mit vielen Panels das lösen, falls vorhanden).
+* Konsistente vertikale Abstände zwischen den Panels prüfen (gleiche
+  Grund-Ursachen-Klasse wie der `--space-5`-Token-Bug vom
+  Dashboard/mehreren anderen Seiten, siehe CHANGELOG "Spieler-Dashboard
+  wirkte gequetscht" – dort bereits gefixt, hier nochmal gezielt für
+  diese Seite gegenprüfen, ob die Fixes ausreichen oder ob zusätzlich
+  strukturelles Grid-Layout nötig ist).
+* Bewusst NICHT einfach weitere Panels ergänzen, ohne die Gesamtstruktur
+  zu überdenken – das Problem wächst mit jedem neuen Feature auf dieser
+  Seite (RSVP → Fahrgemeinschaften → als nächstes ggf. weitere).
+
+---
+
+## Priorität
+
+P2 – UX-Politur, keine funktionale Einschränkung.
+
+---
+
+# ISSUE 030
+
+## Fahrgemeinschaften: Anbieter-Name nicht sichtbar
+
+### Beschreibung
+
+Nutzer-Feedback: Bei einem Fahrangebot (ISSUE 028, `CarpoolSection.jsx`)
+sieht man zwar, wer mitfährt (Claims), aber nicht, wer die Fahrt
+überhaupt anbietet. `carpoolsController.js::toApiOffer` gibt aktuell nur
+`userId` für das Angebot selbst zurück, keinen Anzeigenamen/E-Mail des
+Anbieters – anders als bei den Claims, wo seit dem
+E-Mail-Anzeige-Fix bereits ein Name mitgeliefert wird.
+
+---
+
+## Aufgaben
+
+* `fetchOffersForResource` (`carpoolsController.js`) um einen JOIN auf
+  `users` für `carpool_offers.user_id` erweitern (analog dem
+  bestehenden JOIN für Claims), `toApiOffer` um z.B. `offererName`
+  ergänzen.
+* `CarpoolSection.jsx` zeigt den Anbieter-Namen pro Angebot an.
+* Öffentliche Ansicht (`carpoolShareController.js`/
+  `CarpoolSharePage.jsx`) bewusst NICHT um den Anbieter-Namen erweitern,
+  ohne das gegen die Datensparsamkeits-Linie (keine E-Mail auf der
+  öffentlichen Seite, siehe bestehender Test dafür) neu zu bewerten –
+  ggf. reicht dort weiterhin "Angebot von einem Team-Mitglied".
+
+---
+
+## Priorität
+
+P2 – kleine, klar umrissene Ergänzung.
+
+---
+
+# ISSUE 031
+
+## Export-Funktionen: Sichtbarkeits-Filter (z.B. Gegner ausblenden) wird nicht respektiert
+
+### Beschreibung
+
+Nutzer-Feedback: Exporte (GIF/MP4/PNG/PDF) berücksichtigen nicht, wenn
+im Taktikboard-Editor über das Sichtbarkeits-/Layer-Panel z.B. die
+Gegner-Ebene ausgeblendet wurde. **Ursache bereits lokalisiert:**
+`BoardEditorPage.jsx::renderFrame` (Zeile ~588–600) übergibt
+`frame.players` und `frame.elements` ungefiltert an
+`FloorballFieldStatic` – die Layer-Sichtbarkeit ist laut
+Architekturentscheidung (CLAUDE.md §10.2) bewusst reiner
+Session-/UI-Zustand (kein Board-/Frame-Feld, kein `localStorage`) und
+fließt dadurch nie in den Export-Renderpfad ein. Alle vier
+Export-Wege (`ExportPanel.jsx` GIF/MP4/PNG-Frame-Share,
+`PdfExportPanel.jsx`) nutzen denselben `renderFrame`, sind also
+gleichermaßen betroffen.
+
+---
+
+## Aufgaben
+
+* Prüfen, ob Export "wie am Bildschirm sichtbar" (aktuelle
+  Layer-Sichtbarkeit respektieren) oder "immer vollständig" (Exporte
+  sollen unabhängig von der aktuellen Session immer alle Daten zeigen)
+  das gewünschte Verhalten ist – das ist eine Produktentscheidung, kein
+  reiner Bugfix, da beide Lesarten plausibel sind (z.B. Export für einen
+  Spielbericht ggf. bewusst vollständig, ein für Spieler gedachter
+  Ausschnitt ggf. bewusst gefiltert). Vor Umsetzung mit dem Nutzer
+  klären statt zu raten.
+* Falls "wie sichtbar" gewünscht: aktuellen Sichtbarkeits-Zustand
+  (welche Layer/welche Spielergruppe ein-/ausgeblendet ist) beim Aufruf
+  von `renderFrame` durchreichen und dort vor dem Aufruf von
+  `FloorballFieldStatic` filtern, statt die Sichtbarkeits-Architektur
+  (bewusst kein persistentes Feld) zu ändern.
+* Nach Klärung/Umsetzung: alle vier Export-Wege (GIF, MP4, PNG-Frame-
+  Share, PDF) sowie den Spielbericht-PDF-Export (`gameReportExport`,
+  falls dieser ebenfalls Spieler-/Gegnerdaten zeichnet) auf denselben
+  Fehler hin prüfen, nicht nur den zuerst gemeldeten Fall.
+
+---
+
+## Priorität
+
+P1 – wirkt wie ein funktionaler Bug (Export "lügt" gegenüber der
+Bildschirmanzeige), auch wenn die Lösung eine bewusste
+Verhaltensentscheidung braucht.
+
+---
+
 # Ende Backlog
 
 OpenFloorball Coach wird Schritt für Schritt aufgebaut.

@@ -131,6 +131,42 @@ export async function fetchNextMatch({ apiKey, leagueId, smTeamId }) {
   };
 }
 
+// Alle eigenen Liga-Spiele (nicht nur das nächste) für den Kalender-/
+// Spiele-Sync (Nutzer-Feedback 2026-08-31: Saisonmanager-Termine fehlten
+// im Kalender, weil sie nirgends gespeichert wurden). Anders als
+// fetchNextMatch: filtert direkt über home_team_id/guest_team_id statt
+// über eine zusätzliche Namensauflösung (schedule.json liefert beide IDs
+// bereits mit, siehe Game#schedule_item im echten Backend-Quellcode –
+// spart den zweiten table.json-Request und ist robuster als Namens-
+// Matching bei mehreren gleich benannten Vereinsteams).
+//
+// notice_type === 'Canceled' (exakter String, US-Schreibweise) ist laut
+// echtem Backend-Quellcode (TeamsController#match_status) das einzige
+// verifizierte Absage-Signal – state selbst kennt laut demselben
+// Quellcode (Game#state) nur 'running'/'ended'/'record_created'/
+// 'no_record', NIE 'cancelled' (Erkenntnis aus dem echten Quellcode,
+// nicht nur der noch unvollständigen offiziellen OpenAPI-Spec).
+export async function fetchOwnSchedule({ apiKey, leagueId, smTeamId }) {
+  const schedule = await fetchJson(`/leagues/${leagueId}/schedule.json`, apiKey);
+
+  return schedule
+    .filter((g) => g.home_team_id === smTeamId || g.guest_team_id === smTeamId)
+    .map((g) => {
+      const isHome = g.home_team_id === smTeamId;
+      return {
+        externalId: String(g.game_id),
+        date: g.date,
+        time: g.time ?? null,
+        opponent: isHome ? g.guest_team_name : g.home_team_name,
+        isHome,
+        venueName: g.arena_name ?? null,
+        venueAddress: g.arena_address ?? null,
+        isCancelled: g.notice_type === 'Canceled',
+      };
+    })
+    .filter((g) => g.date); // Spiele ohne Termin (noch nicht angesetzt) sind für den Kalender irrelevant
+}
+
 export async function fetchTable({ apiKey, leagueId, smTeamId }) {
   const table = await fetchJson(`/leagues/${leagueId}/table.json`, apiKey);
   return {

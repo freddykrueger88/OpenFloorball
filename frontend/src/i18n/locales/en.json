@@ -135,6 +135,8 @@
     "displayName": "Display Name",
     "saving": "Saving…",
     "saved": "Saved",
+    "birthdaySaveBtn": "Save date of birth",
+    "birthdayChanged": "Date of birth changed.",
     "changeEmail": "Change Email",
     "currentEmail": "Current: {{email}}",
     "newEmailPlaceholder": "New email address",

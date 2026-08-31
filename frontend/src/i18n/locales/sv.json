@@ -135,6 +135,8 @@
     "displayName": "Visningsnamn",
     "saving": "Sparar…",
     "saved": "Sparat",
+    "birthdaySaveBtn": "Spara födelsedatum",
+    "birthdayChanged": "Födelsedatum ändrat.",
     "changeEmail": "Ändra e-post",
     "currentEmail": "Nuvarande: {{email}}",
     "newEmailPlaceholder": "Ny e-postadress",

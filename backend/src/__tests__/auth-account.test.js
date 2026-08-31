@@ -34,6 +34,18 @@ describe('PUT /api/auth/name', () => {
     expect(res.body.data.user.name).toBe('Neuer Name');
   });
 
+  // Regression: AccountSection.jsx überschreibt den globalen User-Store mit
+  // der PUT-Antwort (useAutoSave feuert schon beim Öffnen des Account-Tabs,
+  // auch ohne echte Namensänderung). Fehlte birthday in der RETURNING-
+  // Klausel, verschwand das Geburtsdatum aus dem Frontend-State und
+  // BirthdayGateDialog erschien fälschlich erneut, obwohl die DB unverändert
+  // korrekt blieb.
+  it('behält das Geburtsdatum in der Antwort (Regression: BirthdayGateDialog erschien sonst erneut)', async () => {
+    const res = await request(app).put('/api/auth/name').set('Cookie', cookie).send({ name: 'Name mit Geburtsdatum-Check' });
+    expect(res.status).toBe(200);
+    expect(res.body.data.user.birthday).toBeTruthy();
+  });
+
   it('lehnt leeren Namen mit 422 ab', async () => {
     const res = await request(app).put('/api/auth/name').set('Cookie', cookie).send({ name: '' });
     expect(res.status).toBe(422);
@@ -57,6 +69,7 @@ describe('PUT /api/auth/email', () => {
       .send({ newEmail, currentPassword: 'Testpass123' });
     expect(res.status).toBe(200);
     expect(res.body.data.user.email).toBe(newEmail);
+    expect(res.body.data.user.birthday).toBeTruthy(); // Regression, siehe PUT /api/auth/name oben
     email = newEmail;
   });
 });

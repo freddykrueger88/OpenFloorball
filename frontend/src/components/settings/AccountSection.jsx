@@ -28,6 +28,29 @@ export default function AccountSection() {
   }, [setUser]);
   const { status: nameSaveStatus } = useAutoSave(name, saveName, !!user);
 
+  // Bewusst KEIN useAutoSave wie beim Anzeigenamen: ein Geburtsdatum soll
+  // nicht bei jedem Öffnen dieses Tabs oder während des Eintippens
+  // (unvollständiges Datum) automatisch abgeschickt werden – explizites
+  // Speichern per Button, analog E-Mail-/Passwort-Formular.
+  const [birthday, setBirthday] = useState(user?.birthday?.slice(0, 10) || '');
+  useEffect(() => { setBirthday(user?.birthday?.slice(0, 10) || ''); }, [user?.birthday]);
+  const [birthdayMsg, setBirthdayMsg] = useState(null);
+  const [birthdaySaving, setBirthdaySaving] = useState(false);
+  const handleBirthdaySubmit = async (e) => {
+    e.preventDefault();
+    setBirthdayMsg(null);
+    setBirthdaySaving(true);
+    try {
+      const res = await apiFetch('/api/auth/birthday', { method: 'PUT', body: JSON.stringify({ birthday }) });
+      setUser(res.user);
+      setBirthdayMsg({ type: 'ok', text: t('settings.birthdayChanged') });
+    } catch (err) {
+      setBirthdayMsg({ type: 'error', text: err.message });
+    } finally {
+      setBirthdaySaving(false);
+    }
+  };
+
   const [emailForm, setEmailForm] = useState({ newEmail: '', currentPassword: '' });
   const [emailMsg, setEmailMsg] = useState(null);
   const handleEmailSubmit = async (e) => {
@@ -99,6 +122,26 @@ export default function AccountSection() {
           {nameSaveStatus === 'saved' && <><Check size={14} aria-hidden="true" /> {t('settings.saved')}</>}
         </span>
       </div>
+
+      <form className={styles.subForm} onSubmit={handleBirthdaySubmit}>
+        <h3 className={styles.subTitle}>{t('auth.birthday')}</h3>
+        <input
+          type="date"
+          className={styles.textInput}
+          value={birthday}
+          onChange={(e) => setBirthday(e.target.value)}
+          max={new Date().toISOString().slice(0, 10)}
+          required
+          aria-label={t('auth.birthday')}
+        />
+        <span className={styles.hint}>{t('auth.birthdayHint')}</span>
+        <Button type="submit" variant="secondary" size="md" className={styles.submitBtn} disabled={birthdaySaving}>
+          {birthdaySaving ? t('settings.saving') : t('settings.birthdaySaveBtn')}
+        </Button>
+        {birthdayMsg && (
+          <p className={birthdayMsg.type === 'error' ? styles.msgError : styles.msgOk}>{birthdayMsg.text}</p>
+        )}
+      </form>
 
       <form className={styles.subForm} onSubmit={handleEmailSubmit}>
         <h3 className={styles.subTitle}>{t('settings.changeEmail')}</h3>

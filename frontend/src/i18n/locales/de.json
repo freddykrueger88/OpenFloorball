@@ -135,6 +135,8 @@
     "displayName": "Anzeigename",
     "saving": "Speichert…",
     "saved": "Gespeichert",
+    "birthdaySaveBtn": "Geburtsdatum speichern",
+    "birthdayChanged": "Geburtsdatum geändert.",
     "changeEmail": "E-Mail ändern",
     "currentEmail": "Aktuell: {{email}}",
     "newEmailPlaceholder": "Neue E-Mail-Adresse",

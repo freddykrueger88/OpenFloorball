@@ -238,7 +238,7 @@ router.put('/name', authenticate, [
   }
   try {
     const result = await pool.query(
-      'UPDATE users SET display_name = $1 WHERE id = $2 RETURNING id, email, role, display_name AS name',
+      'UPDATE users SET display_name = $1 WHERE id = $2 RETURNING id, email, role, display_name AS name, birthday',
       [req.body.name, req.user.id]
     );
     return res.json(success({ user: result.rows[0] }));
@@ -292,7 +292,7 @@ router.put('/email', authenticate, [
     }
 
     const result = await pool.query(
-      'UPDATE users SET email = $1 WHERE id = $2 RETURNING id, email, role, display_name AS name',
+      'UPDATE users SET email = $1 WHERE id = $2 RETURNING id, email, role, display_name AS name, birthday',
       [newEmail, req.user.id]
     );
     logger.info(`User changed email: ${req.user.id}`);

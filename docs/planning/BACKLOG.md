@@ -461,6 +461,19 @@ Prüfen:
 
 ## Onboarding-Tour für neue Nutzer
 
+Status: ✅ umgesetzt (Commits `305ecaf`, `0d1a0b2`). Eigener Zustand
+(`frontend/src/store/tourStore.js`, Zustand-Store mit `start/next/prev/
+skip/finish`), Schritt-Definitionen (`frontend/src/constants/
+tourSteps.js::NAV_TOUR_STEPS`) und eine wiederverwendbare Spotlight-
+Overlay-Komponente (`frontend/src/components/layout/TourOverlay.jsx`,
+inkl. Fokus-Falle über `useFocusTrap`, Screenreader-Ankündigungen über
+`announceStore`) sind in `App.jsx` global eingebunden. Persistenz läuft
+datensparsam über den bestehenden generischen `preferences_json`-Blob
+(`tourCompleted`-Flag via `/api/settings`, keine neue Tabelle). Erneuter
+Aufruf über einen Button in `PreferencesSection.jsx` (Einstellungen).
+Tour ist überspringbar und tastatur-/screenreader-bedienbar
+(`TourOverlay.test.jsx`).
+
 ### Beschreibung
 
 Ein neuer Nutzer soll ohne Schulung schnell verstehen, wie die
@@ -507,6 +520,17 @@ P1
 # ISSUE 024
 
 ## Vertiefte Editor-Tour: Spielfeld-Erstellung erklären
+
+Status: ✅ umgesetzt (Commits `ddd6690`, `0d1a0b2`). Zweite, unabhängige
+Tour (`EDITOR_TOUR_STEPS` in `frontend/src/constants/tourSteps.js`) auf
+derselben `TourOverlay.jsx`/`tourStore.js`-Grundlage wie ISSUE 023
+(kein zweites Framework), eingebunden in `BoardEditorPage.jsx`
+(`<TourOverlay tourId="editor" .../>` plus Hilfe-Icon zum erneuten
+Start). Eigener, getrennter Status-Schlüssel `editorTourCompleted` im
+selben `preferences_json`-Blob. Ziel-Elemente über `data-tour`-
+Attribute auf Werkzeugleiste/Tabs (`BoardSidePanelTabs.jsx`,
+`FrameTimeline.jsx`), nicht auf Canvas-Objekten. Eigener Restart-Button
+in `PreferencesSection.jsx`, unabhängig vom Nav-Tour-Button.
 
 ### Beschreibung
 
@@ -740,6 +764,17 @@ P2
 
 ## Europaweite Sprachunterstützung für floorball-aktive Nationen
 
+Status (Phase 1): Übersetzungs-Infrastruktur (`docs/TRANSLATING.md`,
+generisches `LOCALES`-Objekt in `locales.test.js`, GitHub-Issue-
+Vorlage) steht seit PR #61. Schwedisch (`sv`) existiert seither als
+erster KI-Rohentwurf, noch ohne muttersprachliche Prüfung. Finnisch
+(`fi`), Tschechisch (`cs`) und Slowakisch (`sk`) folgen als eigene
+Rohentwürfe in separaten PRs (gleiches Muster: KI-Entwurf, klar als
+ungeprüft gekennzeichnet, Merge erst nach muttersprachlichem Review
+laut `TRANSLATING.md` §7). Sprachauswahl in `PreferencesSection.jsx`
+wird dabei von hartkodierten `<option>`-Paaren auf eine aus
+`supportedLngs` generierte Liste umgestellt.
+
 ### Beschreibung
 
 Die Oberfläche gibt es bisher nur auf Deutsch und Englisch
@@ -851,6 +886,16 @@ P2
 # ISSUE 028
 
 ## Fahrgemeinschaften für Spiele und Trainings
+
+Status: ✅ umgesetzt. Polymorphe Zuordnung über `resource_type`/
+`resource_id` (`training_session`/`game`) plus echte Junction-Tabelle
+für Platz-Beanspruchungen (`backend/src/db/migrate.js`,
+`carpoolsController.js`). Treffpunkt bewusst Freitext, keine
+Adress-/Telefonfelder (Datensparsamkeit). `CarpoolSection.jsx` zeigt
+Angebote/Claims direkt auf der Spiel-/Trainings-Detailseite, eigener
+Eintrag jederzeit zurückziehbar, Überbuchen serverseitig verhindert.
+Zugriff wie RSVP/Anwesenheit auf Team-Mitglieder beschränkt. Anbieter-
+Name-Sichtbarkeit und Layout-Feintuning siehe ISSUE 030/029.
 
 ### Beschreibung
 

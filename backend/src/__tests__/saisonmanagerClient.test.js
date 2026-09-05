@@ -6,7 +6,7 @@
  */
 import './setup.js';
 import { jest } from '@jest/globals';
-import { fetchNextMatch, fetchTable, SaisonmanagerError } from '../services/saisonmanagerClient.js';
+import { fetchNextMatch, fetchTable, fetchOwnSchedule, SaisonmanagerError } from '../services/saisonmanagerClient.js';
 
 const TABLE_FIXTURE = [
   { team_id: 111, team_name: 'Floorball Tigers', position: 1, games: 10, won: 8, draw: 1, lost: 1, goals_diff: 25, points: 25 },
@@ -92,6 +92,47 @@ describe('saisonmanagerClient.fetchNextMatch', () => {
     const callsAfterFirst = global.fetch.mock.calls.length;
     await fetchNextMatch({ apiKey: 'key-8', leagueId: 1, smTeamId: 111 });
     expect(global.fetch.mock.calls.length).toBe(callsAfterFirst);
+  });
+});
+
+describe('saisonmanagerClient.fetchOwnSchedule', () => {
+  const originalFetch = global.fetch;
+  afterEach(() => { global.fetch = originalFetch; });
+
+  it('filtert per Team-ID (nicht Name) und liefert Heim- wie Auswärtsspiele', async () => {
+    mockFetchWith({
+      schedule: [
+        { game_id: 1001, date: '2026-09-01', time: '18:00', home_team_id: 111, home_team_name: 'Floorball Tigers', guest_team_id: 222, guest_team_name: 'Floorball Wolves', arena_name: 'Halle A', arena_address: 'Adr A' },
+        { game_id: 1002, date: '2026-09-08', time: '19:00', home_team_id: 333, home_team_name: 'Other Team', guest_team_id: 111, guest_team_name: 'Floorball Tigers', arena_name: 'Halle B', arena_address: 'Adr B' },
+        { game_id: 1003, date: '2026-09-15', time: '20:00', home_team_id: 444, home_team_name: 'X', guest_team_id: 555, guest_team_name: 'Y' },
+      ],
+    });
+    const games = await fetchOwnSchedule({ apiKey: 'sched-1', leagueId: 1, smTeamId: 111 });
+    expect(games).toHaveLength(2);
+    expect(games[0]).toEqual(expect.objectContaining({ externalId: '1001', isHome: true, opponent: 'Floorball Wolves' }));
+    expect(games[1]).toEqual(expect.objectContaining({ externalId: '1002', isHome: false, opponent: 'Other Team' }));
+  });
+
+  it('erkennt eine Absage nur über notice_type === "Canceled" (nicht über state)', async () => {
+    mockFetchWith({
+      schedule: [
+        { game_id: 2001, date: '2026-09-01', home_team_id: 111, home_team_name: 'Floorball Tigers', guest_team_id: 222, guest_team_name: 'Wolves', state: 'ended', notice_type: 'Canceled' },
+        { game_id: 2002, date: '2026-09-08', home_team_id: 111, home_team_name: 'Floorball Tigers', guest_team_id: 222, guest_team_name: 'Wolves', state: 'no_record', notice_type: null },
+      ],
+    });
+    const games = await fetchOwnSchedule({ apiKey: 'sched-2', leagueId: 1, smTeamId: 111 });
+    expect(games.find((g) => g.externalId === '2001').isCancelled).toBe(true);
+    expect(games.find((g) => g.externalId === '2002').isCancelled).toBe(false);
+  });
+
+  it('lässt Spiele ohne Termin (date null) aus', async () => {
+    mockFetchWith({
+      schedule: [
+        { game_id: 3001, date: null, home_team_id: 111, home_team_name: 'Floorball Tigers', guest_team_id: 222, guest_team_name: 'Wolves' },
+      ],
+    });
+    const games = await fetchOwnSchedule({ apiKey: 'sched-3', leagueId: 1, smTeamId: 111 });
+    expect(games).toHaveLength(0);
   });
 });
 

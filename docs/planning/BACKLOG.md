@@ -498,6 +498,15 @@ passend zu CLAUDE.md Kapitel 15 "Einfach starten".
 * Tour ist per Tastatur bedienbar und mit Screenreader nutzbar
   (Accessibility First, CLAUDE.md 16).
 
+Status: ✅ umgesetzt. Eigene, telemetriefreie Overlay-Komponente
+`TourOverlay.jsx` + `tourStore.js` (Zustand), Schritt-Definitionen in
+`constants/tourSteps.js` (`NAV_TOUR_STEPS`). Auto-Start beim ersten
+Login, jederzeit überspringbar, erneuter Start über die Einstellungen
+(`PreferencesSection.jsx`). "Tour gesehen"-Status in `preferences_json`
+(`tourCompleted`) – keine neue Tabelle. Tastatur (Focus-Falle, Escape)
+und Screenreader (`useAnnounceStore`) gemäß CLAUDE.md §16. i18n de/en/
+sv/fi/cs/sk. Siehe ISSUE 024 (Editor-Tour) für die vertiefte Variante.
+
 Priorität:
 
 P1
@@ -791,7 +800,20 @@ Labels in allen Locale-Dateien) – ebenfalls `needs-native-review`
 markiert. Damit ist Phase 1 komplett: alle vier priorisierten
 Nationen (sv/fi/cs/sk) sind als Rohentwürfe in der Oberfläche
 wählbar.
-Offen: muttersprachliches Review für sv/fi/cs/sk.
+**Phase 2 (2026-09-05) vollständig:** Norwegisch Bokmål (`nb`,
+1589 Schlüssel – Browser liefern `no`, deshalb `no` als Alias in
+`supportedLngs` mit demselben Resource-Objekt, in der Auswahl nicht
+sichtbar), Lettisch (`lv` – pragmatische Plural-Näherung: `_few`/
+`_other` Nominativ-Plural 2–9, `_many` Genitiv-Plural 10+, CLDR-
+Zero fällt auf `_other` zurück), Polnisch (`pl` – Pluralregeln passen
+exakt auf die vier Suffix-Kategorien) und Französisch (`fr`). Alle
+vier strukturell 1:1 zu `en.json`, `languageNb/Lv/Pl/Fr`-Labels in
+allen Locale-Dateien, `getIntlLocale()` → nb-NO/lv-LV/pl-PL/fr-FR.
+`SUPPORTED_LANGUAGES` umfasst jetzt 10 Sprachen, `locales.test.js`
+prüft automatisch alle 10.
+Offen: muttersprachliches Review für alle 8 Rohentwürfe
+(sv/fi/cs/sk/nb/lv/pl/fr) vor offizieller Freigabe sowie – bei
+Bedarf – Phase 3 (da/et/nl/it).
 
 ### Beschreibung
 
@@ -973,6 +995,18 @@ Coach Workflow First ("Training durchführen" / Spieltag-Organisation).
   Datenmodell.
 * Zugriff ausschließlich für Mitglieder des jeweiligen Teams (wie
   RSVP/Anwesenheit).
+
+Status: ✅ umgesetzt (2026-08-30). `carpool_offers`/`carpool_claims`
+(echte Junction statt polymorpher Zuordnung), `CarpoolSection.jsx` auf
+Spiel- und Trainings-Detailseite, öffentliche Freigabeseite
+(`carpoolShareController.js`/`CarpoolSharePage.jsx`) über
+`share_token` für niedrigschwelliges Teilen – keine Adresse/Telefon im
+Datenmodell, Treffpunkt ist freier Text (Datensparsamkeit, §5.1/§5.3).
+Anbieter-Name wird seit ISSUE 030 mitgeliefert. **Die dokumentierte
+offene Frage (Einbindung reiner Eltern ohne eigenen Account) ist
+bewusst NICHT vorentschieden** – bleibt zurückgestellt, bis mit
+echten Trainern/Vereinen geklärt; der `share_token`-Weg ist der
+vorbereitete Baustein dafür.
 
 Priorität:
 

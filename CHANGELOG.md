@@ -161,6 +161,34 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   `getIntlLocale()` mappt zusätzlich sk → sk-SK. Bewusst als
   **ungeprüfter, KI-übersetzter Entwurf** gekennzeichnet
   (`needs-native-review`) – ebenso wie die sv-, fi- und cs-Entwürfe.
+- **Issue 027 Phase 2: Norwegisch Bokmål (`nb`) als vollständiger
+  Rohentwurf**. `locales/nb.json` (1589 Schlüssel, strukturell 1:1 zu
+  `en.json`), `languageNb`-Labels in allen Locale-Dateien,
+  `getIntlLocale()` → nb-NO. Norwegisch wird von Browsern als `no`
+  geliefert – i18next mappt das nicht automatisch, daher ist `no` als
+  Alias mit demselben Resource-Objekt in `supportedLngs` registriert
+  (nicht in der Sprachauswahl sichtbar). Bewusst als **ungeprüfter,
+  KI-übersetzter Entwurf** gekennzeichnet (`needs-native-review`).
+- **Issue 027 Phase 2: Lettisch (`lv`) als vollständiger Rohentwurf**.
+  `locales/lv.json` (1589 Schlüssel), `languageLv`-Labels in allen
+  Locale-Dateien, `getIntlLocale()` → lv-LV. Pragmatische
+  Plural-Näherung: Basis = Einzahl, `_few`/`_other` = Nominativ-Plural
+  (2–9), `_many` = Genitiv-Plural (10+) – CLDR-Zero-Formen (0, 10–20)
+  fallen auf `_other` zurück. Bewusst als **ungeprüfter, KI-übersetzter
+  Entwurf** gekennzeichnet (`needs-native-review`).
+- **Issue 027 Phase 2: Polnisch (`pl`) als vollständiger Rohentwurf**.
+  `locales/pl.json` (1589 Schlüssel), `languagePl`-Labels in allen
+  Locale-Dateien, `getIntlLocale()` → pl-PL. Polnische Pluralregeln
+  passen exakt auf die vier Suffix-Kategorien (Basis=1, `_few` 2–4,
+  `_many` 5+, `_other` Brüche). Bewusst als **ungeprüfter,
+  KI-übersetzter Entwurf** gekennzeichnet (`needs-native-review`).
+- **Issue 027 Phase 2: Französisch (`fr`) als vollständiger Rohentwurf –
+  damit ist Phase 2 komplett** (nb/lv/pl/fr). `locales/fr.json`
+  (1589 Schlüssel), `languageFr`-Labels in allen Locale-Dateien,
+  `getIntlLocale()` → fr-FR. `SUPPORTED_LANGUAGES` umfasst jetzt
+  10 Sprachen (de/en/sv/fi/cs/sk/nb/lv/pl/fr), `locales.test.js` prüft
+  automatisch alle 10. Bewusst als **ungeprüfter, KI-übersetzter
+  Entwurf** gekennzeichnet (`needs-native-review`).
 
 ### Fixed
 - **GIF/MP4/PDF-Export ließ Board-Elemente und Spieler-Details weg**: Der

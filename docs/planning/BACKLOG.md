@@ -1330,6 +1330,133 @@ Verhaltensentscheidung braucht.
 
 ---
 
+# ISSUE 032
+
+## Saisonmanager-Spielplan in den Kalender übernehmen
+
+### Beschreibung
+
+Nutzer-Feedback: Ein Team mit verknüpftem Saisonmanager-Zugang (siehe
+EPIC-Kontext Spieler-Dashboard) sieht das nächste Spiel zwar auf den
+Dashboard-Karten, aber nicht im Kalender oder unter "Spiele" – die
+Saisonmanager-Anbindung ruft Daten bisher nur live ab (`fetchNextMatch`/
+`fetchTable`) und speichert sie nirgends in der eigenen Datenbank.
+`CalendarPage.jsx` liest ausschließlich aus den lokalen `games`/
+`training_sessions`-Tabellen.
+
+Status (2026-08-31): **implementiert, wartet auf Merge/Deploy-
+Entscheidung** – [PR #88](https://github.com/freddykrueger88/OpenFloorball/pull/88)
+(`feat/saisonmanager-calendar-sync`), vollständig getestet (889
+Backend-Tests grün), noch nicht gemerged.
+
+---
+
+## Umsetzung (bereits gebaut, siehe PR #88)
+
+Mit dem Nutzer geklärte Produktentscheidungen:
+
+* Sync läuft automatisch bei jedem Dashboard-Laden (kein separater
+  Button).
+* Bei Konflikt haben Saisonmanager-Daten immer Vorrang vor manuellen
+  Änderungen an einem bereits synchronisierten Spiel (kein Merge,
+  keine Konflikt-UI).
+
+Technisch:
+
+* Neue additive Spalten `games.external_source`/`external_id` als
+  Upsert-Schlüssel. `external_id` = Saisonmanagers `game_id`
+  (verifiziert stabiles Pflichtfeld im echten Backend-Quellcode,
+  robuster als ein Datum+Gegner-Composite-Key bei
+  Terminverschiebungen).
+* `saisonmanagerClient.js::fetchOwnSchedule` (neu) filtert den
+  Liga-Spielplan über `home_team_id`/`guest_team_id` statt
+  Namens-Matching.
+* `teamSaisonmanagerController.js::syncSaisonmanagerGames`, angehängt
+  an `getNextMatch`. Umgeht bewusst `createGame`/`MAX_GAMES` (der Cap
+  ist gegen manuelles Spam-Anlegen gedacht, nicht gegen einen
+  legitimen Liga-Spielplan). Manuell angelegte Spiele
+  (`external_source IS NULL`) bleiben unangetastet.
+* Absage-Erkennung über `notice_type === 'Canceled'` (siehe ISSUE 033
+  – dieselbe, im echten Quellcode verifizierte Erkenntnis).
+
+---
+
+## Akzeptanzkriterien
+
+* PR #88 gemerged und deployed (inkl. DB-Backup vorher, da Migration).
+* Ein Team mit Saisonmanager-Verknüpfung sieht seine Liga-Spiele nach
+  dem nächsten Dashboard-Aufruf im Kalender und unter "Spiele".
+
+Priorität:
+
+P2 – nützliche Ergänzung, aber kein Kernfeature; wartet bewusst auf
+eine explizite Deploy-Freigabe statt automatisch mitzulaufen.
+
+---
+
+# ISSUE 033
+
+## Saisonmanager: abgesagte Spiele werden auf dem Dashboard weiterhin als "nächstes Spiel" angezeigt
+
+### Beschreibung
+
+Beim Verifizieren der Saisonmanager-Anbindung gegen den echten,
+öffentlichen Backend-Quellcode (`floorballdeutschland/saisonmanager-api`
+auf GitHub) im Rahmen von ISSUE 032 festgestellt: `fetchNextMatch`
+(`saisonmanagerClient.js`) filtert abgesagte Spiele aktuell über
+`g.state !== 'cancelled'`. Der echte `Game#state` liefert laut
+Quellcode aber ausschließlich `running`/`ended`/`record_created`/
+`no_record` – **nie** `cancelled`. Die tatsächliche Absage steht in
+einem anderen Feld: `TeamsController#match_status` im echten Backend
+prüft `game.notice_type == 'Canceled'` (exakter String, US-Schreibweise,
+großes C).
+
+Praktische Auswirkung: Die bereits produktiv laufende Dashboard-Karte
+"Nächstes Spiel" kann ein von Saisonmanager als abgesagt markiertes
+Spiel weiterhin als anstehendes nächstes Spiel anzeigen, da der
+bestehende Filter nie greift.
+
+---
+
+## Aufgaben
+
+* `fetchNextMatch`s Filterbedingung von `g.state !== 'cancelled'` auf
+  `g.notice_type !== 'Canceled'` umstellen (ein-/zweizeilige Änderung).
+* Bestehende Tests in `saisonmanagerClient.test.js` anpassen – die
+  aktuellen Fixtures simulieren `state: 'cancelled'`, was laut echtem
+  Quellcode nie vorkommt; müssen auf `notice_type: 'Canceled'`
+  umgestellt werden, sonst testen sie weiterhin am falschen Feld
+  vorbei.
+* Prüfen, ob `fetchTable`/andere Stellen denselben (falschen) Filter
+  verwenden.
+
+---
+
+## Technische Überlegungen
+
+* Ändert bereits ausgelieferten, getesteten Produktivcode – kleine,
+  isolierte Änderung bevorzugen (CLAUDE.md §20.4), nicht mit ISSUE 032
+  vermischen, obwohl beide aus derselben Recherche stammen.
+* `fetchOwnSchedule` (ISSUE 032, PR #88) nutzt bereits die korrekte
+  `notice_type === 'Canceled'`-Prüfung – als Referenzimplementierung
+  für den Fix hier verwendbar.
+
+---
+
+## Akzeptanzkriterien
+
+* Ein von Saisonmanager als abgesagt markiertes Spiel erscheint nicht
+  mehr als "nächstes Spiel" auf dem Dashboard.
+* Bestehende Tests weiterhin grün, Fixtures spiegeln das reale
+  API-Verhalten (`notice_type`, nicht `state`).
+
+Priorität:
+
+P2 – seltener Randfall (abgesagte Spiele sind die Ausnahme), aber ein
+echter, bereits live wirksamer Anzeigefehler.
+
+---
+
 # Ende Backlog
 
 OpenFloorball Coach wird Schritt für Schritt aufgebaut.

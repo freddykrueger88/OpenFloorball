@@ -14,6 +14,10 @@ const INTL_LOCALES = {
   fi: 'fi-FI',
   cs: 'cs-CZ',
   sk: 'sk-SK',
+  nb: 'nb-NO',
+  lv: 'lv-LV',
+  pl: 'pl-PL',
+  fr: 'fr-FR',
 };
 
 export function getIntlLocale(lng = i18n.language) {

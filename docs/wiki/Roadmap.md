@@ -35,39 +35,38 @@ Repository und werden dort kontinuierlich aktualisiert:
   (Spieler platzieren, Zeichnen, Szenen/Animation, automatisches
   Speichern, Export/Teilen). Jederzeit über das Hilfe-Symbol im
   Editor erneut aufrufbar.
+- **Fahrgemeinschaften** (Backlog-ISSUE 028) – Fahrtangebote mit freier
+  Platzzahl an Spiele/Trainings anhängen, Eintragen ohne Überbuchen,
+  öffentliche Freigabeseite per `share_token`. Siehe ISSUE 030
+  (Anbieter-Name). Offene Frage (Eltern ohne eigenen Account) bewusst
+  zurückgestellt, bis mit Vereinen geklärt.
+- **Statistik- und Performance-Analytics** (EPIC 012) – Phasen 1–9
+  vollständig umgesetzt (Events-Modell, Line-Tracking, Shot Tracking,
+  Special Teams, Trainings-Analytics, Video↔Event, Assists/CSV-Export,
+  Line-Chemie, KI-Insights) inkl. Gegner-Entität
+  ([Statistik-Architektur](../planning/STATISTICS_ANALYTICS_ARCHITECTURE.md)).
+  xG/Shot Quality bewusst zurückgestellt (keine reale Datenbasis),
+  ebenso die Saison-/Wettbewerbs-Gruppierung von Spielen.
 
 ## Offene Backlog-Highlights (Auszug)
 
-**Großes Vorhaben:** Statistik- und Performance-Analytics-Plattform
-(EPIC 012) – vollständige Audit-/Gap-Analyse und Zielarchitektur unter
-[docs/planning/STATISTICS_ANALYTICS_ARCHITECTURE.md](../planning/STATISTICS_ANALYTICS_ARCHITECTURE.md).
-Phase 1 (erweiterbares Event-Modell) noch nicht umgesetzt.
-
 **Feature-Ideen:**
-- Fahrgemeinschaften für Spiele und Trainings (Backlog-ISSUE 028) –
-  Team-Mitglieder bieten Fahrten zu Auswärtsspielen/Trainings an oder
-  nehmen ein bestehendes Angebot wahr (freie Plätze). Offene Frage vor
-  Umsetzung: wie Eltern ohne eigenen Account eingebunden werden, ohne
-  zusätzliche Kontaktdaten (Adresse/Telefon) speichern zu müssen.
-- Europaweite Sprachunterstützung (Backlog-ISSUE 027) – Phase 1
-  prioritisiert die floorball-stärksten Nationen außerhalb DACH.
-  Schwedisch (`sv`) ist als KI-Rohentwurf in der Oberfläche verfügbar,
-  Finnisch (`fi`), Tschechisch (`cs`) und Slowakisch (`sk`) wurden als
-  weitere Rohentwürfe ergänzt (2026-09-05, Markierung
-  `needs-native-review`) – damit ist Phase 1 komplett. Jede
-  Übersetzung braucht muttersprachliches Review vor offiziellem
-  Abschluss des Issues.
+- Europaweite Sprachunterstützung (Backlog-ISSUE 027) – Phasen 1 und 2
+  sind als KI-Rohentwürfe komplett: Schwedisch (`sv`), Finnisch
+  (`fi`), Tschechisch (`cs`), Slowakisch (`sk`), Norwegisch Bokmål
+  (`nb`), Lettisch (`lv`), Polnisch (`pl`) und Französisch (`fr`) sind
+  in der Oberfläche wählbar (Markierung `needs-native-review`);
+  Phase 3 (`da`/`et`/`nl`/`it`) bei Bedarf. Jede Übersetzung braucht
+  muttersprachliches Review vor offiziellem Abschluss des Issues.
+- Saison-/Wettbewerbs-Gruppierung von Spielen (aus EPIC 012 bewusst
+  ausgenommen) – eigenständiges, größeres Thema.
 - Native App-Store-Präsenz (Google Play + Apple App Store) – App ist
   schon eine installierbare PWA (vite-plugin-pwa), naheliegender Weg
   wäre ein Wrapper wie Capacitor/Trusted Web Activity statt einer
   komplett separaten Codebasis.
 
 **Technisch:**
-- Vite 7→8 (Stand 2026-08-07 erneut geprüft, weiterhin blockiert: jetzt
-  `@vitejs/plugin-react@6` ↔ dessen optionale Peer-Dependency
-  `@rolldown/plugin-babel` ↔ `@babel/core` – anderer Konflikt als zuvor,
-  aber weiterhin im Rolldown-Ökosystem)
-- ESLint 10 im Frontend (Stand 2026-08-07 erneut geprüft, weiterhin
+- ESLint 10 im Frontend (Stand 2026-09-05 erneut geprüft, weiterhin
   blockiert: `eslint-plugin-react@7.37.5` deklariert als Peer maximal
   `eslint@^9.7`)
 - Formale WCAG 2.1 AA / BITV 2.0 / EN 301 549 Zertifizierung durch Dritte

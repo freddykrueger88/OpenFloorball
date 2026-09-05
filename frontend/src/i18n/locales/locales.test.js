@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest';
 import de from './de.json';
 import en from './en.json';
 import sv from './sv.json';
+import fi from './fi.json';
+import cs from './cs.json';
+import sk from './sk.json';
 
 // Neue Sprache hinzufügen: Datei importieren und hier eintragen – der
 // Rest der Tests läuft automatisch mit. Das ist absichtlich die
@@ -9,7 +12,7 @@ import sv from './sv.json';
 // docs/TRANSLATING.md): `npm test` zeigt sofort und exakt, welche
 // Schlüssel in einer neuen/aktualisierten Sprachdatei fehlen oder leer
 // sind, ohne dass Contributors irgendetwas anderes einrichten müssen.
-const LOCALES = { de, en, sv };
+const LOCALES = { de, en, sv, fi, cs, sk };
 const REFERENCE_LOCALE = 'en';
 
 function flattenKeys(obj, prefix = '') {

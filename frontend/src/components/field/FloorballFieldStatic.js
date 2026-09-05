@@ -10,6 +10,8 @@
 import Konva from 'konva';
 import { IFF_FIELDS } from '../../constants/fieldConfig.js';
 import { FIELD_COLORS } from '../../constants/fieldTheme.js';
+import { computeAngleTriangle, computeReboundZone, getKeeperClearancePoint } from '../../utils/angleMath.js';
+import { normalizeElementShape } from '../../utils/elementShape.js';
 
 const BALL_RADIUS_M = 0.115;
 const FACEOFF_INSET_M = 1.5; // IFF: Anspiel-Punkte 1,5m von den Langseiten entfernt
@@ -118,19 +120,141 @@ export default async function renderFieldFrame({
       layer.add(new Konva.Circle({ x: px_, y: py_, radius: ballR, fill: ballColor, stroke: 'rgba(0,0,0,0.4)', strokeWidth: Math.max(1, lw * 0.8) }));
       continue;
     }
+    // Parität zur Live-Darstellung (PlayerToken.jsx): Torwart als Raute
+    // statt Kreis, Auswärts mit gestricheltem Rand, Rollen-Label zentriert,
+    // optionaler Namens-Chip oberhalb.
     const r   = Math.max(8, scale * 0.45);
     const col = p.team === 'home' ? homeColor : awayColor;
-    layer.add(new Konva.Circle({ x: px_, y: py_, radius: r, fill: col.fill, stroke: col.stroke ?? col.fill, strokeWidth: Math.max(1.5, lw) }));
-    if (p.number !== undefined) {
-      layer.add(new Konva.Text({ x: px_ - r, y: py_ - r, width: r * 2, height: r * 2, text: String(p.number), align: 'center', verticalAlign: 'middle', fontSize: Math.max(8, r * 0.9), fill: '#fff', fontFamily: 'Inter, system-ui, sans-serif', fontStyle: 'bold' }));
+    const isGoalkeeper = p.role === 'TW';
+    const strokeDash = p.team === 'away' ? [6, 3] : undefined;
+    const strokeFor = (w) => Math.max(1.5, w);
+    if (isGoalkeeper) {
+      layer.add(new Konva.RegularPolygon({
+        x: px_, y: py_, sides: 4, radius: r, rotation: 45,
+        fill: col.fill, stroke: col.stroke ?? col.fill, strokeWidth: strokeFor(lw),
+        dash: strokeDash, shadowColor: '#000', shadowBlur: 4, shadowOpacity: 0.2,
+      }));
+    } else {
+      layer.add(new Konva.Circle({
+        x: px_, y: py_, radius: r,
+        fill: col.fill, stroke: col.stroke ?? col.fill, strokeWidth: strokeFor(lw),
+        dash: strokeDash, shadowColor: '#000', shadowBlur: 4, shadowOpacity: 0.2,
+      }));
+    }
+    const label = p.role ?? (p.number !== undefined ? String(p.number) : null);
+    if (label) {
+      layer.add(new Konva.Text({
+        x: px_ - r, y: py_ - r, width: r * 2, height: r * 2,
+        text: label, align: 'center', verticalAlign: 'middle',
+        fontSize: Math.max(8, r * 0.9), fill: '#fff',
+        fontFamily: 'Inter, system-ui, sans-serif', fontStyle: 'bold',
+      }));
+    }
+    if (p.name) {
+      const displayName = p.name.length > 8 ? `${p.name.slice(0, 7)}…` : p.name;
+      const nameFs = Math.max(10, r * 0.55);
+      const chipW = Math.max(r * 1.9, displayName.length * nameFs * 0.62 + 10);
+      const chipH = nameFs + 6;
+      const chipY = py_ - r - 4 - chipH;
+      layer.add(new Konva.Rect({ x: px_ - chipW / 2, y: chipY, width: chipW, height: chipH, cornerRadius: chipH / 2, fill: 'rgba(15,17,23,0.72)', stroke: 'rgba(255,255,255,0.15)', strokeWidth: 1 }));
+      layer.add(new Konva.Text({ x: px_ - chipW / 2, y: chipY, width: chipW, height: chipH, text: displayName, fontSize: nameFs, fontFamily: 'Inter, system-ui, sans-serif', fontStyle: '600', fill: '#fff', align: 'center', verticalAlign: 'middle' }));
     }
   }
 
-  // Zeichnungs-Elemente (nur Linien / Pfeile – vereinfacht)
+  // Zeichnungs-Elemente – alle Board- und Legacy-Video-Typen in Parität zur
+  // Live-Darstellung (DrawingElement.jsx): die tor-verankerten Torhüter-
+  // Werkzeuge (winkel/rebound/konter) über angleMath.js, alles andere über
+  // normalizeElementShape (Pfeile, Zone, Freehand, Legacy line/arrow).
   for (const el of elements) {
-    if (el.type === 'line' || el.type === 'arrow') {
-      const pts = el.points.flatMap(([x, y]) => [ox + x * scale, oy + y * scale]);
-      layer.add(new Konva.Line({ points: pts, stroke: el.color ?? '#facc15', strokeWidth: Math.max(1.5, (el.strokeWidth ?? 2) * scale * 0.3), lineCap: 'round', lineJoin: 'round' }));
+    if (el.type === 'winkel') {
+      const { points } = computeAngleTriangle(field, el.goalSide ?? 'auto', el.x1, el.y1);
+      const pts = points.flatMap(([x, y]) => [ox + x * scale, oy + y * scale]);
+      layer.add(new Konva.Line({
+        points: pts, closed: true,
+        fill: el.color ?? '#facc15', stroke: el.color ?? '#facc15',
+        strokeWidth: Math.max(1.5, (el.strokeWidth ?? 2) * scale * 0.3),
+        lineJoin: 'round', opacity: el.fillOpacity ?? 0.3,
+      }));
+      continue;
+    }
+
+    if (el.type === 'rebound') {
+      const { points } = computeReboundZone(field, el.goalSide ?? 'auto', el.x2, el.y2);
+      const pts = points.flatMap(([x, y]) => [ox + x * scale, oy + y * scale]);
+      layer.add(new Konva.Line({
+        points: pts, closed: true,
+        fill: el.color ?? '#f97316', stroke: el.color ?? '#f97316',
+        strokeWidth: Math.max(1.5, (el.strokeWidth ?? 2) * scale * 0.3),
+        lineJoin: 'round', opacity: el.fillOpacity ?? 0.2,
+      }));
+      continue;
+    }
+
+    if (el.type === 'konter') {
+      // Konter-Pfeil + kleine Torwart-Raute am Anker – Parität mit der
+      // Live-Darstellung (DrawingElement.jsx).
+      const anchor = getKeeperClearancePoint(field, el.goalSide ?? 'auto');
+      const pts = [ox + anchor.x * scale, oy + anchor.y * scale, ox + el.x2 * scale, oy + el.y2 * scale];
+      const sw = Math.max(1.5, (el.strokeWidth ?? 5) * scale * 0.3);
+      layer.add(new Konva.RegularPolygon({
+        x: ox + anchor.x * scale, y: oy + anchor.y * scale,
+        sides: 4, radius: Math.max(7, scale * 0.4), rotation: 45,
+        fill: el.color ?? '#facc15', stroke: el.color ?? '#facc15',
+        strokeWidth: Math.max(1.5, 2 * scale * 0.3), opacity: 0.9,
+      }));
+      layer.add(new Konva.Arrow({
+        points: pts,
+        stroke: el.color ?? '#facc15', fill: el.color ?? '#facc15',
+        strokeWidth: sw, dash: el.dash ?? [14, 8], lineCap: 'round', lineJoin: 'round',
+        pointerLength: el.arrowHead ? Math.max(14, sw * 4) : 0,
+        pointerWidth:  el.arrowHead ? Math.max(12, sw * 3) : 0,
+      }));
+      continue;
+    }
+
+    if (el.type === 'komm') {
+      // Torwart-Kommunikation: Blase mit eingebranntem Phrasentext am
+      // Anspielpunkt + gestrichelter Connector zum Torwart – Parität mit
+      // der Live-Darstellung (DrawingElement.jsx).
+      const anchor = getKeeperClearancePoint(field, el.goalSide ?? 'auto');
+      const ax = ox + anchor.x * scale, ay = oy + anchor.y * scale;
+      const bx = ox + el.x2 * scale, by = oy + el.y2 * scale;
+      const bw = 220, bh = 60, pad = 12;
+      const dotR = Math.max(4, scale * 0.18);
+      layer.add(new Konva.Circle({ x: ax, y: ay, radius: dotR, fill: el.color ?? '#facc15', stroke: el.color ?? '#facc15', strokeWidth: 2, opacity: 0.9 }));
+      layer.add(new Konva.Line({ points: [ax, ay, bx, by], stroke: el.color ?? '#facc15', strokeWidth: Math.max(1.5, (el.strokeWidth ?? 2) * scale * 0.3), dash: el.dash ?? [4, 2], opacity: 0.5 }));
+      layer.add(new Konva.Rect({ x: bx - bw / 2, y: by - bh / 2, width: bw, height: bh, cornerRadius: bh / 2, fill: 'rgba(15,17,23,0.85)', stroke: el.color ?? '#facc15', strokeWidth: 2 }));
+      if (el.text) {
+        layer.add(new Konva.Text({ x: bx - bw / 2 + pad, y: by - bh / 2, width: bw - pad * 2, height: bh, text: el.text, verticalAlign: 'middle', align: 'center', wrap: 'word', fontSize: 15, fontStyle: '700', fill: '#fff', fontFamily: 'Inter, system-ui, sans-serif' }));
+      }
+      continue;
+    }
+
+    const shape = normalizeElementShape(el);
+    if (!shape) continue;
+    const sw = Math.max(1.5, shape.strokeWidth * scale * 0.3);
+    const pts = shape.points.map(([x, y]) => [ox + x * scale, oy + y * scale]).flat();
+
+    if (shape.kind === 'arrow') {
+      const pointerLength = Math.max(12, sw * 4);
+      const pointerWidth  = Math.max(10, sw * 3);
+      layer.add(new Konva.Arrow({
+        points: pts, stroke: shape.color, strokeWidth: sw, fill: shape.color,
+        dash: shape.dash, lineCap: 'round', lineJoin: 'round',
+        pointerLength: shape.arrowHead ? pointerLength : 0,
+        pointerWidth:  shape.arrowHead ? pointerWidth  : 0,
+      }));
+    } else if (shape.kind === 'line') {
+      layer.add(new Konva.Line({ points: pts, stroke: shape.color, strokeWidth: sw, dash: shape.dash, lineCap: 'round', lineJoin: 'round' }));
+    } else if (shape.kind === 'rect') {
+      layer.add(new Konva.Rect({
+        x: ox + shape.x * scale, y: oy + shape.y * scale,
+        width: shape.w * scale, height: shape.h * scale,
+        fill: shape.color, opacity: shape.fillOpacity,
+        stroke: shape.color, strokeWidth: sw,
+      }));
+    } else if (shape.kind === 'polyline') {
+      layer.add(new Konva.Line({ points: pts, stroke: shape.color, strokeWidth: sw, dash: shape.dash, tension: shape.tension, lineCap: 'round', lineJoin: 'round' }));
     }
   }
 

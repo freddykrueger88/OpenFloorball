@@ -12,6 +12,7 @@ import { useBoardsApi } from '../hooks/useBoardsApi.js';
 import { usePdfExport } from '../hooks/usePdfExport.js';
 import { DEFAULT_TEAM_COLORS } from '../constants/fieldConfig.js';
 import { teamColorToFillStroke } from '../utils/color.js';
+import { filterVisiblePlayers, filterVisibleElements } from '../utils/layerVisibilityFilter.js';
 import FieldMiniature from '../components/field/FieldMiniature.jsx';
 import BoardPickerModal from '../components/trainings/BoardPickerModal.jsx';
 import CommentsPanel from '../components/comments/CommentsPanel.jsx';
@@ -128,8 +129,10 @@ export default function TrainingSessionPage() {
           fieldType: board.fieldType,
           width: EXPORT_W,
           height: EXPORT_H,
-          players: board.players ?? [],
-          elements: board.elements ?? [],
+          // Parität zum Board-Editor-Export (renderFrame): bewusst
+          // ausgeblendete Spieler-Elemente werden auch hier nicht gezeichnet.
+          players: filterVisiblePlayers(board.players ?? []),
+          elements: filterVisibleElements(board.elements ?? []),
           homeColor: teamColorToFillStroke(board.homeColor, DEFAULT_TEAM_COLORS.home.fill),
           awayColor: teamColorToFillStroke(board.awayColor, DEFAULT_TEAM_COLORS.away.fill),
           ballColor: board.ballColor,

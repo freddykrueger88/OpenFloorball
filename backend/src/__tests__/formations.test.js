@@ -105,6 +105,44 @@ describe('POST /api/formations', () => {
   }, 30000);
 });
 
+describe('Formationen Kategorien (CLAUDE.md 9.4-9.6 – Systeme)', () => {
+  let catUser;
+  let categorized;
+
+  beforeAll(async () => {
+    catUser = await registerAndLogin('cat');
+    const res = await request(app)
+      .post('/api/formations')
+      .set('Cookie', catUser.cookie)
+      .send({ name: 'Forechecking 2-1-2', category: 'forechecking', fieldType: 'large' });
+    categorized = res.body.data;
+  });
+
+  it('speichert und liefert die Kategorie einer Vorlage', async () => {
+    expect(categorized.category).toBe('forechecking');
+    const list = await request(app).get('/api/formations').set('Cookie', catUser.cookie);
+    const found = list.body.data.find((f) => f._id === categorized._id);
+    expect(found.category).toBe('forechecking');
+  });
+
+  it('lässt eine Vorlage ohne Kategorie zu (Allgemein)', async () => {
+    const res = await request(app)
+      .post('/api/formations')
+      .set('Cookie', catUser.cookie)
+      .send({ name: 'Ohne Kategorie' });
+    expect(res.status).toBe(201);
+    expect(res.body.data.category).toBeNull();
+  });
+
+  it('lehnt eine unbekannte Kategorie mit 422 ab', async () => {
+    const res = await request(app)
+      .post('/api/formations')
+      .set('Cookie', catUser.cookie)
+      .send({ name: 'Falsche Kategorie', category: 'gegenpressing' });
+    expect(res.status).toBe(422);
+  });
+});
+
 describe('Formations ownership + DELETE', () => {
   let formationId;
 

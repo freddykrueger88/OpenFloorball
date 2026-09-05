@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 
 import { IFF_FIELDS, DEFAULT_TEAM_COLORS, IFF_BALL_COLORS, ensureBall, BALL_ID, buildDefaultPlayers } from '../constants/fieldConfig.js';
+import { SYSTEM_TEMPLATES } from '../constants/systemTemplates.js';
 import { POSITION_HINTS } from '../constants/positionHints.js';
 import { EDITOR_TOUR_STEPS } from '../constants/tourSteps.js';
 import { rescalePlayers, rescaleElements } from '../utils/fieldRescale.js';
@@ -555,11 +556,11 @@ export default function BoardEditorPage() {
   // eine gespeicherte Vorlage laden. Beim Laden übernimmt drawing.applyFormation
   // direkt (undo-bar) – die Persistenz läuft wie bei Drag&Drop automatisch
   // über den bestehenden useAutoSave-Hook, kein eigener Save-Call nötig.
-  const handleSaveFormation = useCallback((name, teamId) => {
+  const handleSaveFormation = useCallback((name, teamId, category) => {
     // Formationen sind wiederverwendbare Spieler-Aufstellungen (Issue #46),
     // keine vollständigen Szenen-Schnappschüsse – der Ball gehört nicht dazu.
     const playersOnly = drawing.players.filter((p) => p.team !== 'ball');
-    formations.saveFormation({ name, fieldType: field.fieldType, players: playersOnly, teamId });
+    formations.saveFormation({ name, fieldType: field.fieldType, players: playersOnly, teamId, category });
   }, [formations, field.fieldType, drawing]);
 
   const handleRenameFormation = useCallback((formation, newName) => {
@@ -839,6 +840,8 @@ export default function BoardEditorPage() {
                   field={IFF_FIELDS[field.fieldType] ?? IFF_FIELDS.large}
                   onAddArrow={drawing.addArrowElement}
                   onAddFreehand={drawing.addFreehandElement}
+                  winkelGoalSide={drawing.winkelGoalSide}
+                  setWinkelGoalSide={drawing.setWinkelGoalSide}
                 />
               ),
             },
@@ -877,6 +880,7 @@ export default function BoardEditorPage() {
               content: (
                 <FormationsPanel
                   formations={formations.formations}
+                  systemTemplates={SYSTEM_TEMPLATES}
                   onSave={handleSaveFormation}
                   onLoad={handleLoadFormation}
                   onRename={handleRenameFormation}

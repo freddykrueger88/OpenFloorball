@@ -553,6 +553,28 @@ die die konkreten Werkzeuge erklärt statt nur die Navigation.
 * Nav-Tour (ISSUE 023) und Editor-Tour sind unabhängig voneinander
   – Überspringen/Abschließen der einen beeinflusst die andere nicht.
 
+Status: ✅ umgesetzt (2026-09-04). `EDITOR_TOUR_STEPS` (10 Schritte) in
+`constants/tourSteps.js`, `TourOverlay` in `BoardEditorPage.jsx` mit
+`settingsKey="editorTourCompleted"` gemountet, Auto-Start beim ersten
+Board-Öffnen (wenn `editorTourCompleted` falsy), Hilfe-Symbol im Header
+zum erneuten Start. Zielelemente via `data-tour` auf Canvas, Tabs,
+Frame-Timeline und Speicherstatus. Nav-Tour und Editor-Tour sind
+vollständig unabhängig (getrennte `tourCompleted`/`editorTourCompleted`-
+Keys). i18n-Übersetzungen in de/en/sv vorhanden. `PreferencesSection.jsx`
+bietet "Editor-Tour erneut starten" Button. Keyboard/Screenreader-
+Unterstützung über `useFocusTrap`, `Escape`-Taste und `useAnnounceStore`.
+
+### Akzeptanzkriterien (Nachweis)
+
+* Auto-Start beim ersten Board-Öffnen → `TourOverlay.jsx` Zeile 57-63:
+  `if (!settings[settingsKey]) useTourStore.getState().start(tourId)`
+* Überspringbar → Skip-Button in `TourOverlay.jsx` Zeile 130
+* Erneut aufrufbar → Hilfe-Symbol in `BoardEditorPage.jsx` Zeile 681-690
+* Tastatur → `useFocusTrap` + `Escape`-Handler in `TourOverlay.jsx`
+* Screenreader → `useAnnounceStore.announce()` bei jedem Schrittwechsel
+* Unabhängig von Nav-Tour → `editorTourCompleted` ≠ `tourCompleted` in
+  `preferences_json`, TourOverlay prüft `activeTourId` vor Auto-Start
+
 Priorität:
 
 P2
@@ -571,10 +593,10 @@ Pro-Spieler-Sichtbarkeit existiert (`visible`-Feld, Fallback
 `LayerVisibilityPanel.jsx`/`FieldSettingsPanel.jsx`. Feldtyp-Wechsel
 skaliert bestehende Spieler statt sie auf Defaults zurückzusetzen
 (`BoardEditorPage.jsx::handleConfirmFieldTypeChange`), reintroduziert
-also ebenfalls keine Gegner. `frontend/src/hooks/usePlayerState.js`
-ist toter Code (kein Importer mehr) und hat dadurch noch den alten
-`includeAway`-Default – ohne Funktionsauswirkung, aber Aufräum-
-Kandidat für eine spätere Housekeeping-Runde.
+also ebenfalls keine Gegner. Der frühere Hook
+`frontend/src/hooks/usePlayerState.js` (noch mit altem `includeAway`-
+Default) war toter Code ohne Importer und wurde in einer späteren
+Housekeeping-Runde entfernt.
 
 ### Beschreibung
 
@@ -739,6 +761,37 @@ P2
 # ISSUE 027
 
 ## Europaweite Sprachunterstützung für floorball-aktive Nationen
+
+Status (2026-09-05): ✅ Framework + Phase-1-Teil 1/4 umgesetzt.
+`SUPPORTED_LANGUAGES` ist die einzige Quelle (`i18n.js`) – die
+Sprachauswahl in `PreferencesSection.jsx` generiert die Optionen daraus
+(inkl. `settings.language<Code>`-Labels in allen Locale-Dateien).
+`locales.test.js` ist parametrisiert und prüft jede Sprache
+automatisch. **Finnisch (`fi`) als vollständiger KI-Rohentwurf ergänzt**
+(1534 Schlüssel, strukturell 1:1 zu `en.json`), in `resources`/
+`supportedLngs` aktiv – aber bewusst als **ungeprüfter Entwurf**
+(`needs-native-review`) markiert, gemäß der Untergrenze "Übersetzungen
+nicht unreflektiert committen". Datums-/Zahlenformate sind nicht mehr
+auf de/en verdrahtet: `utils/formatDate.js::getIntlLocale()` mappt
+de/en/sv/fi/cs/sk → de-DE/en-US/sv-SE/fi-FI/cs-CZ/sk-SK und wird auch
+von `CalendarPage.jsx` und `ExportPanel.jsx` genutzt;
+`formatDateOnly` kennt die schwedische `YYYY-MM-DD`-Form.
+**Tschechisch (`cs`) als zweiter vollständiger KI-Rohentwurf ergänzt**
+(1583 Schlüssel, strukturell 1:1 zu `en.json`, inkl. `languageCs`-
+Labels in allen Locale-Dateien), ebenfalls `needs-native-review`
+markiert. Für das slawische Pluralverhalten (cs/sk) tragen alle
+Locale-Dateien zu den 24 zählbaren Schlüsseln `_few`- und `_many`-
+Suffixe (`cs.json` mit echten tschechischen Formen, z. B. 2–4 „dny"/
+5+ „dnů"; `sk.json` analog „dni"/„dní"; die übrigen Sprachen spiegeln
+`_other`), sodass der Paritätstest exakt identische Schlüsselmengen
+erzwingt.
+**Slowakisch (`sk`) als dritter vollständiger KI-Rohentwurf ergänzt**
+(1584 Schlüssel, strukturell 1:1 zu `en.json`, inkl. `languageSk`-
+Labels in allen Locale-Dateien) – ebenfalls `needs-native-review`
+markiert. Damit ist Phase 1 komplett: alle vier priorisierten
+Nationen (sv/fi/cs/sk) sind als Rohentwürfe in der Oberfläche
+wählbar.
+Offen: muttersprachliches Review für sv/fi/cs/sk.
 
 ### Beschreibung
 

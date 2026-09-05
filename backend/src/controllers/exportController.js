@@ -17,6 +17,7 @@ import fs from 'fs/promises';
 import fsSync from 'fs';
 import path from 'path';
 import logger from '../utils/logger.js';
+import { logAudit } from '../services/auditLogger.js';
 
 const EXPORTS_DIR = process.env.EXPORTS_DIR || '/app/exports';
 const MAX_FRAMES = 60;
@@ -138,6 +139,7 @@ export async function startGifExport(req, res) {
   const jobId = randomUUID();
   jobs.set(jobId, { status: 'processing', progress: 0, createdAt: Date.now(), userId: req.user.id, format: 'gif' });
   res.status(202).json({ success: true, jobId });
+  void logAudit({ actorId: req.user.id, action: 'export.gif.start', resourceType: 'export', resourceId: jobId, metadata: { fps: safeFps, width: safeWidth, loop } });
 
   // Async: Frames schreiben + FFmpeg starten
   try {
@@ -177,6 +179,7 @@ export async function startMp4Export(req, res) {
   const jobId = randomUUID();
   jobs.set(jobId, { status: 'processing', progress: 0, createdAt: Date.now(), userId: req.user.id, format: 'mp4' });
   res.status(202).json({ success: true, jobId });
+  void logAudit({ actorId: req.user.id, action: 'export.mp4.start', resourceType: 'export', resourceId: jobId, metadata: { fps: safeFps, width: safeWidth, watermark: !!watermark } });
 
   try {
     await writePngs(jobId, frames);

@@ -19,6 +19,7 @@
  */
 import pool from '../db/pool.js';
 import logger from '../utils/logger.js';
+import { logAudit } from '../services/auditLogger.js';
 import { sendMail } from '../utils/mailer.js';
 import { resolveEmailLanguage } from '../utils/emailLanguage.js';
 import { success, created, error } from '../utils/apiResponse.js';
@@ -231,6 +232,14 @@ export async function updateCollaborator(req, res) {
     );
     if (result.rows.length > 0) {
       const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [result.rows[0].user_id]);
+      await logAudit({
+        actorId: req.user.id,
+        action: 'board.collaborator.permission.update',
+        resourceType: 'board',
+        resourceId: req.params.id,
+        metadata: { collaboratorId: req.params.collaboratorId, permission },
+        after: { permission },
+      });
       return res.json(success(toApiCollaborator({ ...result.rows[0], email: userResult.rows[0]?.email })));
     }
 
@@ -244,6 +253,14 @@ export async function updateCollaborator(req, res) {
     if (inviteResult.rows.length === 0) {
       return res.status(404).json(error('Kollaborator nicht gefunden'));
     }
+    await logAudit({
+      actorId: req.user.id,
+      action: 'board.collaborator.invite.update',
+      resourceType: 'board',
+      resourceId: req.params.id,
+      metadata: { inviteId: req.params.collaboratorId, permission },
+      after: { permission },
+    });
     res.json(success(toApiInvite(inviteResult.rows[0])));
   } catch (err) {
     logger.error('[updateCollaborator]', err);
@@ -263,6 +280,13 @@ export async function removeCollaborator(req, res) {
       [req.params.collaboratorId, req.params.id]
     );
     if (result.rows.length > 0) {
+      await logAudit({
+        actorId: req.user.id,
+        action: 'board.collaborator.remove',
+        resourceType: 'board',
+        resourceId: req.params.id,
+        metadata: { collaboratorId: req.params.collaboratorId },
+      });
       return res.json(success({ message: 'Kollaborator entfernt' }));
     }
 
@@ -273,6 +297,13 @@ export async function removeCollaborator(req, res) {
     if (inviteResult.rows.length === 0) {
       return res.status(404).json(error('Kollaborator nicht gefunden'));
     }
+    await logAudit({
+      actorId: req.user.id,
+      action: 'board.collaborator.invite.revoke',
+      resourceType: 'board',
+      resourceId: req.params.id,
+      metadata: { inviteId: req.params.collaboratorId },
+    });
     res.json(success({ message: 'Einladung zurückgezogen' }));
   } catch (err) {
     logger.error('[removeCollaborator]', err);

@@ -21,13 +21,14 @@ brauchst, ist ein Texteditor, Node.js und einen Terminal-Befehl.
 Schau zuerst in [BACKLOG.md, ISSUE 027](planning/BACKLOG.md) nach der
 aktuellen Prioritätsliste – sie orientiert sich an tatsächlicher
 Floorball-Aktivität (IFF-Mitgliedsverbände, Ligastärke), nicht an
-Sprecherzahl. Aktuell fehlen z. B. noch Tschechisch und Slowakisch;
-Schwedisch existiert bereits als erster – von einer KI erstellter,
-**noch nicht muttersprachlich geprüfter** – Entwurf
-(`frontend/src/i18n/locales/sv.json`), der Korrektur statt Neuerstellung
-braucht. Dasselbe gilt für die zwischenzeitlich ergänzten Entwürfe
-Finnisch (`fi.json`), Tschechisch (`cs.json`) und Slowakisch
-(`sk.json`).
+Sprecherzahl. Es existieren bereits folgende **noch nicht
+muttersprachlich geprüfte** KI-Rohentwürfe, die Korrektur statt
+Neuerstellung brauchen (`frontend/src/i18n/locales/`):
+
+* Phase 1: Schwedisch (`sv`), Finnisch (`fi`), Tschechisch (`cs`),
+  Slowakisch (`sk`)
+* Phase 2: Norwegisch Bokmål (`nb`), Lettisch (`lv`), Polnisch (`pl`),
+  Französisch (`fr`)
 
 Willst du eine Sprache übersetzen, die noch niemand begonnen hat?
 Kommentiere kurz im verlinkten Sammel-Issue auf GitHub, welche Sprache

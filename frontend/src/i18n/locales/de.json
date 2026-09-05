@@ -70,7 +70,9 @@
     "showPlayerTitle": "Diesen Spieler wieder einblenden",
     "showPlayerAriaLabel": "{{name}} wieder einblenden",
     "hiddenPlayersLabel": "Ausgeblendete Spieler",
-    "hiddenSuffix": "(ausgeblendet)"
+    "hiddenSuffix": "(ausgeblendet)",
+    "canvasAriaLabel_few": "Floorball-Spielfeld: {{label}}, {{count}} Spieler. Über Tab einzeln erreichbar.",
+    "canvasAriaLabel_many": "Floorball-Spielfeld: {{label}}, {{count}} Spieler. Über Tab einzeln erreichbar."
   },
   "teams": {
     "home": "Heimteam",
@@ -110,6 +112,9 @@
     "languageDe": "Deutsch",
     "languageEn": "Englisch",
     "languageSv": "Schwedisch",
+    "languageFi": "Finnisch",
+    "languageCs": "Tschechisch",
+    "languageSk": "Slowakisch",
     "fontSize": "Schriftgröße",
     "fontSizeSmall": "Klein",
     "fontSizeMedium": "Mittel",
@@ -363,7 +368,9 @@
       "layers": "Sichtbarkeit"
     },
     "collapsePanel": "Menü einklappen",
-    "expandPanel": "Menü ausklappen"
+    "expandPanel": "Menü ausklappen",
+    "presenceCount_few": "{{count}} weitere Personen hier",
+    "presenceCount_many": "{{count}} weitere Personen hier"
   },
   "comments": {
     "title": "Kommentare",
@@ -391,6 +398,10 @@
     "shot": "Schüsse",
     "freehand": "Freihand",
     "zone": "Trainingszonen",
+    "winkel": "Torwart-Winkel",
+    "rebound": "Rebound-Raum",
+    "konter": "Konterauslösung",
+    "komm": "Torwart-Kommunikation",
     "comments": "Kommentar-Pins",
     "hideAriaLabel": "{{layer}} ausblenden",
     "showAriaLabel": "{{layer}} einblenden",
@@ -581,7 +592,9 @@
       "revoke": "Widerrufen",
       "urlAriaLabel": "Kalender-Feed-URL",
       "error": "Fehler: {{error}}"
-    }
+    },
+    "moreCount_few": "+{{count}} weitere",
+    "moreCount_many": "+{{count}} weitere"
   },
   "stats": {
     "title": "Statistik",
@@ -626,7 +639,9 @@
       "attendanceTitle": "Trainings-Beteiligung",
       "trainingsRecorded": "Erfasste Trainings",
       "attendanceRate": "Beteiligungsquote"
-    }
+    },
+    "count_few": "{{count}} Kader-Spieler",
+    "count_many": "{{count}} Kader-Spieler"
   },
   "news": {
     "title": "News",
@@ -641,7 +656,9 @@
     "loading": "Lädt Ankündigungen…",
     "emptyStateDesc": "Noch keine Ankündigungen in deinen Teams. Als Coach oder Vereinsleiter kannst du hier kurze Mitteilungen an dein Team posten.",
     "deleteAriaLabel": "Ankündigung löschen",
-    "deleteTitle": "Löschen"
+    "deleteTitle": "Löschen",
+    "count_few": "{{count}} Ankündigungen",
+    "count_many": "{{count}} Ankündigungen"
   },
   "polls": {
     "title": "Umfragen",
@@ -665,7 +682,11 @@
     "closedBadge": "Geschlossen",
     "closeAction": "Schließen",
     "deleteAriaLabel": "Umfrage löschen",
-    "deleteTitle": "Löschen"
+    "deleteTitle": "Löschen",
+    "count_few": "{{count}} Umfragen",
+    "count_many": "{{count}} Umfragen",
+    "voteCount_few": "{{count}} Stimmen",
+    "voteCount_many": "{{count}} Stimmen"
   },
   "versions": {
     "title": "Verlauf",
@@ -696,7 +717,9 @@
     "categoryFilterAriaLabel": "Nach Übungskategorie filtern",
     "demoDataHint": "Noch nichts hier? Lege Demo-Daten an, um die anderen Bereiche direkt auszuprobieren.",
     "demoDataCreateBtn": "Demo-Daten erstellen",
-    "demoDataCreating": "Wird erstellt…"
+    "demoDataCreating": "Wird erstellt…",
+    "count_few": "{{count}} Spielfelder",
+    "count_many": "{{count}} Spielfelder"
   },
   "notFound": {
     "title": "404",
@@ -839,7 +862,32 @@
     "limitHint": "Maximal 20 Vorlagen",
     "teamAriaLabel": "Team, mit dem diese Vorlage geteilt wird",
     "personalOption": "Persönlich (nicht geteilt)",
-    "teamBadgeFallback": "Team"
+    "teamBadgeFallback": "Team",
+    "categoryFilterAriaLabel": "Vorlagen nach Kategorie filtern",
+    "saveCategoryAriaLabel": "Kategorie der neuen Vorlage",
+    "categoryAll": "Alle",
+    "categoryForechecking": "Forechecking",
+    "categoryPowerplay": "Powerplay",
+    "categoryBoxplay": "Boxplay",
+    "categoryGeneral": "Allgemein",
+    "builtinsLabel": "Eingebaute Systeme",
+    "ownLabel": "Eigene Vorlagen",
+    "templates": {
+      "forechecking212": "2-1-2 Forechecking",
+      "forechecking221": "2-2-1 Forechecking",
+      "forechecking122": "1-2-2 Forechecking",
+      "forecheckingHighPress": "High Press",
+      "forecheckingMidPress": "Mid Press",
+      "forecheckingLowBlock": "Low Block",
+      "powerplay5v4Umbrella": "Powerplay 5v4 (Umbrella)",
+      "powerplay5v3Overload": "Powerplay 5v3 (Overload)",
+      "powerplay4v3": "4v3 Powerplay",
+      "powerplay6v5EmptyNet": "6v5 Empty Net",
+      "boxplayBox": "Boxplay Box",
+      "boxplayDiamond": "Boxplay Diamond",
+      "boxplayAggressive": "Boxplay aggressiv",
+      "boxplayPassive": "Boxplay passiv"
+    }
   },
   "lines": {
     "title": "Lines",
@@ -871,7 +919,9 @@
     "addPlayer": "Spieler hinzufügen",
     "pickerAriaLabel": "Spieler zu \"{{name}}\" hinzufügen",
     "noMorePlayers": "Alle Kader-Spieler sind bereits in dieser Line.",
-    "removePlayerAriaLabel": "{{name}} aus dieser Line entfernen"
+    "removePlayerAriaLabel": "{{name}} aus dieser Line entfernen",
+    "count_few": "{{count}} Lines",
+    "count_many": "{{count}} Lines"
   },
   "boardLines": {
     "sectionAriaLabel": "Lines für dieses Board",
@@ -961,7 +1011,36 @@
     "saveFreehand": "Zeichnung speichern",
     "pointList": "Wegpunkte",
     "removePoint": "Punkt entfernen",
-    "announceElementAdded": "Zeichen-Element hinzugefügt"
+    "announceElementAdded": "Zeichen-Element hinzugefügt",
+    "winkelGoalSide": "Ziel-Tor",
+    "winkelGoalAuto": "Automatisch",
+    "winkelGoalLeft": "Links",
+    "winkelGoalRight": "Rechts",
+    "winkelHint": "Standort des Torwarts in Metern (Torpfosten → Scheitelpunkt). Alternativ per Drag auf dem Feld ziehen.",
+    "winkelStanceTitle": "Schritt-Stände",
+    "winkelStance": {
+      "base": "Grundstellung",
+      "kontraOben": "Kontra oben",
+      "kontraUnten": "Kontra unten"
+    },
+    "reboundGoalSide": "Ziel-Tor (Rebound-Raum)",
+    "reboundHint": "Tiefe des Rebound-Raums in Metern vor dem Tor (Tormaulkante → Tiefe). Alternativ per Drag auf dem Feld ziehen.",
+    "addRebound": "Rebound-Raum hinzufügen",
+    "konterGoalSide": "Ziel-Tor (Konterauslösung)",
+    "konterHint": "Erste Anspielstation des Konterangriffs in Metern – der Pfeil startet automatisch am Torwart.",
+    "addKonter": "Konter-Pfeil hinzufügen",
+    "kommGoalSide": "Ziel-Tor (Kommunikation)",
+    "kommPhraseTitle": "Kommando",
+    "kommHint": "Anspielpunkt des angesprochenen Spielers in Metern – die Sprechblase erscheint dort, der Connector führt zum Torwart.",
+    "addKomm": "Kommunikation hinzufügen",
+    "kommPhrases": {
+      "press": "Press!",
+      "raus": "Raus!",
+      "du": "Du hast ihn!",
+      "stellung": "Stellung!",
+      "box": "Box!",
+      "ruhig": "In Ruhe!"
+    }
   },
   "playback": {
     "announceStop": "Zurück zu Frame 1",
@@ -1057,7 +1136,9 @@
       "columnAuthor": "Autor",
       "columnReports": "Meldungen",
       "columnLastReported": "Zuletzt gemeldet"
-    }
+    },
+    "count_few": "{{count}} Übungen",
+    "count_many": "{{count}} Übungen"
   },
   "ai": {
     "planWithAi": "Mit KI planen",
@@ -1325,8 +1406,18 @@
       "untilAriaLabel": "Enddatum der Serie",
       "submit": "Serie erstellen",
       "success_one": "{{count}} weiterer Termin erstellt",
-      "success_other": "{{count}} weitere Termine erstellt"
-    }
+      "success_other": "{{count}} weitere Termine erstellt",
+      "success_few": "{{count}} weitere Termine erstellt",
+      "success_many": "{{count}} weitere Termine erstellt"
+    },
+    "count_few": "{{count}} Trainingseinheiten",
+    "count_many": "{{count}} Trainingseinheiten",
+    "itemCount_few": "{{count}} Übungen",
+    "itemCount_many": "{{count}} Übungen",
+    "totalMinutes_few": "{{count}} Minuten",
+    "totalMinutes_many": "{{count}} Minuten",
+    "durationShort_few": "{{count}} Min",
+    "durationShort_many": "{{count}} Min"
   },
   "games": {
     "count_one": "{{count}} Spiel",
@@ -1415,7 +1506,9 @@
     "videoPanelHint": "Videos zu diesem Spiel hochladen und mit Ereignissen aus der Zeitleiste verknüpfen – auch nachträglich beim Sichten nach dem Spiel.",
     "videoPanelEmpty": "Noch kein Video zu diesem Spiel – lade die Aufnahme hoch, um Ereignisse damit zu verknüpfen.",
     "jumpToVideoAriaLabel": "Zur verknüpften Videoposition springen",
-    "headToHead": "Bilanz gegen {{opponent}}: {{wins}}S-{{draws}}U-{{losses}}N ({{goalsFor}}:{{goalsAgainst}}) in {{count}} Spielen"
+    "headToHead": "Bilanz gegen {{opponent}}: {{wins}}S-{{draws}}U-{{losses}}N ({{goalsFor}}:{{goalsAgainst}}) in {{count}} Spielen",
+    "count_few": "{{count}} Spiele",
+    "count_many": "{{count}} Spiele"
   },
   "opponents": {
     "count_one": "{{count}} Gegner",
@@ -1429,7 +1522,9 @@
       "win": "Sieg",
       "draw": "Unentschieden",
       "loss": "Niederlage"
-    }
+    },
+    "count_few": "{{count}} Gegner",
+    "count_many": "{{count}} Gegner"
   },
   "roster": {
     "title": "Kader",
@@ -1459,7 +1554,9 @@
     "emptyRosterHint": "Noch kein Kader angelegt – auf der Kader-Seite anlegbar.",
     "linkedUserAriaLabel": "Login-Account für {{name}} verknüpfen",
     "linkedUserHint": "Verknüpft diesen Kader-Eintrag mit einem Team-Mitglied-Account, damit die Person ihre eigenen Statistiken im Dashboard sieht.",
-    "linkedUserNone": "Kein Account verknüpft"
+    "linkedUserNone": "Kein Account verknüpft",
+    "count_few": "{{count}} Spieler im Kader",
+    "count_many": "{{count}} Spieler im Kader"
   },
   "offline": {
     "offlineBanner_one": "Offline – Änderungen werden gespeichert, sobald wieder online ({{count}} ausstehend)",
@@ -1471,7 +1568,15 @@
     "syncedWithConflicts_one": "Synchronisiert – 1 Änderung wurde zwischenzeitlich anderswo bearbeitet, bitte prüfen",
     "syncedWithConflicts_other": "Synchronisiert – {{count}} Änderungen wurden zwischenzeitlich anderswo bearbeitet, bitte prüfen",
     "conflictBannerBtn_one": "1 Konflikt ansehen",
-    "conflictBannerBtn_other": "{{count}} Konflikte ansehen"
+    "conflictBannerBtn_other": "{{count}} Konflikte ansehen",
+    "offlineBanner_few": "Offline – Änderungen werden gespeichert, sobald wieder online ({{count}} ausstehend)",
+    "offlineBanner_many": "Offline – Änderungen werden gespeichert, sobald wieder online ({{count}} ausstehend)",
+    "syncingBanner_few": "Synchronisiere {{count}} Änderungen...",
+    "syncingBanner_many": "Synchronisiere {{count}} Änderungen...",
+    "syncedWithConflicts_few": "Synchronisiert – {{count}} Änderungen wurden zwischenzeitlich anderswo bearbeitet, bitte prüfen",
+    "syncedWithConflicts_many": "Synchronisiert – {{count}} Änderungen wurden zwischenzeitlich anderswo bearbeitet, bitte prüfen",
+    "conflictBannerBtn_few": "{{count}} Konflikte ansehen",
+    "conflictBannerBtn_many": "{{count}} Konflikte ansehen"
   },
   "boardShare": {
     "title": "Board teilen",
@@ -1624,7 +1729,9 @@
       "week": "KW {{week}}",
       "matchToday": "Nächstes Spiel heute",
       "matchInDays": "Nächstes Spiel in {{count}} Tag",
-      "matchInDays_other": "Nächstes Spiel in {{count}} Tagen"
+      "matchInDays_other": "Nächstes Spiel in {{count}} Tagen",
+      "matchInDays_few": "Nächstes Spiel in {{count}} Tagen",
+      "matchInDays_many": "Nächstes Spiel in {{count}} Tagen"
     },
     "countdown": {
       "today": "Heute um {{time}} Uhr",
@@ -1644,7 +1751,9 @@
       "empty": "Noch keine Geburtstage im Team hinterlegt.",
       "todayEntry": "{{name}} hat heute Geburtstag und wird {{age}}!",
       "nextEntry": "In {{count}} Tag hat {{name}} Geburtstag (wird {{age}}).",
-      "nextEntry_other": "In {{count}} Tagen hat {{name}} Geburtstag (wird {{age}})."
+      "nextEntry_other": "In {{count}} Tagen hat {{name}} Geburtstag (wird {{age}}).",
+      "nextEntry_few": "In {{count}} Tagen hat {{name}} Geburtstag (wird {{age}}).",
+      "nextEntry_many": "In {{count}} Tagen hat {{name}} Geburtstag (wird {{age}})."
     },
     "availability": {
       "groupLabel": "Deine Verfügbarkeit",

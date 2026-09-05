@@ -146,6 +146,155 @@ describe('useDrawing – Trainingszone (Layer-System, CLAUDE.md §10.2)', () => 
   });
 });
 
+describe('useDrawing – Torwart-Winkel (CLAUDE.md §9.7)', () => {
+  it('zeichnet einen Winkel per Pointer-Geste – die Spitze (Torwart-Standort) folgt dem Cursor', () => {
+    const { result } = renderHook(() => useDrawing());
+
+    act(() => { result.current.setActiveTool('winkel'); });
+    act(() => { result.current.handlePointerDown(30, 10); });
+    act(() => { result.current.handlePointerMove(32, 10); });
+    act(() => { result.current.handlePointerUp(); });
+
+    expect(result.current.elements).toHaveLength(1);
+    expect(result.current.elements[0]).toMatchObject({ type: 'winkel', x1: 32, y1: 10 });
+    expect(result.current.elements[0].goalSide).toBe('auto');
+    expect(result.current.elements[0].fillOpacity).toBeGreaterThan(0);
+    expect(result.current.elements[0].arrowHead).toBe(false);
+    expect(result.current.canUndo).toBe(true);
+
+    act(() => { result.current.undo(); });
+    expect(result.current.elements).toHaveLength(0);
+  });
+
+  it('speichert ein explizit gewähltes Ziel-Tor am Element', () => {
+    const { result } = renderHook(() => useDrawing());
+
+    act(() => { result.current.setWinkelGoalSide('right'); });
+    act(() => { result.current.addArrowElement('winkel', 30, 10, 30, 10); });
+
+    expect(result.current.elements[0]).toMatchObject({ type: 'winkel', goalSide: 'right' });
+  });
+
+  it('Preset-Aufruf mit explizitem goalSide überschreibt die globale Auswahl', () => {
+    const { result } = renderHook(() => useDrawing());
+
+    act(() => { result.current.setWinkelGoalSide('auto'); });
+    act(() => { result.current.addArrowElement('winkel', 4.35, 10, 4.35, 10, 'left'); });
+
+    expect(result.current.elements[0]).toMatchObject({ type: 'winkel', goalSide: 'left' });
+  });
+
+  it("legt für andere Werkzeuge KEIN goalSide an (bleibt undefined)", () => {
+    const { result } = renderHook(() => useDrawing());
+
+    act(() => { result.current.addArrowElement('pass', 0, 0, 1, 1); });
+
+    expect(result.current.elements[0]).toMatchObject({ type: 'pass' });
+    expect(result.current.elements[0].goalSide).toBeUndefined();
+  });
+});
+
+describe('useDrawing – Rebound-Raum (CLAUDE.md §9.7, Phase 2)', () => {
+  it('zeichnet einen Rebound-Raum per Pointer-Geste – der Tiefenpunkt folgt dem Cursor', () => {
+    const { result } = renderHook(() => useDrawing());
+
+    act(() => { result.current.setActiveTool('rebound'); });
+    act(() => { result.current.handlePointerDown(30, 8); });
+    act(() => { result.current.handlePointerMove(26, 6); });
+    act(() => { result.current.handlePointerUp(); });
+
+    expect(result.current.elements).toHaveLength(1);
+    expect(result.current.elements[0]).toMatchObject({ type: 'rebound', x2: 26, y2: 6 });
+    expect(result.current.elements[0].goalSide).toBe('auto');
+    expect(result.current.elements[0].arrowHead).toBe(false);
+    expect(result.current.canUndo).toBe(true);
+
+    act(() => { result.current.undo(); });
+    expect(result.current.elements).toHaveLength(0);
+  });
+
+  it('speichert ein explizit gewähltes Ziel-Tor am Element', () => {
+    const { result } = renderHook(() => useDrawing());
+
+    act(() => { result.current.setWinkelGoalSide('right'); });
+    act(() => { result.current.addArrowElement('rebound', 30, 10, 30, 10); });
+
+    expect(result.current.elements[0]).toMatchObject({ type: 'rebound', goalSide: 'right' });
+  });
+});
+
+describe('useDrawing – Konterauslösung (CLAUDE.md §9.7, Phase 2)', () => {
+  it('zeichnet einen Konter-Pfeil per Pointer-Geste – das Anspielziel folgt dem Cursor', () => {
+    const { result } = renderHook(() => useDrawing());
+
+    act(() => { result.current.setActiveTool('konter'); });
+    act(() => { result.current.handlePointerDown(6, 10); });
+    act(() => { result.current.handlePointerMove(20, 12); });
+    act(() => { result.current.handlePointerUp(); });
+
+    expect(result.current.elements).toHaveLength(1);
+    expect(result.current.elements[0]).toMatchObject({ type: 'konter', x2: 20, y2: 12 });
+    expect(result.current.elements[0].goalSide).toBe('auto');
+    expect(result.current.elements[0].arrowHead).toBe(true);
+    // Konter ist bewusst fett (strokeWidth 5) und gestrichelt
+    expect(result.current.elements[0].strokeWidth).toBe(5);
+    expect(result.current.elements[0].dash).toEqual([14, 8]);
+    expect(result.current.canUndo).toBe(true);
+
+    act(() => { result.current.undo(); });
+    expect(result.current.elements).toHaveLength(0);
+  });
+
+  it('speichert das Ziel-Tor am Element wie die übrigen Torhüter-Werkzeuge', () => {
+    const { result } = renderHook(() => useDrawing());
+
+    act(() => { result.current.setWinkelGoalSide('left'); });
+    act(() => { result.current.addArrowElement('konter', 8, 12, 8, 12); });
+
+    expect(result.current.elements[0]).toMatchObject({ type: 'konter', goalSide: 'left' });
+  });
+});
+
+describe('useDrawing – Torwart-Kommunikation (CLAUDE.md §9.7, Phase 3)', () => {
+  it('zeichnet per Pointer-Geste eine Blase mit der Standard-Phrase und dem anvisierten Punkt', () => {
+    const { result } = renderHook(() => useDrawing());
+
+    act(() => { result.current.setActiveTool('komm'); });
+    act(() => { result.current.handlePointerDown(8, 10); });
+    act(() => { result.current.handlePointerMove(25, 14); });
+    act(() => { result.current.handlePointerUp(); });
+
+    expect(result.current.elements).toHaveLength(1);
+    expect(result.current.elements[0]).toMatchObject({ type: 'komm', x2: 25, y2: 14, goalSide: 'auto' });
+    // Phrasentext ist beim Anlegen eingebrannt (Standard-Phrase 'Press!'
+    // über de-Sprache aus dem i18n-Slot)
+    expect(result.current.elements[0].text).toMatch(/Press/);
+    expect(result.current.elements[0].arrowHead).toBe(false);
+    expect(result.current.canUndo).toBe(true);
+
+    act(() => { result.current.undo(); });
+    expect(result.current.elements).toHaveLength(0);
+  });
+
+  it('brennt eine über das Formular gewählte Phrase als Text ins Element ein (extra-Param)', () => {
+    const { result } = renderHook(() => useDrawing());
+
+    act(() => { result.current.setActiveTool('komm'); });
+    act(() => { result.current.addArrowElement('komm', 20, 10, 20, 10, undefined, { text: 'Raus!' }); });
+
+    expect(result.current.elements[0]).toMatchObject({ type: 'komm', text: 'Raus!', goalSide: 'auto' });
+  });
+
+  it('legt für Nicht-Torhüter-Werkzeuge KEIN text an (bleibt undefined)', () => {
+    const { result } = renderHook(() => useDrawing());
+
+    act(() => { result.current.addArrowElement('pass', 0, 0, 1, 1); });
+
+    expect(result.current.elements[0]).toMatchObject({ type: 'pass' });
+    expect(result.current.elements[0].text).toBeUndefined();
+  });
+});
+
 describe('useDrawing – Echtzeit-Co-Editing (onLocalChange + applyRemote)', () => {
   it('applyRemote(movePlayer) wendet die Position an, OHNE undoStack/redoStack zu verändern', () => {
     const { result } = renderHook(() => useDrawing());

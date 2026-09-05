@@ -26,6 +26,10 @@ const LAYERS = [
   { key: 'shot',     labelKey: 'layers.shot' },
   { key: 'freehand', labelKey: 'layers.freehand' },
   { key: 'zone',     labelKey: 'layers.zone' },
+  { key: 'winkel',   labelKey: 'layers.winkel' },
+  { key: 'rebound',  labelKey: 'layers.rebound' },
+  { key: 'konter',   labelKey: 'layers.konter' },
+  { key: 'komm',     labelKey: 'layers.komm' },
   { key: 'comments', labelKey: 'layers.comments' },
 ];
 

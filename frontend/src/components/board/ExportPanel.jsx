@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import QRCode from 'qrcode';
 import { useExport } from '../../hooks/useExport.js';
 import { useShare } from '../../hooks/useShare.js';
+import { getIntlLocale } from '../../utils/formatDate.js';
 import Button from '../common/Button.jsx';
 import styles from './ExportPanel.module.css';
 
@@ -29,7 +30,7 @@ const WIDTH_OPTIONS  = [
 
 function formatExpiry(iso) {
   if (!iso) return '';
-  return new Date(iso).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' });
+  return new Date(iso).toLocaleString(getIntlLocale(), { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 export default function ExportPanel({ boardId, frames, activeFrame, renderFrame }) {

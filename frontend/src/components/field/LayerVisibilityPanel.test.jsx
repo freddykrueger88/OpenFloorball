@@ -13,12 +13,12 @@ import LayerVisibilityPanel from './LayerVisibilityPanel.jsx';
 beforeAll(async () => { await i18n.changeLanguage('de'); });
 
 describe('LayerVisibilityPanel', () => {
-  it('zeigt alle acht Layer standardmäßig als sichtbar (aria-pressed=true)', () => {
+  it('zeigt alle zwölf Layer standardmäßig als sichtbar (aria-pressed=true)', () => {
     render(<LayerVisibilityPanel visibility={{}} onToggle={() => {}} />);
 
     // aria-label ist "{Layer} ausblenden"/"einblenden" (beschreibt die
     // Klick-Wirkung), daher Regex statt exaktem Namen.
-    for (const label of ['Eigene Spieler', 'Gegner', 'Laufwege', 'Passwege', 'Schüsse', 'Freihand', 'Trainingszonen', 'Kommentar-Pins']) {
+    for (const label of ['Eigene Spieler', 'Gegner', 'Laufwege', 'Passwege', 'Schüsse', 'Freihand', 'Trainingszonen', 'Torwart-Winkel', 'Rebound-Raum', 'Konterauslösung', 'Torwart-Kommunikation', 'Kommentar-Pins']) {
       expect(screen.getByRole('button', { name: new RegExp(`^${label} ausblenden$`) })).toHaveAttribute('aria-pressed', 'true');
     }
   });

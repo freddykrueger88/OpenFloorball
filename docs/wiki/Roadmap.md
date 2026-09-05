@@ -49,11 +49,14 @@ Phase 1 (erweiterbares Event-Modell) noch nicht umgesetzt.
   nehmen ein bestehendes Angebot wahr (freie Plätze). Offene Frage vor
   Umsetzung: wie Eltern ohne eigenen Account eingebunden werden, ohne
   zusätzliche Kontaktdaten (Adresse/Telefon) speichern zu müssen.
-- Europaweite Sprachunterstützung (Backlog-ISSUE 027) – Oberfläche
-  bisher nur Deutsch/Englisch; Phase 1 priorisiert die floorball-
-  stärksten Nationen außerhalb DACH (Schwedisch, Finnisch, Tschechisch,
-  Slowakisch), jede Übersetzung braucht muttersprachliches Review vor
-  Merge.
+- Europaweite Sprachunterstützung (Backlog-ISSUE 027) – Phase 1
+  prioritisiert die floorball-stärksten Nationen außerhalb DACH.
+  Schwedisch (`sv`) ist als KI-Rohentwurf in der Oberfläche verfügbar,
+  Finnisch (`fi`), Tschechisch (`cs`) und Slowakisch (`sk`) wurden als
+  weitere Rohentwürfe ergänzt (2026-09-05, Markierung
+  `needs-native-review`) – damit ist Phase 1 komplett. Jede
+  Übersetzung braucht muttersprachliches Review vor offiziellem
+  Abschluss des Issues.
 - Native App-Store-Präsenz (Google Play + Apple App Store) – App ist
   schon eine installierbare PWA (vite-plugin-pwa), naheliegender Weg
   wäre ein Wrapper wie Capacitor/Trusted Web Activity statt einer

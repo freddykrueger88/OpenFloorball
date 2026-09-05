@@ -21,11 +21,13 @@ brauchst, ist ein Texteditor, Node.js und einen Terminal-Befehl.
 Schau zuerst in [BACKLOG.md, ISSUE 027](planning/BACKLOG.md) nach der
 aktuellen Prioritätsliste – sie orientiert sich an tatsächlicher
 Floorball-Aktivität (IFF-Mitgliedsverbände, Ligastärke), nicht an
-Sprecherzahl. Aktuell fehlen z. B. noch Finnisch, Tschechisch und
-Slowakisch; Schwedisch existiert bereits als erster – von einer KI
-erstellter, **noch nicht muttersprachlich geprüfter** – Entwurf
+Sprecherzahl. Aktuell fehlen z. B. noch Tschechisch und Slowakisch;
+Schwedisch existiert bereits als erster – von einer KI erstellter,
+**noch nicht muttersprachlich geprüfter** – Entwurf
 (`frontend/src/i18n/locales/sv.json`), der Korrektur statt Neuerstellung
-braucht.
+braucht. Dasselbe gilt für die zwischenzeitlich ergänzten Entwürfe
+Finnisch (`fi.json`), Tschechisch (`cs.json`) und Slowakisch
+(`sk.json`).
 
 Willst du eine Sprache übersetzen, die noch niemand begonnen hat?
 Kommentiere kurz im verlinkten Sammel-Issue auf GitHub, welche Sprache
@@ -72,11 +74,14 @@ wird zu
    `LOCALES`-Objekt eintragen (Import + Eintrag, zwei Zeilen).
 4. In `frontend/src/i18n/i18n.js` deine Sprache zu `resources` und
    `supportedLngs` hinzufügen.
-5. In `frontend/src/components/settings/PreferencesSection.jsx` eine
-   `<option>`-Zeile für deine Sprache in der Sprachauswahl ergänzen,
-   plus den Schlüssel `settings.language<Code>` in **allen**
-   Sprachdateien (auch in `de.json` und `en.json` – dort auf Deutsch/
-   Englisch, z. B. `"languageFi": "Finnisch"` bzw. `"Finnish"`).
+5. Die Sprachauswahl in
+   `frontend/src/components/settings/PreferencesSection.jsx` wird
+   **automatisch** aus `SUPPORTED_LANGUAGES` (`i18n.js`) generiert –
+   nichts zusätzlich einbauen. Lediglich den Anzeigenamen-Schlüssel
+   `settings.language<Code>` in **allen** Sprachdateien ergänzen
+   (auch in `de.json`, `en.json`, `sv.json`, `fi.json` – dort jeweils
+   auf der eigenen Sprache, z. B. `"languageFi": "Finnish"` bzw.
+   `"Suomi"`).
 
 ---
 

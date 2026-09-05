@@ -31,6 +31,35 @@
   margin: 0;
 }
 
+.categoryFilter {
+  font-size: var(--text-xs);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  color: var(--color-text);
+  width: 100%;
+}
+
+.sectionLabel {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin: var(--space-1) 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.systemBadge {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  background: var(--color-primary-soft, var(--color-surface-offset));
+  padding: 1px var(--space-1);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -116,6 +145,17 @@
   border-radius: var(--radius-sm);
   padding: var(--space-1) var(--space-2);
   color: var(--color-text);
+}
+
+.newCategorySelect {
+  font-size: var(--text-xs);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  color: var(--color-text);
+  max-width: 90px;
+  flex-shrink: 0;
 }
 
 .newTeamSelect {

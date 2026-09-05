@@ -9,6 +9,7 @@
 import PDFDocument from 'pdfkit';
 import logger from '../utils/logger.js';
 import pool from '../db/pool.js';
+import { logAudit } from '../services/auditLogger.js';
 import { assertGameRead } from './gamesController.js';
 import { calculateMatchScore } from '../services/statisticsEngine.js';
 
@@ -146,6 +147,12 @@ export async function exportPdf(req, res) {
     }
 
     doc.end();
+    await logAudit({
+      actorId: req.user.id,
+      action: 'export.pdf',
+      resourceType: 'export',
+      metadata: { boardName: safeBoardName, frameCount: frames.length, framesPerPage, paperSize, language: lang },
+    });
   } catch (err) {
     logger.error('[exportPdf]', err);
     if (!res.headersSent) res.status(500).json({ success: false, message: 'Interner Serverfehler' });
@@ -345,6 +352,7 @@ export async function exportGameReport(req, res) {
     }
 
     doc.end();
+    await logAudit({ actorId: req.user.id, action: 'export.game-report', resourceType: 'game', resourceId: gameId, metadata: { language: lang } });
   } catch (err) {
     logger.error('[exportGameReport]', err);
     if (!res.headersSent) res.status(500).json({ success: false, message: 'Interner Serverfehler' });

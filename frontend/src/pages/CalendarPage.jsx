@@ -18,6 +18,7 @@ import { useGames } from '../hooks/useGames.js';
 import { useTrainingSessions } from '../hooks/useTrainingSessions.js';
 import { useTeamBirthdays } from '../hooks/useTeamBirthdays.js';
 import { getMonthOccurrences } from '../utils/birthdaySelectors.js';
+import { getIntlLocale } from '../utils/formatDate.js';
 import Button from '../components/common/Button.jsx';
 import CalendarFeedPanel from '../components/calendar/CalendarFeedPanel.jsx';
 import styles from './CalendarPage.module.css';
@@ -50,7 +51,7 @@ export default function CalendarPage() {
   useEffect(() => { fetchSessions().catch(() => {}); }, [fetchSessions]);
   useEffect(() => { fetchBirthdays().catch(() => {}); }, [fetchBirthdays]);
 
-  const locale = i18n.language === 'en' ? 'en-US' : 'de-DE';
+  const locale = getIntlLocale(i18n.language);
   const monthLabel = new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(new Date(view.year, view.month, 1));
   const weekdayLabels = useMemo(() => {
     // Eine beliebige Montag-Woche als Referenz für die Kurz-Wochentagsnamen.

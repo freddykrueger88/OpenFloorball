@@ -70,7 +70,9 @@
     "showPlayerTitle": "Show this player again",
     "showPlayerAriaLabel": "Show {{name}} again",
     "hiddenPlayersLabel": "Hidden players",
-    "hiddenSuffix": "(hidden)"
+    "hiddenSuffix": "(hidden)",
+    "canvasAriaLabel_few": "Floorball field: {{label}}, {{count}} players. Reachable individually via Tab.",
+    "canvasAriaLabel_many": "Floorball field: {{label}}, {{count}} players. Reachable individually via Tab."
   },
   "teams": {
     "home": "Home Team",
@@ -110,6 +112,13 @@
     "languageDe": "German",
     "languageEn": "English",
     "languageSv": "Swedish",
+    "languageFi": "Finnish",
+    "languageCs": "Czech",
+    "languageSk": "Slovak",
+    "languageNb": "Norwegian",
+    "languageLv": "Latvian",
+    "languagePl": "Polish",
+    "languageFr": "French",
     "fontSize": "Font Size",
     "fontSizeSmall": "Small",
     "fontSizeMedium": "Medium",
@@ -363,7 +372,9 @@
       "layers": "Visibility"
     },
     "collapsePanel": "Collapse panel",
-    "expandPanel": "Expand panel"
+    "expandPanel": "Expand panel",
+    "presenceCount_few": "{{count}} other people here",
+    "presenceCount_many": "{{count}} other people here"
   },
   "comments": {
     "title": "Comments",
@@ -391,6 +402,10 @@
     "shot": "Shot arrows",
     "freehand": "Freehand",
     "zone": "Training zones",
+    "winkel": "Goalkeeper angle",
+    "rebound": "Rebound zone",
+    "konter": "Counter trigger",
+    "komm": "Goalkeeper communication",
     "comments": "Comment pins",
     "hideAriaLabel": "Hide {{layer}}",
     "showAriaLabel": "Show {{layer}}",
@@ -581,7 +596,9 @@
       "revoke": "Revoke",
       "urlAriaLabel": "Calendar feed URL",
       "error": "Error: {{error}}"
-    }
+    },
+    "moreCount_few": "+{{count}} more",
+    "moreCount_many": "+{{count}} more"
   },
   "stats": {
     "title": "Stats",
@@ -626,7 +643,9 @@
       "attendanceTitle": "Training attendance",
       "trainingsRecorded": "Trainings recorded",
       "attendanceRate": "Attendance rate"
-    }
+    },
+    "count_few": "{{count}} roster players",
+    "count_many": "{{count}} roster players"
   },
   "news": {
     "title": "News",
@@ -641,7 +660,9 @@
     "loading": "Loading announcements…",
     "emptyStateDesc": "No announcements in your teams yet. As a coach or club admin you can post short messages to your team here.",
     "deleteAriaLabel": "Delete announcement",
-    "deleteTitle": "Delete"
+    "deleteTitle": "Delete",
+    "count_few": "{{count}} announcements",
+    "count_many": "{{count}} announcements"
   },
   "polls": {
     "title": "Polls",
@@ -665,7 +686,11 @@
     "closedBadge": "Closed",
     "closeAction": "Close",
     "deleteAriaLabel": "Delete poll",
-    "deleteTitle": "Delete"
+    "deleteTitle": "Delete",
+    "count_few": "{{count}} polls",
+    "count_many": "{{count}} polls",
+    "voteCount_few": "{{count}} votes",
+    "voteCount_many": "{{count}} votes"
   },
   "versions": {
     "title": "History",
@@ -696,7 +721,9 @@
     "categoryFilterAriaLabel": "Filter by exercise category",
     "demoDataHint": "Nothing here yet? Create demo data to try out the other areas right away.",
     "demoDataCreateBtn": "Create demo data",
-    "demoDataCreating": "Creating…"
+    "demoDataCreating": "Creating…",
+    "count_few": "{{count}} boards",
+    "count_many": "{{count}} boards"
   },
   "notFound": {
     "title": "404",
@@ -839,7 +866,32 @@
     "limitHint": "Maximum 20 templates",
     "teamAriaLabel": "Team to share this template with",
     "personalOption": "Personal (not shared)",
-    "teamBadgeFallback": "Team"
+    "teamBadgeFallback": "Team",
+    "categoryFilterAriaLabel": "Filter templates by category",
+    "saveCategoryAriaLabel": "Category of the new template",
+    "categoryAll": "All",
+    "categoryForechecking": "Forechecking",
+    "categoryPowerplay": "Powerplay",
+    "categoryBoxplay": "Boxplay",
+    "categoryGeneral": "General",
+    "builtinsLabel": "Built-in systems",
+    "ownLabel": "Own templates",
+    "templates": {
+      "forechecking212": "2-1-2 Forechecking",
+      "forechecking221": "2-2-1 Forechecking",
+      "forechecking122": "1-2-2 Forechecking",
+      "forecheckingHighPress": "High Press",
+      "forecheckingMidPress": "Mid Press",
+      "forecheckingLowBlock": "Low Block",
+      "powerplay5v4Umbrella": "Powerplay 5v4 (Umbrella)",
+      "powerplay5v3Overload": "Powerplay 5v3 (Overload)",
+      "powerplay4v3": "4v3 Powerplay",
+      "powerplay6v5EmptyNet": "6v5 Empty Net",
+      "boxplayBox": "Boxplay Box",
+      "boxplayDiamond": "Boxplay Diamond",
+      "boxplayAggressive": "Boxplay aggressive",
+      "boxplayPassive": "Boxplay passive"
+    }
   },
   "lines": {
     "title": "Lines",
@@ -871,7 +923,9 @@
     "addPlayer": "Add player",
     "pickerAriaLabel": "Add a player to \"{{name}}\"",
     "noMorePlayers": "All roster players are already in this line.",
-    "removePlayerAriaLabel": "Remove {{name}} from this line"
+    "removePlayerAriaLabel": "Remove {{name}} from this line",
+    "count_few": "{{count}} lines",
+    "count_many": "{{count}} lines"
   },
   "boardLines": {
     "sectionAriaLabel": "Lines for this board",
@@ -961,7 +1015,36 @@
     "saveFreehand": "Save drawing",
     "pointList": "Waypoints",
     "removePoint": "Remove point",
-    "announceElementAdded": "Drawing element added"
+    "announceElementAdded": "Drawing element added",
+    "winkelGoalSide": "Target goal",
+    "winkelGoalAuto": "Automatic",
+    "winkelGoalLeft": "Left",
+    "winkelGoalRight": "Right",
+    "winkelHint": "Goalkeeper position in meters (goal posts → apex). Alternatively drag it on the field.",
+    "winkelStanceTitle": "Stance presets",
+    "winkelStance": {
+      "base": "Base stance",
+      "kontraOben": "Counter high",
+      "kontraUnten": "Counter low"
+    },
+    "reboundGoalSide": "Target goal (rebound zone)",
+    "reboundHint": "Depth of the rebound zone in meters in front of the goal (goal mouth → depth). Alternatively drag it on the field.",
+    "addRebound": "Add rebound zone",
+    "konterGoalSide": "Target goal (counter trigger)",
+    "konterHint": "First outlet of the counter attack in meters – the arrow starts automatically at the goalkeeper.",
+    "addKonter": "Add counter arrow",
+    "kommGoalSide": "Target goal (communication)",
+    "kommPhraseTitle": "Command",
+    "kommHint": "Position of the addressed player in meters – the bubble appears there, the connector leads from the goalkeeper.",
+    "addKomm": "Add communication",
+    "kommPhrases": {
+      "press": "Press!",
+      "raus": "Get out!",
+      "du": "You've got him!",
+      "stellung": "Positions!",
+      "box": "Your box!",
+      "ruhig": "Calm it down!"
+    }
   },
   "playback": {
     "announceStop": "Back to frame 1",
@@ -1057,7 +1140,9 @@
       "columnAuthor": "Author",
       "columnReports": "Reports",
       "columnLastReported": "Last reported"
-    }
+    },
+    "count_few": "{{count}} exercises",
+    "count_many": "{{count}} exercises"
   },
   "ai": {
     "planWithAi": "Plan with AI",
@@ -1325,8 +1410,18 @@
       "untilAriaLabel": "End date of the series",
       "submit": "Create series",
       "success_one": "{{count}} more session created",
-      "success_other": "{{count}} more sessions created"
-    }
+      "success_other": "{{count}} more sessions created",
+      "success_few": "{{count}} more sessions created",
+      "success_many": "{{count}} more sessions created"
+    },
+    "count_few": "{{count}} training sessions",
+    "count_many": "{{count}} training sessions",
+    "itemCount_few": "{{count}} drills",
+    "itemCount_many": "{{count}} drills",
+    "totalMinutes_few": "{{count}} minutes",
+    "totalMinutes_many": "{{count}} minutes",
+    "durationShort_few": "{{count}} min",
+    "durationShort_many": "{{count}} min"
   },
   "games": {
     "count_one": "{{count}} game",
@@ -1415,7 +1510,9 @@
     "videoPanelHint": "Upload video for this game and link it to events from the timeline – even after the fact while reviewing footage.",
     "videoPanelEmpty": "No video for this game yet – upload the recording to start linking events to it.",
     "jumpToVideoAriaLabel": "Jump to the linked video position",
-    "headToHead": "Record vs {{opponent}}: {{wins}}W-{{draws}}D-{{losses}}L ({{goalsFor}}:{{goalsAgainst}}) in {{count}} games"
+    "headToHead": "Record vs {{opponent}}: {{wins}}W-{{draws}}D-{{losses}}L ({{goalsFor}}:{{goalsAgainst}}) in {{count}} games",
+    "count_few": "{{count}} games",
+    "count_many": "{{count}} games"
   },
   "opponents": {
     "count_one": "{{count}} opponent",
@@ -1429,7 +1526,9 @@
       "win": "Win",
       "draw": "Draw",
       "loss": "Loss"
-    }
+    },
+    "count_few": "{{count}} opponents",
+    "count_many": "{{count}} opponents"
   },
   "roster": {
     "title": "Roster",
@@ -1459,7 +1558,9 @@
     "emptyRosterHint": "No roster yet – create one on the roster page.",
     "linkedUserAriaLabel": "Link a login account for {{name}}",
     "linkedUserHint": "Links this roster entry to a team member's account so that person sees their own stats on the dashboard.",
-    "linkedUserNone": "No account linked"
+    "linkedUserNone": "No account linked",
+    "count_few": "{{count}} players in roster",
+    "count_many": "{{count}} players in roster"
   },
   "offline": {
     "offlineBanner_one": "Offline – changes will be saved once back online ({{count}} pending)",
@@ -1471,7 +1572,15 @@
     "syncedWithConflicts_one": "Synced – 1 change was edited elsewhere in the meantime, please review",
     "syncedWithConflicts_other": "Synced – {{count}} changes were edited elsewhere in the meantime, please review",
     "conflictBannerBtn_one": "1 conflict to review",
-    "conflictBannerBtn_other": "{{count}} conflicts to review"
+    "conflictBannerBtn_other": "{{count}} conflicts to review",
+    "offlineBanner_few": "Offline – changes will be saved once back online ({{count}} pending)",
+    "offlineBanner_many": "Offline – changes will be saved once back online ({{count}} pending)",
+    "syncingBanner_few": "Syncing {{count}} changes...",
+    "syncingBanner_many": "Syncing {{count}} changes...",
+    "syncedWithConflicts_few": "Synced – {{count}} changes were edited elsewhere in the meantime, please review",
+    "syncedWithConflicts_many": "Synced – {{count}} changes were edited elsewhere in the meantime, please review",
+    "conflictBannerBtn_few": "{{count}} conflicts to review",
+    "conflictBannerBtn_many": "{{count}} conflicts to review"
   },
   "boardShare": {
     "title": "Share board",
@@ -1624,7 +1733,9 @@
       "week": "Week {{week}}",
       "matchToday": "Next game today",
       "matchInDays": "Next game in {{count}} day",
-      "matchInDays_other": "Next game in {{count}} days"
+      "matchInDays_other": "Next game in {{count}} days",
+      "matchInDays_few": "Next game in {{count}} days",
+      "matchInDays_many": "Next game in {{count}} days"
     },
     "countdown": {
       "today": "Today at {{time}}",
@@ -1644,7 +1755,9 @@
       "empty": "No teammate birthdays on file yet.",
       "todayEntry": "{{name}} has a birthday today and turns {{age}}!",
       "nextEntry": "In {{count}} day, {{name}} has a birthday (turning {{age}}).",
-      "nextEntry_other": "In {{count}} days, {{name}} has a birthday (turning {{age}})."
+      "nextEntry_other": "In {{count}} days, {{name}} has a birthday (turning {{age}}).",
+      "nextEntry_few": "In {{count}} days, {{name}} has a birthday (turning {{age}}).",
+      "nextEntry_many": "In {{count}} days, {{name}} has a birthday (turning {{age}})."
     },
     "availability": {
       "groupLabel": "Your availability",

@@ -35,35 +35,37 @@ continuously updated there (German):
   (placing players, drawing, scenes/animation, automatic saving,
   export/sharing). Re-openable at any time via the help icon in the
   editor.
+- **Carpooling for games and trainings** (backlog ISSUE 028) – attach
+  ride offers (free seats) to games/trainings, claim a seat without
+  overbooking, plus a public share page via `share_token`. See
+  ISSUE 030 (offerer name). The open question (parents without their
+  own account) is intentionally deferred until clarified with clubs.
+- **Statistics and performance analytics** (EPIC 012) – phases 1–9 fully
+  implemented (events model, line tracking, shot tracking, special
+  teams, training analytics, video↔event, assists/CSV export, line
+  chemistry, AI insights) including the opponent entity
+  ([statistics architecture](../planning/STATISTICS_ANALYTICS_ARCHITECTURE.md),
+  German). xG/shot quality intentionally deferred (no real data basis),
+  as is season/competition grouping of games.
 
 ## Open backlog highlights (excerpt)
 
-**Big undertaking:** statistics and performance analytics platform
-(EPIC 012) – full audit/gap analysis and target architecture in
-[docs/planning/STATISTICS_ANALYTICS_ARCHITECTURE.md](../planning/STATISTICS_ANALYTICS_ARCHITECTURE.md)
-(German). Phase 1 (extensible event model) not yet implemented.
-
 **Feature ideas:**
-- Carpooling for games and trainings (backlog ISSUE 028) – team members
-  offer rides to away games/trainings or claim a free seat on an
-  existing offer. Open question before implementation: how to include
-  parents without their own account, without having to store extra
-  contact data (address/phone number).
-- Europe-wide language support (backlog ISSUE 027) – the UI so far
-  only German/English; phase 1 prioritizes the strongest floorball
-  nations outside the DACH region (Swedish, Finnish, Czech, Slovak),
-  every translation needs a native-speaker review before merging.
+- Europe-wide language support (backlog ISSUE 027) – phases 1 and 2 are
+  complete as AI drafts: Swedish (`sv`), Finnish (`fi`), Czech (`cs`),
+  Slovak (`sk`), Norwegian Bokmål (`nb`), Latvian (`lv`), Polish (`pl`)
+  and French (`fr`) are selectable in the UI (marked
+  `needs-native-review`); phase 3 (`da`/`et`/`nl`/`it`) on demand. Every
+  translation needs a native-speaker review before official closing.
+- Season/competition grouping of games (deliberately excluded from
+  EPIC 012) – a larger standalone topic.
 - Native app store presence (Google Play + Apple App Store) – the app
   is already an installable PWA (vite-plugin-pwa), so the obvious path
   would be a wrapper like Capacitor/Trusted Web Activity instead of a
   fully separate codebase.
 
 **Technical:**
-- Vite 7→8 (checked again as of 2026-08-07, still blocked: now
-  `@vitejs/plugin-react@6` ↔ its optional peer dependency
-  `@rolldown/plugin-babel` ↔ `@babel/core` – a different conflict than
-  before, but still within the Rolldown ecosystem)
-- ESLint 10 in the frontend (checked again as of 2026-08-07, still
+- ESLint 10 in the frontend (checked again as of 2026-09-05, still
   blocked: `eslint-plugin-react@7.37.5` declares a peer dependency of
   at most `eslint@^9.7`)
 - Formal WCAG 2.1 AA / BITV 2.0 / EN 301 549 certification by a third

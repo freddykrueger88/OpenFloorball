@@ -20,6 +20,7 @@ function toApiFormation(row) {
     _id:       row.id,
     name:      row.name,
     fieldType: row.field_type,
+    category:  row.category ?? null,
     players:   row.players_json ?? [],
     teamId:    row.team_id,
     createdAt: row.created_at,
@@ -64,7 +65,7 @@ export async function getFormations(req, res) {
 // POST /api/formations
 export async function createFormation(req, res) {
   try {
-    const { name, fieldType = 'large', players = [], teamId = null } = req.body;
+    const { name, fieldType = 'large', players = [], teamId = null, category = null } = req.body;
 
     if (teamId && !(await assertTeamAccess(teamId, req.user.id, 'coach'))) {
       return res.status(404).json(error('Team nicht gefunden'));
@@ -79,10 +80,10 @@ export async function createFormation(req, res) {
     }
 
     const result = await pool.query(
-      `INSERT INTO formation_templates (user_id, name, field_type, players_json, team_id)
-       VALUES ($1, $2, $3, $4::jsonb, $5)
+      `INSERT INTO formation_templates (user_id, name, field_type, players_json, team_id, category)
+       VALUES ($1, $2, $3, $4::jsonb, $5, $6)
        RETURNING *`,
-      [req.user.id, name, fieldType, JSON.stringify(players), teamId]
+      [req.user.id, name, fieldType, JSON.stringify(players), teamId, category]
     );
     res.status(201).json(created(toApiFormation(result.rows[0])));
   } catch (err) {

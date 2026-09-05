@@ -38,8 +38,174 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   abhängigkeitsfreies Canvas-Konfetti aus (respektiert
   `prefers-reduced-motion`). Neue, jährlich wiederkehrende
   "Geburtstag"-Kategorie im Kalender (eigener, nicht-klickbarer Chip-Typ).
+- **Systemvorlagen Forechecking/Powerplay/Boxplay** (CLAUDE.md 9.4-9.6): der
+  Formationen-Tab im Taktikboard enthält jetzt 14 eingebaute Systeme
+  (Forechecking 2-1-2/2-2-1/1-2-2, High/Mid Press, Low Block, Powerplay
+  5v4-Umbrella/5v3/4v3/6v5-Empty-Net, Boxplay Box/Diamond/aggressiv/passiv)
+  zum Ein-Klick-Laden inkl. automatischer Feldtyp-Skalierung. Dazu ein
+  Kategorie-Filter und eine Kategorie-Auswahl beim Speichern eigener
+  Systeme – neue, optionale `category`-Spalte auf `formation_templates`
+  (`forechecking`/`powerplay`/`boxplay`, NULL = Allgemein), additiv und
+  abwärtskompatibel.
+- **Generisches Audit-Log** (CLAUDE.md §19.5 Auditierbarkeit): neue
+  append-only-Tabelle `audit_log` + zentraler Service `auditLogger` –
+  erfasst nachvollziehbar, wer wann welche wichtige Aktion ausgeführt hat
+  (Vorher/Nachher-Delta + Metadaten). Instrumentiert sind
+  Berechtigungs-/Rollenänderungen (Admin-User-Rolle, Team-Mitglieder,
+  Vereins-Mitglieder, Board-Kollaboratoren inkl. Einladungen),
+  Löschungen (Admin-User-Löschung, Selbst-Löschung des Accounts),
+  Datenexporte (PDF-Taktikblatt, Spielbericht, CSV Roster/Games, GIF/MP4,
+  DSGVO-ZIP-Backup) sowie administrative Aktionen (Backup-Config/-Run,
+  KI-Config – der API-Key wird bewusst nie im Audit gespeichert).
+  Stellt die im Statistik-Architektur-Dokument geforderte
+  Nachvollziehbarkeit über das bisherige reine Event-Lösch-Log hinaus
+  sicher, ohne das Verhalten bestehender Endpunkte zu ändern.
+- **Torwart-Winkel auf dem Taktikboard** (CLAUDE.md §9.7, Phase 1 der
+  Torhüter-Werkzeuge): neues Zeichen-Werkzeug "Torwart-Winkel" (bzw.
+  Torhüter/Goalkeeper Angle, Kürzel `W`) zeichnet das
+  Abdeckungs-Dreieck von den beiden Torpfosten eines Tores zum
+  gewählten Torwart-Standort – die klassische Winkel-Lehre des
+  Torwarttrainings ("Winkel verkürzen"). Ziel-Tor wählbar als
+  Automatisch/nächstes Tor oder explizit links/rechts; das Dreieck
+  skaliert mit dem Feldtyp (Pfostengeometrie wird bei jedem Rendern aus
+  der aktuellen Feldkonfiguration abgeleitet, `goalSide` wird am Element
+  gespeichert). Dazu Positionierungs-Schritt-Stände (Grundstellung,
+  Kontra oben/unten – deckt "Positionierung" und "Verschiebung" ab),
+  die als Ein-Klick-Presets pro Tor eingesetzt werden können. Neuer
+  `winkel`-Layer-Toggle in der Sichtbarkeits-Leiste, sichtbar im
+  GIF/MP4-Export. `DrawingToolbar` unterstützt `hideTools` (der
+  Torwart-Winkel ist bewusst nur im Board-Editor verfügbar, nicht im
+  Video-Overlay). Phase 2/3 (Rebounds, Konterauslösung, Kommunikation)
+  folgen separat.
+- **Torhüter-Werkzeuge Phase 2** (CLAUDE.md §9.7 "Rebounds" +
+  "Konterauslösung"): zwei weitere tor-verankerte Werkzeuge im
+  Taktikboard, nach demselben Muster wie der Torwart-Winkel (Ziel-Tor
+  wählbar als Automatisch/links/rechts, Tor-Auswahl geteilt mit dem
+  Winkel-Tool):
+  - **Rebound-Raum** (Kürzel `R`): schattiert den Abprall-Kontrollraum
+    VOR einem Tor als Trapez – die Tormaulkante als Grundseite, zum
+    gewählten Tiefenpunkt hin keilförmig breiter (Breite wächst mit der
+    Tiefe). Die Geometrie wird pro Feldtyp aus der aktuellen
+    Feldkonfiguration abgeleitet (`computeReboundZone` in angleMath.js),
+    alle Punkte werden ins Spielfeld geclampt.
+  - **Konterauslösung** (Kürzel `K`): fetter, gestrichelter Pfeil vom
+    Torwart (Anker = Torlinien-Mitte, `getKeeperClearancePoint`) zur
+    ersten Anspielstation des Konterangriffs inkl. kleiner Torwart-Raute
+    am Anker – bewusst optisch abgrenzbar von einem normalen Pass.
+  Beide erscheinen mit eigenem Layer-Toggle (Sichtbarkeits-Leiste hat
+  jetzt elf Ebenen), sind im GIF/MP4/PDF-Export in Parität zur
+  Live-Darstellung enthalten und werden im Video-Overlay ausgeblendet
+  (dort fehlt die Feldgeometrie; `hideTools` erweitert). Neues
+  ein-Punkt-Koordinaten-Formular (geteilt für alle drei Torhüter-
+  Werkzeuge, WCAG-Tastaturbedienung wie gehabt) in
+  `DrawingCoordinatesForm.jsx`. Neue Tests für `computeReboundZone`/
+  `getKeeperClearancePoint` und die Zeichen-Gesten in `useDrawing`.
+  Kommunikation (Phase 3) folgt separat.
+- **Torhüter-Werkzeuge Phase 3 – Kommunikation** (CLAUDE.md §9.7):
+  neues Werkzeug "Torwart-Kommunikation" (Kürzel `G`, Icon `❝`): eine
+  Sprechblase mit wählbarer Kommando-Phrase ("Press!", "Raus!",
+  "Du hast ihn!", "Stellung!", "Box!", "In Ruhe!") am angesprochenen
+  Spieler plus gestrichelter Connector zum Torwart-Anker (Torlinien-
+  Mitte, mit kleinem Punkt am Torwart) – macht die Lautspiel-
+  Organisation des Torwarts sichtbar. Der Phrasentext wird beim
+  Anlegen eingebrannt (el.text, wie bei Kommentar-Pins), damit der
+  Offline-Export die Blase ohne i18n rendern kann; `addArrowElement`
+  akzeptiert dafür einen generischen `extra`-Param (merged ins
+  Element). Tor-verankert wie Winkel/Rebound/Konter (geteilte
+  Tor-Auswahl), eigener Layer-Toggle (Sichtbarkeits-Leiste hat jetzt
+  zwölf Ebenen), im GIF/MP4/PDF-Export enthalten, im Video-Overlay
+  ausgeblendet. Formular mit Phrasen-Select + ein-Punkt-Eingabe;
+  per Drag gezeichnete Blasen nutzen die Standard-Phrase. Neuer
+  `GOALKEEPER_TOOLS`-Eintrag + `KOMM_PHRASES`-Konstante mit i18n
+  de/en/sv. Neue Tests in `useDrawing.test.js`. Damit sind alle sechs
+  Werkzeuge aus §9.7 abgedeckt (Positionierung, Winkel, Verschiebung,
+  Rebounds, Konterauslösung, Kommunikation).
+- **Issue 027 Phase 1/4: Finnisch (`fi`) als vollständiger Rohentwurf**.
+  `SUPPORTED_LANGUAGES` in `i18n.js` um `fi` erweitert (Import +
+  `resources`); `locales/fi.json` ist strukturell 1:1 aus `en.json`
+  abgeleitet (alle 1534 Schlüssel, Platzhalter `{{…}}` und
+  Plural-Suffixe erhalten) und in `locales.test.js` automatisch
+  mitgeprüft. Die Sprachauswahl in den Einstellungen ist bereits
+  datengetrieben (`PreferencesSection.jsx` generiert die Optionen aus
+  `SUPPORTED_LANGUAGES`); neue Label-Keys `settings.languageFi` in allen
+  Locale-Dateien. Datums-/Zahlenformate sind nicht mehr hart auf de/en
+  verdrahtet: neue `getIntlLocale()`-Zuordnung in
+  `utils/formatDate.js` (de/en/sv/fi → de-DE/en-US/sv-SE/fi-FI), genutzt
+  von `formatDate`, `CalendarPage` und `ExportPanel`; `formatDateOnly`
+  kennt zusätzlich die schwedische `YYYY-MM-DD`-Form. Bewusst als
+  **ungeprüfter, KI-übersetzter Entwurf** gekennzeichnet – braucht vor
+  Abschluss von Issue 027 ein muttersprachliches Finnisch-Review
+  (`needs-native-review`), ebenso wie der bestehende Schwedisch-Entwurf.
+- **Issue 027 Phase 1/4: Tschechisch (`cs`) als zweiter vollständiger
+  Rohentwurf**. `SUPPORTED_LANGUAGES` in `i18n.js` um `cs` erweitert
+  (Import + `resources`); `locales/cs.json` ist strukturell 1:1 zu
+  `en.json` (1583 Schlüssel, inkl. `settings.languageCs`-Labels in
+  allen Locale-Dateien) und wird in `locales.test.js` automatisch
+  mitgeprüft. Für das slawische Pluralverhalten (cs/sk) tragen alle
+  Locale-Dateien zu den 24 zählbaren Schlüsseln nun `_few`- und
+  `_many`-Suffixe (`cs.json` mit echten tschechischen Formen, z. B.
+  2–4 „dny" / 5+ „dnů"; de/en/sv/fi als Spiegel von `_other`) – der
+  Paritätstest behandelt diese Suffixe als Pflicht-Schlüssel.
+  `getIntlLocale()` mappt zusätzlich cs → cs-CZ (genutzt von
+  `formatDate`, `CalendarPage` und `ExportPanel`). Bewusst als
+  **ungeprüfter, KI-übersetzter Entwurf** gekennzeichnet
+  (`needs-native-review`) – ebenso wie die sv- und fi-Entwürfe.
+- **Issue 027 Phase 1/4: Slowakisch (`sk`) als dritter vollständiger
+  Rohentwurf – damit ist Phase 1 komplett** (sv/fi/cs/sk, die vier
+  priorisierten Floorball-Nationen außerhalb DACH). `SUPPORTED_LANGUAGES`
+  in `i18n.js` um `sk` erweitert (Import + `resources`);
+  `locales/sk.json` ist strukturell 1:1 zu `en.json` (1584 Schlüssel,
+  inkl. `settings.languageSk`-Labels in allen Locale-Dateien) und wird
+  in `locales.test.js` automatisch mitgeprüft; echte slowakische
+  Pluralformen (`_few`: 2–4 „dni", `_other`/`_many`: 5+ „dní").
+  `getIntlLocale()` mappt zusätzlich sk → sk-SK. Bewusst als
+  **ungeprüfter, KI-übersetzter Entwurf** gekennzeichnet
+  (`needs-native-review`) – ebenso wie die sv-, fi- und cs-Entwürfe.
+- **Issue 027 Phase 2: Norwegisch Bokmål (`nb`) als vollständiger
+  Rohentwurf**. `locales/nb.json` (1589 Schlüssel, strukturell 1:1 zu
+  `en.json`), `languageNb`-Labels in allen Locale-Dateien,
+  `getIntlLocale()` → nb-NO. Norwegisch wird von Browsern als `no`
+  geliefert – i18next mappt das nicht automatisch, daher ist `no` als
+  Alias mit demselben Resource-Objekt in `supportedLngs` registriert
+  (nicht in der Sprachauswahl sichtbar). Bewusst als **ungeprüfter,
+  KI-übersetzter Entwurf** gekennzeichnet (`needs-native-review`).
+- **Issue 027 Phase 2: Lettisch (`lv`) als vollständiger Rohentwurf**.
+  `locales/lv.json` (1589 Schlüssel), `languageLv`-Labels in allen
+  Locale-Dateien, `getIntlLocale()` → lv-LV. Pragmatische
+  Plural-Näherung: Basis = Einzahl, `_few`/`_other` = Nominativ-Plural
+  (2–9), `_many` = Genitiv-Plural (10+) – CLDR-Zero-Formen (0, 10–20)
+  fallen auf `_other` zurück. Bewusst als **ungeprüfter, KI-übersetzter
+  Entwurf** gekennzeichnet (`needs-native-review`).
+- **Issue 027 Phase 2: Polnisch (`pl`) als vollständiger Rohentwurf**.
+  `locales/pl.json` (1589 Schlüssel), `languagePl`-Labels in allen
+  Locale-Dateien, `getIntlLocale()` → pl-PL. Polnische Pluralregeln
+  passen exakt auf die vier Suffix-Kategorien (Basis=1, `_few` 2–4,
+  `_many` 5+, `_other` Brüche). Bewusst als **ungeprüfter,
+  KI-übersetzter Entwurf** gekennzeichnet (`needs-native-review`).
+- **Issue 027 Phase 2: Französisch (`fr`) als vollständiger Rohentwurf –
+  damit ist Phase 2 komplett** (nb/lv/pl/fr). `locales/fr.json`
+  (1589 Schlüssel), `languageFr`-Labels in allen Locale-Dateien,
+  `getIntlLocale()` → fr-FR. `SUPPORTED_LANGUAGES` umfasst jetzt
+  10 Sprachen (de/en/sv/fi/cs/sk/nb/lv/pl/fr), `locales.test.js` prüft
+  automatisch alle 10. Bewusst als **ungeprüfter, KI-übersetzter
+  Entwurf** gekennzeichnet (`needs-native-review`).
 
 ### Fixed
+- **GIF/MP4/PDF-Export ließ Board-Elemente und Spieler-Details weg**: Der
+  Offline-Renderer `FloorballFieldStatic.js` zeichnete nur Linien/Pfeile
+  (und das neue Torwart-Winkel-Tool) – `move`/`pass`/`shot`-, `zone`- und
+  `freehand`-Elemente (d. h. praktisch alles außer der Basis-Pfeile) fehlten
+  in GIF-, MP4- und PDF-Exports. Der Renderer handhabt jetzt alle
+  Board- und Legacy-Video-Typen über das neue, pure Utility
+  `utils/elementShape.js` (`normalizeElementShape`, mit Tests): Pfeile
+  inkl. Pfeilspitze/Dash, Zonen als Flächen mit `fillOpacity`, Freehand
+  als geglättete Polylinie; scalar- und `points`-basierte Koordinaten
+  werden einheitlich unterstützt. Zusätzlich Spieler-Darstellung in
+  Parität zur Live-Ansicht (`PlayerToken.jsx`): Torwart als Raute,
+  Auswärts-Team mit gestricheltem Rand, Rollen-Label sowie optionaler
+  Namens-Chip. Der Trainings-PDF-Export respektiert zudem ab jetzt die
+  bewusst ausgeblendeten Spieler/Elemente (dieselbe
+  `layerVisibilityFilter`-Logik wie der Editor-Export).
 - **Spieler-Dashboard wirkte gequetscht**: der CSS-Token `--space-5` wurde
   von allen Dashboard-Karten sowie ~20 weiteren Stellen im Code (u. a.
   BoardsPage, GamesPage, LibraryPage, OpponentsPage, TrainingsPage, mehrere
@@ -175,6 +341,11 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   Versionen tatsächlich genutzt. Die bestehenden GitHub-Release-Einträge
   v0.1.0/v0.9.0 wurden ebenfalls entfernt (Git-Tags selbst bleiben
   erhalten).
+- **Toten Hook `usePlayerState.js` entfernt** (`frontend/src/hooks/`): der
+  Spieler-Zustand im Board-Editor wird seit dem Wechsel auf `useDrawing`
+  vollständig anders verwaltet, die Datei hatte keinen Importer mehr
+  und lag nur noch mit altem `includeAway`-Default herum (im BACKLOG
+  explizit als Aufräum-Kandidat geführt). Keine Verhaltensänderung.
 
 ### Fixed
 - Backend-Transaktionsmails (Passwort-Reset, Team-/Vereins-/Board-

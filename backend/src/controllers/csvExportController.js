@@ -12,6 +12,7 @@
  */
 import pool from '../db/pool.js';
 import logger from '../utils/logger.js';
+import { logAudit } from '../services/auditLogger.js';
 import { error } from '../utils/apiResponse.js';
 import { getUserTeamIds } from '../utils/teamAccess.js';
 import { toCsv } from '../utils/csv.js';
@@ -71,6 +72,7 @@ export async function exportRosterStatsCsv(req, res) {
     // BOM, damit Excel die Datei zuverlässig als UTF-8 statt Latin-1 erkennt
     // (Umlaute in Spielernamen sonst falsch dargestellt).
     res.send(`\uFEFF${csv}`);
+    await logAudit({ actorId: req.user.id, action: 'export.roster-stats.csv', resourceType: 'export' });
   } catch (err) {
     logger.error('[exportRosterStatsCsv]', err);
     if (!res.headersSent) res.status(500).json(error('Interner Serverfehler'));
@@ -126,6 +128,7 @@ export async function exportGamesCsv(req, res) {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="openfloorball-spiele.csv"');
     res.send(`\uFEFF${csv}`);
+    await logAudit({ actorId: req.user.id, action: 'export.games.csv', resourceType: 'export' });
   } catch (err) {
     logger.error('[exportGamesCsv]', err);
     if (!res.headersSent) res.status(500).json(error('Interner Serverfehler'));

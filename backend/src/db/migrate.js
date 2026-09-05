@@ -192,6 +192,12 @@ export async function runMigrations() {
       );
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_formation_templates_user_id ON formation_templates(user_id);`);
+    // CLAUDE.md 9.4-9.6 – Systeme (Forechecking/Powerplay/Boxplay): Kategorie,
+    // unter der ein Trainer eigene Systeme speichert. NULL = Allgemein.
+    await client.query(`
+      ALTER TABLE formation_templates ADD COLUMN IF NOT EXISTS category TEXT
+        CHECK (category IS NULL OR category IN ('forechecking', 'powerplay', 'boxplay'));
+    `);
 
     // ── training_sessions + training_session_items (Issue #45 – Trainingsplaner) ──
     // Eine Session referenziert bestehende Boards per FK (kein Snapshot) –
@@ -978,6 +984,33 @@ export async function runMigrations() {
       );
     `);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_game_event_deletions_game_id ON game_event_deletions(game_id);`);
+
+    // ── audit_log (CLAUDE.md §19.5 Auditierbarkeit) ──
+    // Generisches, append-only Audit-Log für wichtige Aktionen:
+    // Berechtigungs-/Rollenänderungen, Datenexporte, Löschungen,
+    // administrative Aktionen. Folgt dem game_event_deletions-Muster:
+    // wer (actor_id) hat wann an welcher Ressource was geändert,
+    // inkl. Vorher/Nachher-Delta. before/after/metadata bewusst JSONB,
+    // damit der Service ohne Schema-Migration pro Action erweiterbar
+    // bleibt; resource_id ist bewusst FK-frei (Ressourcen verschiedener
+    // Tabellen), nur actor_id referenziert users (SET NULL, damit der
+    // Beleg beim Account-Löschen erhalten bleibt).
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS audit_log (
+        id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        actor_id      UUID REFERENCES users(id) ON DELETE SET NULL,
+        action        TEXT NOT NULL,
+        resource_type TEXT NOT NULL,
+        resource_id   UUID,
+        before_json   JSONB NOT NULL DEFAULT '{}',
+        after_json    JSONB NOT NULL DEFAULT '{}',
+        metadata      JSONB NOT NULL DEFAULT '{}',
+        created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_actor ON audit_log(actor_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_resource ON audit_log(resource_type, resource_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_log(created_at DESC);`);
 
     // ── Statistik-Architektur Phase 2 (docs/planning/STATISTICS_ANALYTICS_ARCHITECTURE.md
     // Abschnitt 8.3): zeitgestempelte Historie tatsächlicher Line-Nutzung

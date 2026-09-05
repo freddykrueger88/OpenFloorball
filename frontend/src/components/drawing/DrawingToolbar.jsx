@@ -25,9 +25,11 @@ export default function DrawingToolbar({
   undoStack = [],
   redoStack = [],
   onJumpHistory,
+  hideTools = [],
 }) {
   const { t, i18n } = useTranslation();
   const isDE = !i18n.language?.startsWith('en');
+  const visibleTools = TOOL_ORDER.filter((k) => !hideTools.includes(k));
 
   return (
     <aside
@@ -37,7 +39,7 @@ export default function DrawingToolbar({
     >
       {/* ── Tools ── */}
       <div className={styles.group} role="radiogroup" aria-label={t('drawing.toolGroupLabel')}>
-        {TOOL_ORDER.map((key) => {
+        {visibleTools.map((key) => {
           const tool = TOOLS[key];
           const label = isDE ? tool.label : (tool.labelEn ?? tool.label);
           return (

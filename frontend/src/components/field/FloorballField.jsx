@@ -161,6 +161,7 @@ export default function FloorballField({
       {/* Layer 2: Zeichen-Elemente (unter Spielern) */}
       <DrawingLayer
         elements={drawingElements}
+        field={field}
         scale={scale}
         offsetX={ox} offsetY={oy}
         fieldW={fieldW} fieldH={fieldH}

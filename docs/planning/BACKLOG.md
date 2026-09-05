@@ -498,6 +498,15 @@ passend zu CLAUDE.md Kapitel 15 "Einfach starten".
 * Tour ist per Tastatur bedienbar und mit Screenreader nutzbar
   (Accessibility First, CLAUDE.md 16).
 
+Status: ✅ umgesetzt. Eigene, telemetriefreie Overlay-Komponente
+`TourOverlay.jsx` + `tourStore.js` (Zustand), Schritt-Definitionen in
+`constants/tourSteps.js` (`NAV_TOUR_STEPS`). Auto-Start beim ersten
+Login, jederzeit überspringbar, erneuter Start über die Einstellungen
+(`PreferencesSection.jsx`). "Tour gesehen"-Status in `preferences_json`
+(`tourCompleted`) – keine neue Tabelle. Tastatur (Focus-Falle, Escape)
+und Screenreader (`useAnnounceStore`) gemäß CLAUDE.md §16. i18n de/en/
+sv/fi/cs/sk. Siehe ISSUE 024 (Editor-Tour) für die vertiefte Variante.
+
 Priorität:
 
 P1
@@ -553,6 +562,28 @@ die die konkreten Werkzeuge erklärt statt nur die Navigation.
 * Nav-Tour (ISSUE 023) und Editor-Tour sind unabhängig voneinander
   – Überspringen/Abschließen der einen beeinflusst die andere nicht.
 
+Status: ✅ umgesetzt (2026-09-04). `EDITOR_TOUR_STEPS` (10 Schritte) in
+`constants/tourSteps.js`, `TourOverlay` in `BoardEditorPage.jsx` mit
+`settingsKey="editorTourCompleted"` gemountet, Auto-Start beim ersten
+Board-Öffnen (wenn `editorTourCompleted` falsy), Hilfe-Symbol im Header
+zum erneuten Start. Zielelemente via `data-tour` auf Canvas, Tabs,
+Frame-Timeline und Speicherstatus. Nav-Tour und Editor-Tour sind
+vollständig unabhängig (getrennte `tourCompleted`/`editorTourCompleted`-
+Keys). i18n-Übersetzungen in de/en/sv vorhanden. `PreferencesSection.jsx`
+bietet "Editor-Tour erneut starten" Button. Keyboard/Screenreader-
+Unterstützung über `useFocusTrap`, `Escape`-Taste und `useAnnounceStore`.
+
+### Akzeptanzkriterien (Nachweis)
+
+* Auto-Start beim ersten Board-Öffnen → `TourOverlay.jsx` Zeile 57-63:
+  `if (!settings[settingsKey]) useTourStore.getState().start(tourId)`
+* Überspringbar → Skip-Button in `TourOverlay.jsx` Zeile 130
+* Erneut aufrufbar → Hilfe-Symbol in `BoardEditorPage.jsx` Zeile 681-690
+* Tastatur → `useFocusTrap` + `Escape`-Handler in `TourOverlay.jsx`
+* Screenreader → `useAnnounceStore.announce()` bei jedem Schrittwechsel
+* Unabhängig von Nav-Tour → `editorTourCompleted` ≠ `tourCompleted` in
+  `preferences_json`, TourOverlay prüft `activeTourId` vor Auto-Start
+
 Priorität:
 
 P2
@@ -571,10 +602,10 @@ Pro-Spieler-Sichtbarkeit existiert (`visible`-Feld, Fallback
 `LayerVisibilityPanel.jsx`/`FieldSettingsPanel.jsx`. Feldtyp-Wechsel
 skaliert bestehende Spieler statt sie auf Defaults zurückzusetzen
 (`BoardEditorPage.jsx::handleConfirmFieldTypeChange`), reintroduziert
-also ebenfalls keine Gegner. `frontend/src/hooks/usePlayerState.js`
-ist toter Code (kein Importer mehr) und hat dadurch noch den alten
-`includeAway`-Default – ohne Funktionsauswirkung, aber Aufräum-
-Kandidat für eine spätere Housekeeping-Runde.
+also ebenfalls keine Gegner. Der frühere Hook
+`frontend/src/hooks/usePlayerState.js` (noch mit altem `includeAway`-
+Default) war toter Code ohne Importer und wurde in einer späteren
+Housekeeping-Runde entfernt.
 
 ### Beschreibung
 
@@ -739,6 +770,50 @@ P2
 # ISSUE 027
 
 ## Europaweite Sprachunterstützung für floorball-aktive Nationen
+
+Status (2026-09-05): ✅ Framework + Phase-1-Teil 1/4 umgesetzt.
+`SUPPORTED_LANGUAGES` ist die einzige Quelle (`i18n.js`) – die
+Sprachauswahl in `PreferencesSection.jsx` generiert die Optionen daraus
+(inkl. `settings.language<Code>`-Labels in allen Locale-Dateien).
+`locales.test.js` ist parametrisiert und prüft jede Sprache
+automatisch. **Finnisch (`fi`) als vollständiger KI-Rohentwurf ergänzt**
+(1534 Schlüssel, strukturell 1:1 zu `en.json`), in `resources`/
+`supportedLngs` aktiv – aber bewusst als **ungeprüfter Entwurf**
+(`needs-native-review`) markiert, gemäß der Untergrenze "Übersetzungen
+nicht unreflektiert committen". Datums-/Zahlenformate sind nicht mehr
+auf de/en verdrahtet: `utils/formatDate.js::getIntlLocale()` mappt
+de/en/sv/fi/cs/sk → de-DE/en-US/sv-SE/fi-FI/cs-CZ/sk-SK und wird auch
+von `CalendarPage.jsx` und `ExportPanel.jsx` genutzt;
+`formatDateOnly` kennt die schwedische `YYYY-MM-DD`-Form.
+**Tschechisch (`cs`) als zweiter vollständiger KI-Rohentwurf ergänzt**
+(1583 Schlüssel, strukturell 1:1 zu `en.json`, inkl. `languageCs`-
+Labels in allen Locale-Dateien), ebenfalls `needs-native-review`
+markiert. Für das slawische Pluralverhalten (cs/sk) tragen alle
+Locale-Dateien zu den 24 zählbaren Schlüsseln `_few`- und `_many`-
+Suffixe (`cs.json` mit echten tschechischen Formen, z. B. 2–4 „dny"/
+5+ „dnů"; `sk.json` analog „dni"/„dní"; die übrigen Sprachen spiegeln
+`_other`), sodass der Paritätstest exakt identische Schlüsselmengen
+erzwingt.
+**Slowakisch (`sk`) als dritter vollständiger KI-Rohentwurf ergänzt**
+(1584 Schlüssel, strukturell 1:1 zu `en.json`, inkl. `languageSk`-
+Labels in allen Locale-Dateien) – ebenfalls `needs-native-review`
+markiert. Damit ist Phase 1 komplett: alle vier priorisierten
+Nationen (sv/fi/cs/sk) sind als Rohentwürfe in der Oberfläche
+wählbar.
+**Phase 2 (2026-09-05) vollständig:** Norwegisch Bokmål (`nb`,
+1589 Schlüssel – Browser liefern `no`, deshalb `no` als Alias in
+`supportedLngs` mit demselben Resource-Objekt, in der Auswahl nicht
+sichtbar), Lettisch (`lv` – pragmatische Plural-Näherung: `_few`/
+`_other` Nominativ-Plural 2–9, `_many` Genitiv-Plural 10+, CLDR-
+Zero fällt auf `_other` zurück), Polnisch (`pl` – Pluralregeln passen
+exakt auf die vier Suffix-Kategorien) und Französisch (`fr`). Alle
+vier strukturell 1:1 zu `en.json`, `languageNb/Lv/Pl/Fr`-Labels in
+allen Locale-Dateien, `getIntlLocale()` → nb-NO/lv-LV/pl-PL/fr-FR.
+`SUPPORTED_LANGUAGES` umfasst jetzt 10 Sprachen, `locales.test.js`
+prüft automatisch alle 10.
+Offen: muttersprachliches Review für alle 8 Rohentwürfe
+(sv/fi/cs/sk/nb/lv/pl/fr) vor offizieller Freigabe sowie – bei
+Bedarf – Phase 3 (da/et/nl/it).
 
 ### Beschreibung
 
@@ -920,6 +995,18 @@ Coach Workflow First ("Training durchführen" / Spieltag-Organisation).
   Datenmodell.
 * Zugriff ausschließlich für Mitglieder des jeweiligen Teams (wie
   RSVP/Anwesenheit).
+
+Status: ✅ umgesetzt (2026-08-30). `carpool_offers`/`carpool_claims`
+(echte Junction statt polymorpher Zuordnung), `CarpoolSection.jsx` auf
+Spiel- und Trainings-Detailseite, öffentliche Freigabeseite
+(`carpoolShareController.js`/`CarpoolSharePage.jsx`) über
+`share_token` für niedrigschwelliges Teilen – keine Adresse/Telefon im
+Datenmodell, Treffpunkt ist freier Text (Datensparsamkeit, §5.1/§5.3).
+Anbieter-Name wird seit ISSUE 030 mitgeliefert. **Die dokumentierte
+offene Frage (Einbindung reiner Eltern ohne eigenen Account) ist
+bewusst NICHT vorentschieden** – bleibt zurückgestellt, bis mit
+echten Trainern/Vereinen geklärt; der `share_token`-Weg ist der
+vorbereitete Baustein dafür.
 
 Priorität:
 

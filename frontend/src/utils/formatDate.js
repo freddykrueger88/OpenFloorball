@@ -4,9 +4,29 @@
  */
 import i18n from '../i18n/i18n.js';
 
+// Mapping der unterstützten UI-Sprachen (i18n-Iso-Code) auf Intl-BCP-47-
+// Locales. Neue Sprache in i18n.js => hier passenden Eintrag ergänzen,
+// sonst fällt die Formatierung auf de-DE zurück (bisheriges Verhalten).
+const INTL_LOCALES = {
+  de: 'de-DE',
+  en: 'en-US',
+  sv: 'sv-SE',
+  fi: 'fi-FI',
+  cs: 'cs-CZ',
+  sk: 'sk-SK',
+  nb: 'nb-NO',
+  lv: 'lv-LV',
+  pl: 'pl-PL',
+  fr: 'fr-FR',
+};
+
+export function getIntlLocale(lng = i18n.language) {
+  return INTL_LOCALES[lng] || 'de-DE';
+}
+
 export function formatDate(iso, options = { day: '2-digit', month: '2-digit', year: 'numeric' }) {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'de-DE', options);
+  return new Date(iso).toLocaleDateString(getIntlLocale(), options);
 }
 
 // formatDateOnly – für reine Datumswerte ohne Uhrzeit (z.B. das geplante
@@ -19,5 +39,7 @@ export function formatDateOnly(dateStr) {
   if (!dateStr) return '';
   const [year, month, day] = dateStr.split('-');
   if (!year || !month || !day) return '';
-  return i18n.language === 'en' ? `${month}/${day}/${year}` : `${day}.${month}.${year}`;
+  if (i18n.language === 'en') return `${month}/${day}/${year}`;
+  if (i18n.language === 'sv') return `${year}-${month}-${day}`;
+  return `${day}.${month}.${year}`;
 }

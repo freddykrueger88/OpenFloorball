@@ -19,6 +19,7 @@ import logger from '../utils/logger.js';
 import { sendMail } from '../utils/mailer.js';
 import { resolveEmailLanguage } from '../utils/emailLanguage.js';
 import { getTeamRole } from '../utils/teamAccess.js';
+import { logAudit } from '../services/auditLogger.js';
 import { assertOrgAccess } from '../utils/organizationAccess.js';
 import { success, created, error } from '../utils/apiResponse.js';
 
@@ -305,6 +306,15 @@ export async function updateMemberRole(req, res) {
       [req.body.role, req.params.memberId, req.params.id]
     );
     const userResult = await pool.query('SELECT email FROM users WHERE id = $1', [result.rows[0].user_id]);
+    await logAudit({
+      actorId: req.user.id,
+      action: 'team.member.role.update',
+      resourceType: 'team',
+      resourceId: req.params.id,
+      metadata: { memberId: req.params.memberId, memberUserId: result.rows[0].user_id },
+      before: { role: target.rows[0].role },
+      after: { role: result.rows[0].role },
+    });
     res.json(success(toApiMember({ ...result.rows[0], email: userResult.rows[0]?.email })));
   } catch (err) {
     logger.error('[updateMemberRole]', err);
@@ -338,6 +348,13 @@ export async function removeMember(req, res) {
     }
 
     await pool.query('DELETE FROM team_members WHERE id = $1 AND team_id = $2', [req.params.memberId, req.params.id]);
+    await logAudit({
+      actorId: req.user.id,
+      action: 'team.member.remove',
+      resourceType: 'team',
+      resourceId: req.params.id,
+      metadata: { memberId: req.params.memberId, memberUserId: target.rows[0].user_id, removedRole: target.rows[0].role },
+    });
     res.json(success({ message: 'Mitglied entfernt' }));
   } catch (err) {
     logger.error('[removeMember]', err);

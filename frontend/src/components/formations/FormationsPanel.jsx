@@ -4,6 +4,11 @@
  * benannte Vorlage; über alle eigenen Boards hinweg nutzbar. Bei
  * abweichendem Feldtyp übernimmt der Aufrufer (BoardEditorPage) die
  * Skalierung via rescalePlayers().
+ *
+ * CLAUDE.md 9.4-9.6 – Systemvorlagen: zusätzlich zu eigenen Vorlagen
+ * listet das Panel eingebaute Forechecking-/Powerplay-/Boxplay-Systeme
+ * (systemTemplates.js) zum Ein-Klick-Laden sowie einen Kategorie-Filter
+ * und eine Kategorie-Auswahl beim Speichern eigener Systeme.
  */
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,8 +17,16 @@ import { FIELD_TYPE_LABELS } from '../../constants/fieldConfig.js';
 import Button from '../common/Button.jsx';
 import styles from './FormationsPanel.module.css';
 
+const CATEGORY_OPTIONS = ['all', 'forechecking', 'powerplay', 'boxplay', 'general'];
+
+function categoryLabel(t, category) {
+  if (category === 'all' || category === 'general') return t(`formations.category${category === 'all' ? 'All' : 'General'}`);
+  return t(`formations.category${category.charAt(0).toUpperCase()}${category.slice(1)}`);
+}
+
 export default function FormationsPanel({
   formations = [],
+  systemTemplates = [],
   onSave,
   onLoad,
   onRename,
@@ -25,6 +38,8 @@ export default function FormationsPanel({
   const [collapsed, setCollapsed] = useState(false);
   const [newName,   setNewName  ] = useState('');
   const [teamId,    setTeamId   ] = useState('');
+  const [category,  setCategory ] = useState('all');
+  const [saveCategory, setSaveCategory] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editName,  setEditName ] = useState('');
 
@@ -43,10 +58,19 @@ export default function FormationsPanel({
   const handleSave = () => {
     const name = newName.trim();
     if (!name || !canAddFormation) return;
-    onSave?.(name, teamId === '' ? null : teamId);
+    onSave?.(name, teamId === '' ? null : teamId, saveCategory === '' ? null : saveCategory);
     setNewName('');
     setTeamId('');
+    setSaveCategory('');
   };
+
+  const visibleBuiltins = systemTemplates.filter(
+    (template) => category === 'all' || template.category === category
+  );
+  const visibleFormations = formations.filter(
+    (formation) => category === 'all'
+      || (category === 'general' ? !formation.category : formation.category === category)
+  );
 
   return (
     <section className={styles.panel} aria-label={t('formations.sectionAriaLabel')}>
@@ -66,68 +90,110 @@ export default function FormationsPanel({
 
       {!collapsed && (
         <>
-          {formations.length === 0 && (
+          <select
+            className={styles.categoryFilter}
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            aria-label={t('formations.categoryFilterAriaLabel')}
+          >
+            {CATEGORY_OPTIONS.map((c) => (
+              <option key={c} value={c}>{categoryLabel(t, c)}</option>
+            ))}
+          </select>
+
+          {visibleBuiltins.length > 0 && (
+            <>
+              <p className={styles.sectionLabel}>{t('formations.builtinsLabel')}</p>
+              <ul className={styles.list} role="list">
+                {visibleBuiltins.map((template) => (
+                  <li key={template.id} className={styles.item}>
+                    <span className={styles.systemBadge}>{categoryLabel(t, template.category)}</span>
+                    <span className={styles.name}>{t(template.nameKey)}</span>
+                    <span className={styles.fieldBadge}>{FIELD_TYPE_LABELS[template.fieldType] ?? template.fieldType}</span>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      iconOnly
+                      className={styles.loadBtn}
+                      onClick={() => onLoad?.(template)}
+                      aria-label={t('formations.loadTitle')}
+                      title={t('formations.loadTitle')}
+                    >
+                      <FolderOpen size={16} aria-hidden="true" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {visibleFormations.length === 0 && visibleBuiltins.length === 0 && (
             <p className={styles.emptyHint}>{t('formations.emptyHint')}</p>
           )}
 
-          <ul className={styles.list} role="list">
-            {formations.map((formation) => (
-              <li key={formation._id} className={styles.item}>
-                {editingId === formation._id ? (
-                  <input
-                    autoFocus
-                    className={styles.nameInput}
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    onBlur={() => commitRename(formation)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter')  commitRename(formation);
-                      if (e.key === 'Escape') setEditingId(null);
-                    }}
-                    maxLength={40}
-                    aria-label={t('formations.renameAriaLabel')}
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    className={styles.name}
-                    onDoubleClick={() => startEditing(formation)}
-                    title={t('formations.renameTitle')}
-                  >
-                    {formation.name}
-                  </button>
-                )}
-                {formation.teamId && (
-                  <span className={styles.teamBadge} title={teams.find((tm) => tm._id === formation.teamId)?.name ?? t('formations.teamBadgeFallback')}>
-                    <Users size={14} aria-hidden="true" />
-                  </span>
-                )}
-                <span className={styles.fieldBadge}>{FIELD_TYPE_LABELS[formation.fieldType] ?? formation.fieldType}</span>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  iconOnly
-                  className={styles.loadBtn}
-                  onClick={() => onLoad?.(formation)}
-                  aria-label={t('formations.loadTitle')}
-                  title={t('formations.loadTitle')}
-                >
-                  <FolderOpen size={16} aria-hidden="true" />
-                </Button>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  iconOnly
-                  className={styles.deleteBtn}
-                  onClick={() => onDelete?.(formation._id)}
-                  aria-label={t('formations.deleteAriaLabel', { name: formation.name })}
-                  title={t('formations.deleteTitle')}
-                >
-                  <Trash2 size={16} aria-hidden="true" />
-                </Button>
-              </li>
-            ))}
-          </ul>
+          {visibleFormations.length > 0 && (
+            <>
+              <p className={styles.sectionLabel}>{t('formations.ownLabel')}</p>
+              <ul className={styles.list} role="list">
+                {visibleFormations.map((formation) => (
+                  <li key={formation._id} className={styles.item}>
+                    {editingId === formation._id ? (
+                      <input
+                        autoFocus
+                        className={styles.nameInput}
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        onBlur={() => commitRename(formation)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter')  commitRename(formation);
+                          if (e.key === 'Escape') setEditingId(null);
+                        }}
+                        maxLength={40}
+                        aria-label={t('formations.renameAriaLabel')}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.name}
+                        onDoubleClick={() => startEditing(formation)}
+                        title={t('formations.renameTitle')}
+                      >
+                        {formation.name}
+                      </button>
+                    )}
+                    {formation.teamId && (
+                      <span className={styles.teamBadge} title={teams.find((tm) => tm._id === formation.teamId)?.name ?? t('formations.teamBadgeFallback')}>
+                        <Users size={14} aria-hidden="true" />
+                      </span>
+                    )}
+                    <span className={styles.fieldBadge}>{FIELD_TYPE_LABELS[formation.fieldType] ?? formation.fieldType}</span>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      iconOnly
+                      className={styles.loadBtn}
+                      onClick={() => onLoad?.(formation)}
+                      aria-label={t('formations.loadTitle')}
+                      title={t('formations.loadTitle')}
+                    >
+                      <FolderOpen size={16} aria-hidden="true" />
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      iconOnly
+                      className={styles.deleteBtn}
+                      onClick={() => onDelete?.(formation._id)}
+                      aria-label={t('formations.deleteAriaLabel', { name: formation.name })}
+                      title={t('formations.deleteTitle')}
+                    >
+                      <Trash2 size={16} aria-hidden="true" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
 
           <div className={styles.addRow}>
             <input
@@ -140,6 +206,18 @@ export default function FormationsPanel({
               disabled={!canAddFormation}
               aria-label={t('formations.newNameAriaLabel')}
             />
+            <select
+              className={styles.newCategorySelect}
+              value={saveCategory}
+              onChange={(e) => setSaveCategory(e.target.value)}
+              disabled={!canAddFormation}
+              aria-label={t('formations.saveCategoryAriaLabel')}
+            >
+              <option value="">{t('formations.categoryGeneral')}</option>
+              <option value="forechecking">{t('formations.categoryForechecking')}</option>
+              <option value="powerplay">{t('formations.categoryPowerplay')}</option>
+              <option value="boxplay">{t('formations.categoryBoxplay')}</option>
+            </select>
             {teams.length > 0 && (
               <select
                 className={styles.newTeamSelect}

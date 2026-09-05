@@ -38,8 +38,105 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   abhängigkeitsfreies Canvas-Konfetti aus (respektiert
   `prefers-reduced-motion`). Neue, jährlich wiederkehrende
   "Geburtstag"-Kategorie im Kalender (eigener, nicht-klickbarer Chip-Typ).
+- **Systemvorlagen Forechecking/Powerplay/Boxplay** (CLAUDE.md 9.4-9.6): der
+  Formationen-Tab im Taktikboard enthält jetzt 14 eingebaute Systeme
+  (Forechecking 2-1-2/2-2-1/1-2-2, High/Mid Press, Low Block, Powerplay
+  5v4-Umbrella/5v3/4v3/6v5-Empty-Net, Boxplay Box/Diamond/aggressiv/passiv)
+  zum Ein-Klick-Laden inkl. automatischer Feldtyp-Skalierung. Dazu ein
+  Kategorie-Filter und eine Kategorie-Auswahl beim Speichern eigener
+  Systeme – neue, optionale `category`-Spalte auf `formation_templates`
+  (`forechecking`/`powerplay`/`boxplay`, NULL = Allgemein), additiv und
+  abwärtskompatibel.
+- **Generisches Audit-Log** (CLAUDE.md §19.5 Auditierbarkeit): neue
+  append-only-Tabelle `audit_log` + zentraler Service `auditLogger` –
+  erfasst nachvollziehbar, wer wann welche wichtige Aktion ausgeführt hat
+  (Vorher/Nachher-Delta + Metadaten). Instrumentiert sind
+  Berechtigungs-/Rollenänderungen (Admin-User-Rolle, Team-Mitglieder,
+  Vereins-Mitglieder, Board-Kollaboratoren inkl. Einladungen),
+  Löschungen (Admin-User-Löschung, Selbst-Löschung des Accounts),
+  Datenexporte (PDF-Taktikblatt, Spielbericht, CSV Roster/Games, GIF/MP4,
+  DSGVO-ZIP-Backup) sowie administrative Aktionen (Backup-Config/-Run,
+  KI-Config – der API-Key wird bewusst nie im Audit gespeichert).
+  Stellt die im Statistik-Architektur-Dokument geforderte
+  Nachvollziehbarkeit über das bisherige reine Event-Lösch-Log hinaus
+  sicher, ohne das Verhalten bestehender Endpunkte zu ändern.
+- **Torwart-Winkel auf dem Taktikboard** (CLAUDE.md §9.7, Phase 1 der
+  Torhüter-Werkzeuge): neues Zeichen-Werkzeug "Torwart-Winkel" (bzw.
+  Torhüter/Goalkeeper Angle, Kürzel `W`) zeichnet das
+  Abdeckungs-Dreieck von den beiden Torpfosten eines Tores zum
+  gewählten Torwart-Standort – die klassische Winkel-Lehre des
+  Torwarttrainings ("Winkel verkürzen"). Ziel-Tor wählbar als
+  Automatisch/nächstes Tor oder explizit links/rechts; das Dreieck
+  skaliert mit dem Feldtyp (Pfostengeometrie wird bei jedem Rendern aus
+  der aktuellen Feldkonfiguration abgeleitet, `goalSide` wird am Element
+  gespeichert). Dazu Positionierungs-Schritt-Stände (Grundstellung,
+  Kontra oben/unten – deckt "Positionierung" und "Verschiebung" ab),
+  die als Ein-Klick-Presets pro Tor eingesetzt werden können. Neuer
+  `winkel`-Layer-Toggle in der Sichtbarkeits-Leiste, sichtbar im
+  GIF/MP4-Export. `DrawingToolbar` unterstützt `hideTools` (der
+  Torwart-Winkel ist bewusst nur im Board-Editor verfügbar, nicht im
+  Video-Overlay). Phase 2/3 (Rebounds, Konterauslösung, Kommunikation)
+  folgen separat.
+- **Torhüter-Werkzeuge Phase 2** (CLAUDE.md §9.7 "Rebounds" +
+  "Konterauslösung"): zwei weitere tor-verankerte Werkzeuge im
+  Taktikboard, nach demselben Muster wie der Torwart-Winkel (Ziel-Tor
+  wählbar als Automatisch/links/rechts, Tor-Auswahl geteilt mit dem
+  Winkel-Tool):
+  - **Rebound-Raum** (Kürzel `R`): schattiert den Abprall-Kontrollraum
+    VOR einem Tor als Trapez – die Tormaulkante als Grundseite, zum
+    gewählten Tiefenpunkt hin keilförmig breiter (Breite wächst mit der
+    Tiefe). Die Geometrie wird pro Feldtyp aus der aktuellen
+    Feldkonfiguration abgeleitet (`computeReboundZone` in angleMath.js),
+    alle Punkte werden ins Spielfeld geclampt.
+  - **Konterauslösung** (Kürzel `K`): fetter, gestrichelter Pfeil vom
+    Torwart (Anker = Torlinien-Mitte, `getKeeperClearancePoint`) zur
+    ersten Anspielstation des Konterangriffs inkl. kleiner Torwart-Raute
+    am Anker – bewusst optisch abgrenzbar von einem normalen Pass.
+  Beide erscheinen mit eigenem Layer-Toggle (Sichtbarkeits-Leiste hat
+  jetzt elf Ebenen), sind im GIF/MP4/PDF-Export in Parität zur
+  Live-Darstellung enthalten und werden im Video-Overlay ausgeblendet
+  (dort fehlt die Feldgeometrie; `hideTools` erweitert). Neues
+  ein-Punkt-Koordinaten-Formular (geteilt für alle drei Torhüter-
+  Werkzeuge, WCAG-Tastaturbedienung wie gehabt) in
+  `DrawingCoordinatesForm.jsx`. Neue Tests für `computeReboundZone`/
+  `getKeeperClearancePoint` und die Zeichen-Gesten in `useDrawing`.
+  Kommunikation (Phase 3) folgt separat.
+- **Torhüter-Werkzeuge Phase 3 – Kommunikation** (CLAUDE.md §9.7):
+  neues Werkzeug "Torwart-Kommunikation" (Kürzel `G`, Icon `❝`): eine
+  Sprechblase mit wählbarer Kommando-Phrase ("Press!", "Raus!",
+  "Du hast ihn!", "Stellung!", "Box!", "In Ruhe!") am angesprochenen
+  Spieler plus gestrichelter Connector zum Torwart-Anker (Torlinien-
+  Mitte, mit kleinem Punkt am Torwart) – macht die Lautspiel-
+  Organisation des Torwarts sichtbar. Der Phrasentext wird beim
+  Anlegen eingebrannt (el.text, wie bei Kommentar-Pins), damit der
+  Offline-Export die Blase ohne i18n rendern kann; `addArrowElement`
+  akzeptiert dafür einen generischen `extra`-Param (merged ins
+  Element). Tor-verankert wie Winkel/Rebound/Konter (geteilte
+  Tor-Auswahl), eigener Layer-Toggle (Sichtbarkeits-Leiste hat jetzt
+  zwölf Ebenen), im GIF/MP4/PDF-Export enthalten, im Video-Overlay
+  ausgeblendet. Formular mit Phrasen-Select + ein-Punkt-Eingabe;
+  per Drag gezeichnete Blasen nutzen die Standard-Phrase. Neuer
+  `GOALKEEPER_TOOLS`-Eintrag + `KOMM_PHRASES`-Konstante mit i18n
+  de/en/sv. Neue Tests in `useDrawing.test.js`. Damit sind alle sechs
+  Werkzeuge aus §9.7 abgedeckt (Positionierung, Winkel, Verschiebung,
+  Rebounds, Konterauslösung, Kommunikation).
 
 ### Fixed
+- **GIF/MP4/PDF-Export ließ Board-Elemente und Spieler-Details weg**: Der
+  Offline-Renderer `FloorballFieldStatic.js` zeichnete nur Linien/Pfeile
+  (und das neue Torwart-Winkel-Tool) – `move`/`pass`/`shot`-, `zone`- und
+  `freehand`-Elemente (d. h. praktisch alles außer der Basis-Pfeile) fehlten
+  in GIF-, MP4- und PDF-Exports. Der Renderer handhabt jetzt alle
+  Board- und Legacy-Video-Typen über das neue, pure Utility
+  `utils/elementShape.js` (`normalizeElementShape`, mit Tests): Pfeile
+  inkl. Pfeilspitze/Dash, Zonen als Flächen mit `fillOpacity`, Freehand
+  als geglättete Polylinie; scalar- und `points`-basierte Koordinaten
+  werden einheitlich unterstützt. Zusätzlich Spieler-Darstellung in
+  Parität zur Live-Ansicht (`PlayerToken.jsx`): Torwart als Raute,
+  Auswärts-Team mit gestricheltem Rand, Rollen-Label sowie optionaler
+  Namens-Chip. Der Trainings-PDF-Export respektiert zudem ab jetzt die
+  bewusst ausgeblendeten Spieler/Elemente (dieselbe
+  `layerVisibilityFilter`-Logik wie der Editor-Export).
 - **Spieler-Dashboard wirkte gequetscht**: der CSS-Token `--space-5` wurde
   von allen Dashboard-Karten sowie ~20 weiteren Stellen im Code (u. a.
   BoardsPage, GamesPage, LibraryPage, OpponentsPage, TrainingsPage, mehrere
@@ -175,6 +272,11 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   Versionen tatsächlich genutzt. Die bestehenden GitHub-Release-Einträge
   v0.1.0/v0.9.0 wurden ebenfalls entfernt (Git-Tags selbst bleiben
   erhalten).
+- **Toten Hook `usePlayerState.js` entfernt** (`frontend/src/hooks/`): der
+  Spieler-Zustand im Board-Editor wird seit dem Wechsel auf `useDrawing`
+  vollständig anders verwaltet, die Datei hatte keinen Importer mehr
+  und lag nur noch mit altem `includeAway`-Default herum (im BACKLOG
+  explizit als Aufräum-Kandidat geführt). Keine Verhaltensänderung.
 
 ### Fixed
 - Backend-Transaktionsmails (Passwort-Reset, Team-/Vereins-/Board-

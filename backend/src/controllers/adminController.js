@@ -6,6 +6,7 @@ import pool from '../db/pool.js';
 import logger from '../utils/logger.js';
 import { success, error } from '../utils/apiResponse.js';
 import { rescheduleBackupCron, runBackupNow } from '../services/backupCron.js';
+import { logAudit } from '../services/auditLogger.js';
 import { deleteCommentsForUser } from './commentsController.js';
 import { deleteRsvpsForUser } from './rsvpsController.js';
 import { deleteCarpoolOffersForUser } from './carpoolsController.js';
@@ -55,6 +56,7 @@ export async function deleteUser(req, res) {
     await deleteCarpoolOffersForUser(req.params.id);
     await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
     logger.info(`Admin ${req.user.id} deleted user ${req.params.id}`);
+    await logAudit({ actorId: req.user.id, action: 'user.delete', resourceType: 'user', resourceId: req.params.id, metadata: { adminInitiated: true } });
     res.json(success({ message: 'Benutzer gelöscht' }));
   } catch (err) {
     logger.error('[deleteUser]', err);
@@ -80,6 +82,14 @@ export async function updateUserRole(req, res) {
       [role, req.params.id]
     );
     logger.info(`Admin ${req.user.id} set role of ${req.params.id} to ${role}`);
+    await logAudit({
+      actorId: req.user.id,
+      action: 'user.role.update',
+      resourceType: 'user',
+      resourceId: req.params.id,
+      before: { role: target.rows[0].role },
+      after: { role: result.rows[0].role },
+    });
     res.json(success(result.rows[0]));
   } catch (err) {
     logger.error('[updateUserRole]', err);
@@ -115,6 +125,12 @@ export async function updateBackupConfig(req, res) {
     await rescheduleBackupCron();
     const row = result.rows[0];
     logger.info(`Admin ${req.user.id} updated backup config`);
+    await logAudit({
+      actorId: req.user.id,
+      action: 'admin.backup-config.update',
+      resourceType: 'app_config',
+      metadata: { enabled, schedule, retention },
+    });
     res.json(success({
       enabled: row.backup_enabled,
       schedule: row.backup_schedule,
@@ -135,6 +151,7 @@ export async function triggerBackupNow(req, res) {
   try {
     const result = await runBackupNow();
     logger.info(`Admin ${req.user.id} manually triggered backup run (${result.count} user(s))`);
+    await logAudit({ actorId: req.user.id, action: 'admin.backup.run', resourceType: 'app_config', metadata: { count: result.count } });
     res.json(success(result));
   } catch (err) {
     logger.error('[triggerBackupNow]', err);
@@ -186,6 +203,17 @@ export async function updateAiConfig(req, res) {
     );
     const row = result.rows[0];
     logger.info(`Admin ${req.user.id} updated AI provider config`);
+    // Bewusst KEIN apiKey in before/after/metadata – der Key bleibt nur in
+    // der app_config-Ebene, das Audit dokumentiert lediglich, dass/ob
+    // geändert wurde. Bei einer Änderung wird apiKeyChanged gesetzt.
+    await logAudit({
+      actorId: req.user.id,
+      action: 'admin.ai-config.update',
+      resourceType: 'app_config',
+      before: {},
+      after: { baseUrl, model, timeoutMs },
+      metadata: { apiKeyChanged: apiKey !== undefined },
+    });
     res.json(success({
       baseUrl: row.ai_provider_base_url,
       model: row.ai_provider_model,

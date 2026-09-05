@@ -7,6 +7,7 @@ import DrawingElement from './DrawingElement.jsx';
 
 export default function DrawingLayer({
   elements      = [],
+  field         = null,
   scale,
   offsetX,
   offsetY,
@@ -20,7 +21,7 @@ export default function DrawingLayer({
   onPointerUp,
   onElementClick,
   readonly      = false,
-  // Layer-System (CLAUDE.md §10.2): { move, pass, shot, freehand, zone } –
+  // Layer-System (CLAUDE.md §10.2): { move, pass, shot, freehand, zone, winkel } –
   // fehlend/undefined gilt als sichtbar, siehe PlayerLayer.jsx.
   layerVisibility,
 }) {
@@ -64,6 +65,7 @@ export default function DrawingLayer({
         <DrawingElement
           key={el.id}
           element={el}
+          field={field}
           scale={scale}
           offsetX={offsetX}
           offsetY={offsetY}

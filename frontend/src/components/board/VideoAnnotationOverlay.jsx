@@ -254,6 +254,7 @@ export default function VideoAnnotationOverlay({
                 undoStack={drawing.undoStack}
                 redoStack={drawing.redoStack}
                 onJumpHistory={drawing.jumpHistory}
+                hideTools={['winkel', 'rebound', 'konter', 'komm']}
               />
               <div className={styles.drawModeActions}>
                 <Button variant="primary" size="sm" onClick={handleSaveDrawing} disabled={saving}>

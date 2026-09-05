@@ -10,6 +10,7 @@ import useThemeStore from '../../store/themeStore.js';
 import useTourStore from '../../store/tourStore.js';
 import useAnnounceStore from '../../store/announceStore.js';
 import { useSettings } from '../../hooks/useSettings.js';
+import { SUPPORTED_LANGUAGES } from '../../i18n/i18n.js';
 import { applyGlobalPreferences } from '../../utils/applyPreferences.js';
 import { IFF_FIELDS, IFF_BALL_COLORS, DEFAULT_TEAM_COLORS } from '../../constants/fieldConfig.js';
 import Button from '../common/Button.jsx';
@@ -30,6 +31,13 @@ export default function PreferencesSection() {
     dark: t('settings.dark'), light: t('settings.light'),
     vikings: t('settings.vikings'), iff: t('settings.iff'), custom: t('settings.custom'),
   };
+  // Label-Key-Konvention: settings.language<Code mit großem Anfangsbuchstaben>
+  // (z.B. "de" -> settings.languageDe) – muss in jeder Locale-Datei existieren,
+  // siehe docs/TRANSLATING.md Schritt 5.
+  const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES.map((code) => ({
+    code,
+    label: t(`settings.language${code.charAt(0).toUpperCase()}${code.slice(1)}`),
+  }));
   const COLORBLIND_OPTIONS = [
     { value: 'keine',        label: t('settings.colorblindNone') },
     { value: 'deuteranopie', label: t('settings.colorblindDeuteranopia') },
@@ -123,9 +131,9 @@ export default function PreferencesSection() {
             value={i18n.language}
             onChange={(e) => handleLanguageChange(e.target.value)}
           >
-            <option value="de">{t('settings.languageDe')}</option>
-            <option value="en">{t('settings.languageEn')}</option>
-            <option value="sv">{t('settings.languageSv')}</option>
+            {LANGUAGE_OPTIONS.map(({ code, label }) => (
+              <option key={code} value={code}>{label}</option>
+            ))}
           </select>
         </div>
 

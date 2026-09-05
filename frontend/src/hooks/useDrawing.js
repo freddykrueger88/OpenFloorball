@@ -20,11 +20,15 @@
  */
 import { useReducer, useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TOOLS, DEFAULT_COLORS, MAX_UNDO_STEPS } from '../constants/drawingConfig.js';
+import { TOOLS, GOALKEEPER_TOOLS, DEFAULT_COLORS, MAX_UNDO_STEPS, KOMM_PHRASES, KOMM_DEFAULT_PHRASE_KEY } from '../constants/drawingConfig.js';
 import useAnnounceStore from '../store/announceStore.js';
 
 let _id = 0;
 const uid = () => `el_${++_id}_${Date.now()}`;
+
+// Standard-Phrase für per Drag gezeichnete Torwart-Kommunikations-Blasen
+// (Formular lässt eine freie Phrase wählen und überschreibt text).
+const defaultKommLabelKey = KOMM_PHRASES.find((p) => p.key === KOMM_DEFAULT_PHRASE_KEY)?.labelKey;
 
 const initialState = { players: [], elements: [], undoStack: [], redoStack: [] };
 
@@ -173,6 +177,12 @@ export function useDrawing(onLocalChange) {
     useAnnounceStore.getState().announce(t('drawing.announceTool', { tool: label }));
     setActiveToolState(tool);
   }, [isEn, t]);
+  // Torhüter-Werkzeuge (CLAUDE.md §9.7): 'auto' | 'left' | 'right' – legt
+  // fest, auf welches Tor Winkel/Rebound/Konter zeigen ('auto' = zum
+  // nächstgelegenen Tor, wird beim Rendern aufgelöst, siehe angleMath.js).
+  // Ein gemeinsamer State für alle drei Werkzeuge (Tor-Auswahl ist eine
+  // Eingabe von "auf welches Tor denkt der Trainer gerade").
+  const [winkelGoalSide, setWinkelGoalSide] = useState('auto');
   const [activeColor, setActiveColorState] = useState(DEFAULT_COLORS[0].hex);
   const [strokeWidth, setStrokeWidthState] = useState(3);
   const changeColor = useCallback((hex) => {
@@ -293,11 +303,20 @@ export function useDrawing(onLocalChange) {
         dash: tool.dash ?? [],
         arrowHead: tool.arrowHead ?? true,
         fillOpacity: tool.fillOpacity,
+        // Torhüter-Werkzeuge (Winkel/Rebound/Konter/Komm): das Ziel-Tor wird
+        // am Element gespeichert (explizit aufgelöst beim Anlegen; 'auto'
+        // bleibt nur bei untypischer Weitergabe stehen und wird im
+        // Renderer aufgelöst). Torwart-Kommunikation trägt zusätzlich eine
+        // eingebrannte Phrase (die Standard-Phrase; das Formular wählt eine
+        // andere und überschreibt text): der Offline-Export rendert die
+        // Blase dann ohne i18n.
+        goalSide: GOALKEEPER_TOOLS.includes(activeTool) ? winkelGoalSide : undefined,
+        text: activeTool === 'komm' ? t(defaultKommLabelKey) : undefined,
       };
       currentElRef.current = el.id;
       dispatch({ type: 'ADD_ELEMENT', element: el, label: activeTool });
     }
-  }, [activeTool, activeColor, strokeWidth]);
+  }, [activeTool, activeColor, strokeWidth, winkelGoalSide, t]);
 
   const handlePointerMove = useCallback((x_m, y_m) => {
     if (!isDrawing || !currentElRef.current) return;
@@ -309,6 +328,11 @@ export function useDrawing(onLocalChange) {
         if (el.id !== id) return el;
         if (el.type === 'freehand') {
           return { ...el, points: [...el.points, x_m, y_m] };
+        }
+        // Torwart-Winkel: die Spitze (der Torwart-Standort) ist der Punkt,
+        // der den Cursor verfolgt – nicht das (ignorierte) x2/y2-Ende.
+        if (el.type === 'winkel') {
+          return { ...el, x1: x_m, y1: y_m };
         }
         return { ...el, x2: x_m, y2: y_m };
       }),
@@ -347,7 +371,9 @@ export function useDrawing(onLocalChange) {
   // Tastatur-Alternative zum Ziehen mit der Maus (Issue #38 – WCAG 2.1.1):
   // erzeugt exakt dieselbe Element-Form wie handlePointerDown/Move/Up,
   // nur direkt aus fertigen Koordinaten statt schrittweise per Drag.
-  const addArrowElement = useCallback((tool, x1, y1, x2, y2) => {
+  // `goalSideOverride` setzt das Ziel-Tor explizit (Presets) und `extra`
+  // mergt weitere Element-Felder hinein (z.B. text für die Komm-Blasen).
+  const addArrowElement = useCallback((tool, x1, y1, x2, y2, goalSideOverride, extra) => {
     const toolDef = TOOLS[tool];
     if (!toolDef) return;
     const el = {
@@ -359,11 +385,13 @@ export function useDrawing(onLocalChange) {
       dash: toolDef.dash ?? [],
       arrowHead: toolDef.arrowHead ?? true,
       fillOpacity: toolDef.fillOpacity,
+      goalSide: GOALKEEPER_TOOLS.includes(tool) ? (goalSideOverride ?? winkelGoalSide) : undefined,
+      ...extra,
     };
     dispatch({ type: 'ADD_ELEMENT', element: el, label: tool });
     onLocalChange?.({ kind: 'addElement', element: el });
     useAnnounceStore.getState().announce(t('drawing.announceElementAdded'));
-  }, [activeColor, strokeWidth, t, onLocalChange]);
+  }, [activeColor, strokeWidth, t, onLocalChange, winkelGoalSide]);
 
   const addFreehandElement = useCallback((points) => {
     const el = {
@@ -406,6 +434,10 @@ export function useDrawing(onLocalChange) {
       if (key === 'S')      changeTool('shot');
       if (key === 'F')      changeTool('freehand');
       if (key === 'Z')      changeTool('zone');
+      if (key === 'W')      changeTool('winkel');
+      if (key === 'R')      changeTool('rebound');
+      if (key === 'K')      changeTool('konter');
+      if (key === 'G')      changeTool('komm');
       if (key === 'C')      changeTool('comment');
       if (key === 'E')      changeTool('eraser');
       if (e.key === 'Escape') changeTool('select');
@@ -426,6 +458,7 @@ export function useDrawing(onLocalChange) {
     activeTool,  setActiveTool: changeTool,
     activeColor, setActiveColor: changeColor,
     strokeWidth, setStrokeWidth: changeStrokeWidth,
+    winkelGoalSide, setWinkelGoalSide,
     // Undo/Redo (gemeinsam für players + elements)
     undo, redo, jumpHistory,
     undoStack, redoStack,

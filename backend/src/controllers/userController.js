@@ -13,6 +13,7 @@ import logger from '../utils/logger.js';
 import { success, error } from '../utils/apiResponse.js';
 import { COOKIE_OPTS } from '../utils/cookies.js';
 import { buildUserExport, BACKUP_FORMAT } from '../services/exportUserData.js';
+import { logAudit } from '../services/auditLogger.js';
 import { deleteCommentsForUser } from './commentsController.js';
 import { deleteRsvpsForUser } from './rsvpsController.js';
 import { deleteCarpoolOffersForUser } from './carpoolsController.js';
@@ -68,6 +69,9 @@ export async function deleteAccount(req, res) {
     await deleteCommentsForUser(req.user.id);
     await deleteRsvpsForUser(req.user.id);
     await deleteCarpoolOffersForUser(req.user.id);
+    // Audit VOR dem DELETE: actor_id referenziert users (ON DELETE SET NULL),
+    // nach dem Löschen wäre der Fixture für die eigene Löschung weg.
+    await logAudit({ actorId: req.user.id, action: 'user.account.delete', resourceType: 'user', resourceId: req.user.id, metadata: { adminInitiated: false } });
     await pool.query('DELETE FROM users WHERE id = $1', [req.user.id]);
     res.clearCookie('token', { ...COOKIE_OPTS, maxAge: 0 });
 
@@ -105,6 +109,7 @@ export async function exportAccount(req, res) {
     archive.pipe(res);
     archive.append(JSON.stringify(data, null, 2), { name: 'backup.json' });
     await archive.finalize();
+    await logAudit({ actorId: req.user.id, action: 'user.export', resourceType: 'user', resourceId: req.user.id, metadata: { format: 'zip' } });
   } catch (err) {
     logger.error('[exportAccount]', err);
     if (!res.headersSent) res.status(500).json(error('Interner Serverfehler'));

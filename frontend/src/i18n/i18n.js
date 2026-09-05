@@ -5,13 +5,19 @@ import de from './locales/de.json';
 import en from './locales/en.json';
 import sv from './locales/sv.json';
 
+// Einzige Quelle für die unterstützten Sprachen: neue Sprache = neuer
+// Eintrag hier (+ Import oben) statt an mehreren Stellen im Code
+// (Sprachauswahl in PreferencesSection.jsx wird daraus generiert, siehe
+// docs/TRANSLATING.md Schritt 4).
+export const SUPPORTED_LANGUAGES = ['de', 'en', 'sv'];
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources: { de: { translation: de }, en: { translation: en }, sv: { translation: sv } },
     fallbackLng: 'de',
-    supportedLngs: ['de', 'en', 'sv'],
+    supportedLngs: SUPPORTED_LANGUAGES,
     interpolation: { escapeValue: false },
     detection: {
       order: ['localStorage', 'navigator'],

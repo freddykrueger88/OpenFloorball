@@ -72,6 +72,79 @@ export const TOOLS = {
     fillOpacity: 0.25,
     description: 'Markiert eine Fläche auf dem Feld (z.B. Pressing-Zone)',
   },
+  // Torwart-Winkel (CLAUDE.md §9.7): zeichnet das Abdeckungs-Dreieck von
+  // den Torpfosten eines Tores zu einem Punkt (Torwart-Standort). scalar
+  // Zwei-Punkte-Element wie Pfeil/Zone, `goalSide` steuert das Ziel-Tor
+  // (siehe utils/angleMath.js).
+  winkel: {
+    id: 'winkel',
+    label: 'Torwart-Winkel',
+    labelEn: 'Goalkeeper Angle',
+    icon: '△',
+    shortcut: 'W',
+    cursor: 'crosshair',
+    arrowHead: false,
+    dash: [],
+    strokeWidth: 2,
+    fillOpacity: 0.3,
+    description: 'Zeigt den Abdeckungs-Winkel eines Torwarts von einer Position aus',
+  },
+  // Rebound-Raum (CLAUDE.md §9.7): tor-verankertes Trapez VOR dem Tor, das
+  // die Tormaulkante als Grundseite nutzt und zur gewählten Tiefe hin
+  // breiter wird (Abprall-Kegel) – "wo Abpraller entschärft werden müssen".
+  // Nur ein Tiefenpunkt nötig; die breite Kante wird beim Rendern pro
+  // Feldtyp aus computeReboundZone() abgeleitet.
+  rebound: {
+    id: 'rebound',
+    label: 'Rebound-Raum',
+    labelEn: 'Rebound zone',
+    icon: '◭',
+    shortcut: 'R',
+    cursor: 'crosshair',
+    arrowHead: false,
+    dash: [],
+    strokeWidth: 2,
+    fillOpacity: 0.2,
+    description: 'Markiert den Raum vor dem Tor, in dem Abpraller kontrolliert werden',
+  },
+  // Konterauslösung (CLAUDE.md §9.7): fetter, gestrichelter Pfeil vom
+  // Torwart (Anker = Torlinien-Mitte, s. getKeeperClearancePoint) zur
+  // ersten Anspielstation des Konterangriffs. Tor-verankert wie Winkel/
+  // Rebound: nur der Zielpunkt (x2/y2) wird gespeichert und beim Rendern
+  // die Startposition aus der Feldkonfiguration abgeleitet.
+  konter: {
+    id: 'konter',
+    label: 'Konterauslösung',
+    labelEn: 'Counter trigger',
+    icon: '⤳',
+    shortcut: 'K',
+    cursor: 'crosshair',
+    arrowHead: true,
+    dash: [14, 8],
+    strokeWidth: 5,
+    description: 'Zeigt, wohin der Torwart den Ball zum Konter auslöst',
+  },
+  // Torwart-Kommunikation (CLAUDE.md §9.7): Sprechblase vom Torwart zu
+  // einem angesprochenen Spieler inkl. wählbarer Kommando-Phrase (z.B.
+  // "Raus!", "Du hast ihn!"). Tor-verankert wie Winkel/Rebound/Konter –
+  // der Anker sitzt am Torwart, die Blase erscheint am gewählten
+  // Anspielpunkt; der Phrasentext wird beim Anlegen eingebrannt (wie bei
+  // Kommentar-Pins), damit auch der Offline-Export ihn ohne i18n kennt.
+  komm: {
+    id: 'komm',
+    label: 'Torwart-Kommunikation',
+    labelEn: 'Goalkeeper Communication',
+    icon: '❝',
+    shortcut: 'G',
+    cursor: 'crosshair',
+    arrowHead: false,
+    dash: [4, 2],
+    strokeWidth: 2,
+    description: 'Zeigt, welches Kommando der Torwart an wen richtet',
+    bubbleWidth: 220,
+    bubbleHeight: 60,
+    bubbleFontSize: 15,
+  },
   // Layer-System (CLAUDE.md §10.2): erzeugt bewusst KEIN Frame-Element
   // (kein Eintrag in useDrawing.js' elements-Array) – ein Klick mit
   // diesem Werkzeug öffnet stattdessen einen Dialog zum Anpinnen eines
@@ -96,7 +169,27 @@ export const TOOLS = {
   },
 };
 
-export const TOOL_ORDER = ['select', 'move', 'pass', 'shot', 'freehand', 'zone', 'comment', 'eraser'];
+export const TOOL_ORDER = ['select', 'move', 'pass', 'shot', 'freehand', 'zone', 'winkel', 'rebound', 'konter', 'komm', 'comment', 'eraser'];
+
+// Torhüter-Werkzeuge (CLAUDE.md §9.7): alle tor-verankert, d.h. sie hängen
+// an der Pfostengeometrie eines gewählten Tores (goalSide am Element) und
+// sind ohne Feld-Konfiguration nicht sinnvoll renderbar (Video-Overlay
+// blendet sie per DrawingToolbar-hideTools aus).
+export const GOALKEEPER_TOOLS = ['winkel', 'rebound', 'konter', 'komm'];
+
+// Kommando-Phrasen für die Torwart-Kommunikation (§9.7): labelKey zeigt
+// auf i18n-Slot drawing.kommPhrases.<key>; der gewählte Text wird beim
+// Anlegen eingebrannt (Element.text), siehe useDrawing.js.
+export const KOMM_PHRASES = [
+  { key: 'press',    labelKey: 'drawing.kommPhrases.press' },
+  { key: 'raus',     labelKey: 'drawing.kommPhrases.raus' },
+  { key: 'du',       labelKey: 'drawing.kommPhrases.du' },
+  { key: 'stellung', labelKey: 'drawing.kommPhrases.stellung' },
+  { key: 'box',      labelKey: 'drawing.kommPhrases.box' },
+  { key: 'ruhig',    labelKey: 'drawing.kommPhrases.ruhig' },
+];
+
+export const KOMM_DEFAULT_PHRASE_KEY = 'press';
 
 export const DEFAULT_COLORS = [
   { hex: '#facc15', label: 'Gelb',    labelEn: 'Yellow' },

@@ -30,9 +30,9 @@ Neuerstellung brauchen (`frontend/src/i18n/locales/`):
 * Phase 2: Norwegisch Bokmål (`nb`), Lettisch (`lv`), Polnisch (`pl`),
   Französisch (`fr`)
 
-Willst du eine Sprache übersetzen, die noch niemand begonnen hat?
-Kommentiere kurz im verlinkten Sammel-Issue auf GitHub, welche Sprache
-du übernimmst, damit sich niemand doppelt Arbeit macht.
+Willst du eine Sprache übersetzen (bzw. einen vorhandenen Rohentwurf
+juristisch/language-reviewen)? Kommentiere kurz im verlinkten
+Sammel-Issue auf GitHub — <https://github.com/freddykrueger88/OpenFloorball/issues/62> — welche Sprache du übernimmst, damit sich niemand doppelt Arbeit macht.
 
 ---
 

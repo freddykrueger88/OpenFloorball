@@ -26,8 +26,9 @@ already exists as a first – AI-generated, **not yet reviewed by a
 native speaker** – draft (`frontend/src/i18n/locales/sv.json`), which
 needs correction rather than starting from scratch.
 
-Want to translate a language nobody has started yet? Leave a short
-comment on the linked tracking issue on GitHub to say which language
+Want to translate or review an existing draft language? Leave a short
+comment on the tracking issue on GitHub —
+<https://github.com/freddykrueger88/OpenFloorball/issues/62> — to say which language
 you're taking on, so no one duplicates the work.
 
 ---

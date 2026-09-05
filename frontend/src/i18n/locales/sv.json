@@ -70,7 +70,9 @@
     "showPlayerTitle": "Visa den här spelaren igen",
     "showPlayerAriaLabel": "Visa {{name}} igen",
     "hiddenPlayersLabel": "Dolda spelare",
-    "hiddenSuffix": "(dold)"
+    "hiddenSuffix": "(dold)",
+    "canvasAriaLabel_few": "Innebandyplan: {{label}}, {{count}} spelare. Nås individuellt med Tabb.",
+    "canvasAriaLabel_many": "Innebandyplan: {{label}}, {{count}} spelare. Nås individuellt med Tabb."
   },
   "teams": {
     "home": "Hemmalag",
@@ -110,6 +112,9 @@
     "languageDe": "Tyska",
     "languageEn": "Engelska",
     "languageSv": "Svenska",
+    "languageFi": "Finska",
+    "languageCs": "Tjeckiska",
+    "languageSk": "Slovakiska",
     "fontSize": "Textstorlek",
     "fontSizeSmall": "Liten",
     "fontSizeMedium": "Medel",
@@ -363,7 +368,9 @@
       "layers": "Synlighet"
     },
     "collapsePanel": "Fäll ihop panel",
-    "expandPanel": "Fäll ut panel"
+    "expandPanel": "Fäll ut panel",
+    "presenceCount_few": "{{count}} andra personer här",
+    "presenceCount_many": "{{count}} andra personer här"
   },
   "comments": {
     "title": "Kommentarer",
@@ -585,7 +592,9 @@
       "revoke": "Återkalla",
       "urlAriaLabel": "URL för kalenderflöde",
       "error": "Fel: {{error}}"
-    }
+    },
+    "moreCount_few": "+{{count}} till",
+    "moreCount_many": "+{{count}} till"
   },
   "stats": {
     "title": "Statistik",
@@ -630,7 +639,9 @@
       "attendanceTitle": "Träningsnärvaro",
       "trainingsRecorded": "Registrerade träningar",
       "attendanceRate": "Närvarograd"
-    }
+    },
+    "count_few": "{{count}} truppspelare",
+    "count_many": "{{count}} truppspelare"
   },
   "news": {
     "title": "Nyheter",
@@ -645,7 +656,9 @@
     "loading": "Laddar meddelanden…",
     "emptyStateDesc": "Inga meddelanden i dina lag ännu. Som tränare eller föreningsadmin kan du publicera korta meddelanden till ditt lag här.",
     "deleteAriaLabel": "Radera meddelande",
-    "deleteTitle": "Radera"
+    "deleteTitle": "Radera",
+    "count_few": "{{count}} meddelanden",
+    "count_many": "{{count}} meddelanden"
   },
   "polls": {
     "title": "Omröstningar",
@@ -669,7 +682,11 @@
     "closedBadge": "Stängd",
     "closeAction": "Stäng",
     "deleteAriaLabel": "Radera omröstning",
-    "deleteTitle": "Radera"
+    "deleteTitle": "Radera",
+    "count_few": "{{count}} omröstningar",
+    "count_many": "{{count}} omröstningar",
+    "voteCount_few": "{{count}} röster",
+    "voteCount_many": "{{count}} röster"
   },
   "versions": {
     "title": "Historik",
@@ -700,7 +717,9 @@
     "categoryFilterAriaLabel": "Filtrera efter övningskategori",
     "demoDataHint": "Inget här än? Skapa demodata för att testa de andra delarna direkt.",
     "demoDataCreateBtn": "Skapa demodata",
-    "demoDataCreating": "Skapar…"
+    "demoDataCreating": "Skapar…",
+    "count_few": "{{count}} tavlor",
+    "count_many": "{{count}} tavlor"
   },
   "notFound": {
     "title": "404",
@@ -900,7 +919,9 @@
     "addPlayer": "Lägg till spelare",
     "pickerAriaLabel": "Lägg till en spelare i \"{{name}}\"",
     "noMorePlayers": "Alla truppspelare finns redan i den här kedjan.",
-    "removePlayerAriaLabel": "Ta bort {{name}} från den här kedjan"
+    "removePlayerAriaLabel": "Ta bort {{name}} från den här kedjan",
+    "count_few": "{{count}} kedjor",
+    "count_many": "{{count}} kedjor"
   },
   "boardLines": {
     "sectionAriaLabel": "Kedjor för den här tavlan",
@@ -1115,7 +1136,9 @@
       "columnAuthor": "Författare",
       "columnReports": "Rapporter",
       "columnLastReported": "Senast rapporterad"
-    }
+    },
+    "count_few": "{{count}} övningar",
+    "count_many": "{{count}} övningar"
   },
   "ai": {
     "planWithAi": "Planera med AI",
@@ -1383,8 +1406,18 @@
       "untilAriaLabel": "Slutdatum för serien",
       "submit": "Skapa serie",
       "success_one": "{{count}} till pass skapat",
-      "success_other": "{{count}} till pass skapade"
-    }
+      "success_other": "{{count}} till pass skapade",
+      "success_few": "{{count}} till pass skapade",
+      "success_many": "{{count}} till pass skapade"
+    },
+    "count_few": "{{count}} träningspass",
+    "count_many": "{{count}} träningspass",
+    "itemCount_few": "{{count}} övningar",
+    "itemCount_many": "{{count}} övningar",
+    "totalMinutes_few": "{{count}} minuter",
+    "totalMinutes_many": "{{count}} minuter",
+    "durationShort_few": "{{count}} min",
+    "durationShort_many": "{{count}} min"
   },
   "games": {
     "count_one": "{{count}} match",
@@ -1473,7 +1506,9 @@
     "videoPanelHint": "Ladda upp video för den här matchen och länka den till händelser från tidslinjen – även i efterhand vid granskning av inspelningen.",
     "videoPanelEmpty": "Ingen video för den här matchen ännu – ladda upp inspelningen för att börja länka händelser till den.",
     "jumpToVideoAriaLabel": "Hoppa till den länkade videopositionen",
-    "headToHead": "Bilans mot {{opponent}}: {{wins}}V-{{draws}}O-{{losses}}F ({{goalsFor}}:{{goalsAgainst}}) i {{count}} matcher"
+    "headToHead": "Bilans mot {{opponent}}: {{wins}}V-{{draws}}O-{{losses}}F ({{goalsFor}}:{{goalsAgainst}}) i {{count}} matcher",
+    "count_few": "{{count}} matcher",
+    "count_many": "{{count}} matcher"
   },
   "opponents": {
     "count_one": "{{count}} motståndare",
@@ -1487,7 +1522,9 @@
       "win": "Vinst",
       "draw": "Oavgjort",
       "loss": "Förlust"
-    }
+    },
+    "count_few": "{{count}} motståndare",
+    "count_many": "{{count}} motståndare"
   },
   "roster": {
     "title": "Trupp",
@@ -1517,7 +1554,9 @@
     "emptyRosterHint": "Ingen trupp ännu – skapa en på truppsidan.",
     "linkedUserAriaLabel": "Länka ett konto för {{name}}",
     "linkedUserHint": "Länkar denna truppmedlem till ett lagmedlems konto så att personen ser sin egen statistik i översikten.",
-    "linkedUserNone": "Inget konto länkat"
+    "linkedUserNone": "Inget konto länkat",
+    "count_few": "{{count}} spelare i truppen",
+    "count_many": "{{count}} spelare i truppen"
   },
   "offline": {
     "offlineBanner_one": "Offline – ändringar sparas när du är online igen ({{count}} väntande)",
@@ -1529,7 +1568,15 @@
     "syncedWithConflicts_one": "Synkat – 1 ändring redigerades någon annanstans under tiden, granska den",
     "syncedWithConflicts_other": "Synkat – {{count}} ändringar redigerades någon annanstans under tiden, granska dem",
     "conflictBannerBtn_one": "1 konflikt att granska",
-    "conflictBannerBtn_other": "{{count}} konflikter att granska"
+    "conflictBannerBtn_other": "{{count}} konflikter att granska",
+    "offlineBanner_few": "Offline – ändringar sparas när du är online igen ({{count}} väntande)",
+    "offlineBanner_many": "Offline – ändringar sparas när du är online igen ({{count}} väntande)",
+    "syncingBanner_few": "Synkar {{count}} ändringar...",
+    "syncingBanner_many": "Synkar {{count}} ändringar...",
+    "syncedWithConflicts_few": "Synkat – {{count}} ändringar redigerades någon annanstans under tiden, granska dem",
+    "syncedWithConflicts_many": "Synkat – {{count}} ändringar redigerades någon annanstans under tiden, granska dem",
+    "conflictBannerBtn_few": "{{count}} konflikter att granska",
+    "conflictBannerBtn_many": "{{count}} konflikter att granska"
   },
   "boardShare": {
     "title": "Dela tavla",
@@ -1682,7 +1729,9 @@
       "week": "Vecka {{week}}",
       "matchToday": "Nästa match idag",
       "matchInDays": "Nästa match om {{count}} dag",
-      "matchInDays_other": "Nästa match om {{count}} dagar"
+      "matchInDays_other": "Nästa match om {{count}} dagar",
+      "matchInDays_few": "Nästa match om {{count}} dagar",
+      "matchInDays_many": "Nästa match om {{count}} dagar"
     },
     "countdown": {
       "today": "Idag kl {{time}}",
@@ -1702,7 +1751,9 @@
       "empty": "Inga lagkamraters födelsedagar registrerade ännu.",
       "todayEntry": "{{name}} fyller år idag och blir {{age}}!",
       "nextEntry": "Om {{count}} dag fyller {{name}} år (blir {{age}}).",
-      "nextEntry_other": "Om {{count}} dagar fyller {{name}} år (blir {{age}})."
+      "nextEntry_other": "Om {{count}} dagar fyller {{name}} år (blir {{age}}).",
+      "nextEntry_few": "Om {{count}} dagar fyller {{name}} år (blir {{age}}).",
+      "nextEntry_many": "Om {{count}} dagar fyller {{name}} år (blir {{age}})."
     },
     "availability": {
       "groupLabel": "Din tillgänglighet",

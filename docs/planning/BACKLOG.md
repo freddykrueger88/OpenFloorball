@@ -762,6 +762,37 @@ P2
 
 ## Europaweite Sprachunterstützung für floorball-aktive Nationen
 
+Status (2026-09-05): ✅ Framework + Phase-1-Teil 1/4 umgesetzt.
+`SUPPORTED_LANGUAGES` ist die einzige Quelle (`i18n.js`) – die
+Sprachauswahl in `PreferencesSection.jsx` generiert die Optionen daraus
+(inkl. `settings.language<Code>`-Labels in allen Locale-Dateien).
+`locales.test.js` ist parametrisiert und prüft jede Sprache
+automatisch. **Finnisch (`fi`) als vollständiger KI-Rohentwurf ergänzt**
+(1534 Schlüssel, strukturell 1:1 zu `en.json`), in `resources`/
+`supportedLngs` aktiv – aber bewusst als **ungeprüfter Entwurf**
+(`needs-native-review`) markiert, gemäß der Untergrenze "Übersetzungen
+nicht unreflektiert committen". Datums-/Zahlenformate sind nicht mehr
+auf de/en verdrahtet: `utils/formatDate.js::getIntlLocale()` mappt
+de/en/sv/fi/cs/sk → de-DE/en-US/sv-SE/fi-FI/cs-CZ/sk-SK und wird auch
+von `CalendarPage.jsx` und `ExportPanel.jsx` genutzt;
+`formatDateOnly` kennt die schwedische `YYYY-MM-DD`-Form.
+**Tschechisch (`cs`) als zweiter vollständiger KI-Rohentwurf ergänzt**
+(1583 Schlüssel, strukturell 1:1 zu `en.json`, inkl. `languageCs`-
+Labels in allen Locale-Dateien), ebenfalls `needs-native-review`
+markiert. Für das slawische Pluralverhalten (cs/sk) tragen alle
+Locale-Dateien zu den 24 zählbaren Schlüsseln `_few`- und `_many`-
+Suffixe (`cs.json` mit echten tschechischen Formen, z. B. 2–4 „dny"/
+5+ „dnů"; `sk.json` analog „dni"/„dní"; die übrigen Sprachen spiegeln
+`_other`), sodass der Paritätstest exakt identische Schlüsselmengen
+erzwingt.
+**Slowakisch (`sk`) als dritter vollständiger KI-Rohentwurf ergänzt**
+(1584 Schlüssel, strukturell 1:1 zu `en.json`, inkl. `languageSk`-
+Labels in allen Locale-Dateien) – ebenfalls `needs-native-review`
+markiert. Damit ist Phase 1 komplett: alle vier priorisierten
+Nationen (sv/fi/cs/sk) sind als Rohentwürfe in der Oberfläche
+wählbar.
+Offen: muttersprachliches Review für sv/fi/cs/sk.
+
 ### Beschreibung
 
 Die Oberfläche gibt es bisher nur auf Deutsch und Englisch

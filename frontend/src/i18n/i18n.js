@@ -4,18 +4,21 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import de from './locales/de.json';
 import en from './locales/en.json';
 import sv from './locales/sv.json';
+import fi from './locales/fi.json';
+import cs from './locales/cs.json';
+import sk from './locales/sk.json';
 
 // Einzige Quelle für die unterstützten Sprachen: neue Sprache = neuer
 // Eintrag hier (+ Import oben) statt an mehreren Stellen im Code
 // (Sprachauswahl in PreferencesSection.jsx wird daraus generiert, siehe
 // docs/TRANSLATING.md Schritt 4).
-export const SUPPORTED_LANGUAGES = ['de', 'en', 'sv'];
+export const SUPPORTED_LANGUAGES = ['de', 'en', 'sv', 'fi', 'cs', 'sk'];
 
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources: { de: { translation: de }, en: { translation: en }, sv: { translation: sv } },
+    resources: { de: { translation: de }, en: { translation: en }, sv: { translation: sv }, fi: { translation: fi }, cs: { translation: cs }, sk: { translation: sk } },
     fallbackLng: 'de',
     supportedLngs: SUPPORTED_LANGUAGES,
     interpolation: { escapeValue: false },

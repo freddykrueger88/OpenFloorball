@@ -120,6 +120,47 @@ Versionierung nach [Semantic Versioning](https://semver.org/lang/de/).
   de/en/sv. Neue Tests in `useDrawing.test.js`. Damit sind alle sechs
   Werkzeuge aus §9.7 abgedeckt (Positionierung, Winkel, Verschiebung,
   Rebounds, Konterauslösung, Kommunikation).
+- **Issue 027 Phase 1/4: Finnisch (`fi`) als vollständiger Rohentwurf**.
+  `SUPPORTED_LANGUAGES` in `i18n.js` um `fi` erweitert (Import +
+  `resources`); `locales/fi.json` ist strukturell 1:1 aus `en.json`
+  abgeleitet (alle 1534 Schlüssel, Platzhalter `{{…}}` und
+  Plural-Suffixe erhalten) und in `locales.test.js` automatisch
+  mitgeprüft. Die Sprachauswahl in den Einstellungen ist bereits
+  datengetrieben (`PreferencesSection.jsx` generiert die Optionen aus
+  `SUPPORTED_LANGUAGES`); neue Label-Keys `settings.languageFi` in allen
+  Locale-Dateien. Datums-/Zahlenformate sind nicht mehr hart auf de/en
+  verdrahtet: neue `getIntlLocale()`-Zuordnung in
+  `utils/formatDate.js` (de/en/sv/fi → de-DE/en-US/sv-SE/fi-FI), genutzt
+  von `formatDate`, `CalendarPage` und `ExportPanel`; `formatDateOnly`
+  kennt zusätzlich die schwedische `YYYY-MM-DD`-Form. Bewusst als
+  **ungeprüfter, KI-übersetzter Entwurf** gekennzeichnet – braucht vor
+  Abschluss von Issue 027 ein muttersprachliches Finnisch-Review
+  (`needs-native-review`), ebenso wie der bestehende Schwedisch-Entwurf.
+- **Issue 027 Phase 1/4: Tschechisch (`cs`) als zweiter vollständiger
+  Rohentwurf**. `SUPPORTED_LANGUAGES` in `i18n.js` um `cs` erweitert
+  (Import + `resources`); `locales/cs.json` ist strukturell 1:1 zu
+  `en.json` (1583 Schlüssel, inkl. `settings.languageCs`-Labels in
+  allen Locale-Dateien) und wird in `locales.test.js` automatisch
+  mitgeprüft. Für das slawische Pluralverhalten (cs/sk) tragen alle
+  Locale-Dateien zu den 24 zählbaren Schlüsseln nun `_few`- und
+  `_many`-Suffixe (`cs.json` mit echten tschechischen Formen, z. B.
+  2–4 „dny" / 5+ „dnů"; de/en/sv/fi als Spiegel von `_other`) – der
+  Paritätstest behandelt diese Suffixe als Pflicht-Schlüssel.
+  `getIntlLocale()` mappt zusätzlich cs → cs-CZ (genutzt von
+  `formatDate`, `CalendarPage` und `ExportPanel`). Bewusst als
+  **ungeprüfter, KI-übersetzter Entwurf** gekennzeichnet
+  (`needs-native-review`) – ebenso wie die sv- und fi-Entwürfe.
+- **Issue 027 Phase 1/4: Slowakisch (`sk`) als dritter vollständiger
+  Rohentwurf – damit ist Phase 1 komplett** (sv/fi/cs/sk, die vier
+  priorisierten Floorball-Nationen außerhalb DACH). `SUPPORTED_LANGUAGES`
+  in `i18n.js` um `sk` erweitert (Import + `resources`);
+  `locales/sk.json` ist strukturell 1:1 zu `en.json` (1584 Schlüssel,
+  inkl. `settings.languageSk`-Labels in allen Locale-Dateien) und wird
+  in `locales.test.js` automatisch mitgeprüft; echte slowakische
+  Pluralformen (`_few`: 2–4 „dni", `_other`/`_many`: 5+ „dní").
+  `getIntlLocale()` mappt zusätzlich sk → sk-SK. Bewusst als
+  **ungeprüfter, KI-übersetzter Entwurf** gekennzeichnet
+  (`needs-native-review`) – ebenso wie die sv-, fi- und cs-Entwürfe.
 
 ### Fixed
 - **GIF/MP4/PDF-Export ließ Board-Elemente und Spieler-Details weg**: Der

@@ -21,10 +21,13 @@ als GIF/MP4/PDF/Link, Docker-basiert und IFF-konform.
 - Frame-by-Frame-Animation mit flüssiger Interpolation, automatische
   Versionierung
 - Zeichenwerkzeuge (Bewegungs-/Pass-/Schuss-Pfeile, Freihand)
+- Torhüter-Werkzeuge (Winkel, Rebound, Konter, Kommunikation)
+- Systemvorlagen (14 eingebaute Forechecking-/Powerplay-/Boxplay-Systeme)
 - Formationen-Vorlagen, Playbooks
-- Zentraler Team-Kader, Lines (Sturm-/Defensivreihen aus echten
-  Kader-Spielern), Live-Spielnotizen, Trainingsplaner, Teams & Vereine,
-  News/Ankündigungen, Umfragen
+- Trainingsplaner, Kader, Lines, Fahrgemeinschaften (Carpool)
+- Spieler-Dashboard (Tages-/Saisonüberblick, Karte zum Spielort)
+- Live-Spielnotizen, Schuss- & Torhüter-Statistiken
+- Teams und Vereine, News/Ankündigungen, Umfragen
 - Video-Integration (Upload, Zeichnen-Überlagerung, Trimmen,
   Szenen-Marken)
 - Echtzeit-Zusammenarbeit (Präsenzanzeige, Live-Cursor)
@@ -32,8 +35,9 @@ als GIF/MP4/PDF/Link, Docker-basiert und IFF-konform.
 - Community-Bibliothek zum Teilen von Übungen instanzweit
 - Export als GIF, MP4, PDF oder öffentlicher Link; Board-Sharing
   zwischen Nutzern
-- PWA/Offline-Modus mit Konflikterkennung, zweisprachig (DE/EN),
-  barrierefrei nutzbar
+- Generisches Audit-Log (Compliance, wer hat was wann getan)
+- PWA/Offline-Modus mit Konflikterkennung, 10 Sprachen (DE, EN, SV,
+  FI, CS, SK, NB, LV, PL, FR), barrierefrei nutzbar
 
 ---
 
@@ -47,15 +51,19 @@ als GIF/MP4/PDF/Link, Docker-basiert und IFF-konform.
 ## 📱 Benutzung
 
 - [Erste Schritte – Spielfeld anlegen](./Erste-Schritte.md)
+- [Spieler-Dashboard](./Spieler-Dashboard.md)
 - [Spielzüge zeichnen](./Spielzuege-Zeichnen.md)
 - [Frame-by-Frame Animation](./Animation.md)
 - [Playbooks](./Playbooks.md)
 - [Formationen-Vorlagen](./Formationen.md)
+- [Systemvorlagen (Forechecking/Powerplay/Boxplay)](./Systemvorlagen.md)
+- [Torhüter-Werkzeuge](./Torhüter-Werkzeuge.md)
 - [Trainingsplaner](./Trainingsplaner.md)
 - [Kader](./Kader.md)
 - [Statistiken](./Statistiken.md)
 - [Lines & Sturmreihen](./Lines.md)
 - [Live-Spielnotizen](./Live-Spielnotizen.md)
+- [Fahrgemeinschaften (Carpool)](./Carpool.md)
 - [Kalender](./Kalender.md)
 - [News](./News.md)
 - [Umfragen](./Umfragen.md)
@@ -86,6 +94,7 @@ als GIF/MP4/PDF/Link, Docker-basiert und IFF-konform.
 - [DSGVO & Datenschutz](./Datenschutz.md)
 - [Backup & Export (Admin)](./Backup.md)
 - [Sicherheitshinweise](./Sicherheit.md)
+- [Audit-Log](./Audit-Log.md)
 
 ## 🆘 Hilfe
 

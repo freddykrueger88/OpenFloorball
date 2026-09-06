@@ -169,7 +169,10 @@ konkret benennbare Bausteine bis zu einer "1.0" (siehe "Noch offen").
   konfigurierten SMTP-Versand (siehe [E-Mail-Versand](./wiki/E-Mail-Versand.md));
   ohne SMTP bleibt die Funktion ohne Fehlermeldung wirkungslos.
 - **PWA** – installierbar, Service-Worker-Cache für die App-Shell.
-- Zweisprachig (Deutsch/Englisch).
+- **Mehrsprachig (10 Sprachen)** – Deutsch/Englisch als Kern, dazu
+  Schwedisch, Finnisch, Tschechisch, Slowakisch, Norwegisch Bokmål,
+  Lettisch, Polnisch und Französisch (Übersetzungen wahlweise mit
+  Markierung „needs-native-review“).
 - **Barrierefreiheit** – Farbenblind-Filter, Screenreader-Live-Region,
   Tastaturbedienung, Schriftgrößen-/ADHS-/Legasthenie-Einstellungen.
 - **CI/CD** – GitHub Actions (Lint/Test/Build für Backend & Frontend,
@@ -229,9 +232,9 @@ konkrete Backlog-Einträge vor (siehe unten).
 |---|---|
 | Version | 0.9.0 (`backend/package.json` und `frontend/package.json`) |
 | Backend | Node ≥24, Express 5, PostgreSQL 18, Redis 8 |
-| Frontend | React 19, Vite 8, react-router 8, zustand 5, Konva 10/react-konva 19, i18next (DE/EN) |
+| Frontend | React 19, Vite 8, react-router 8, zustand 5, Konva 10/react-konva 19, i18next (DE, EN, SV, FI, CS, SK, NB, LV, PL, FR) |
 | PWA | `vite-plugin-pwa`, echt konfiguriert (Workbox-Caching, Manifest) |
-| Tests | 53 Backend-Testdateien, 19 Frontend-Testdateien |
+| Tests | 64 Backend-Testdateien, 43 Frontend-Testdateien |
 | CI/CD | GitHub Actions – Lint/Test/Build (Backend + Frontend), Docker-Build-Check, Security-Scan, Dependency-Review |
 | Deployment | Docker Compose, optionales TLS-Overlay (Caddy) |
 | Lizenz | MIT |

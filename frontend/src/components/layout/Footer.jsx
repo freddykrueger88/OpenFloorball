@@ -1,5 +1,5 @@
 /**
- * Footer – globaler Datenschutz-Link auf allen Seiten (Issue #20, DSGVO)
+ * Footer – globale Links (Datenschutz, Regelwerk, Unterstützen) auf allen Seiten
  */
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ export default function Footer() {
       <div className={styles.links}>
         <Link to="/privacy">{t('footer.privacyLink')}</Link>
         <Link to="/rules">{t('footer.rulesLink')}</Link>
+        <Link to="/support">{t('footer.supportLink')}</Link>
       </div>
       <p className={styles.credit}>{t('footer.credit')}</p>
     </footer>

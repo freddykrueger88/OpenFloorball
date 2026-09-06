@@ -742,7 +742,29 @@
   "footer": {
     "privacyLink": "Integritet",
     "rulesLink": "Regler",
+    "supportLink": "Stöd",
     "credit": "Gjord med ❤️ för innebandygemenskapen"
+  },
+  "supportPage": {
+    "title": "Stöd OpenFloorball",
+    "intro": "OpenFloorball är gratis och öppen källkod. Om du gillar projektet finns det flera sätt att stödja det – ekonomiskt eller genom aktiv hjälp.",
+    "donations": {
+      "title": "Ekonomiskt stöd",
+      "githubSponsors": "GitHub Sponsors",
+      "githubSponsorsDesc": "Engångs- eller månadsgiv direkt på GitHub.",
+      "openCollective": "Open Collective",
+      "openCollectiveDesc": "Transparent finansiering för infrastruktur och utveckling."
+    },
+    "help": {
+      "title": "Hjälp till med projektet",
+      "intro": "Pengar är inte allt – aktiv hjälp är lika värdefull:",
+      "issues": "Rapportera fel",
+      "issuesDesc": "Öppna ett ärende på GitHub med en detaljerad beskrivning av felet.",
+      "code": "Bidra med kod",
+      "codeDesc": "Åtgärda fel, bygg funktioner eller granska befintliga pull requests.",
+      "translate": "Översätt",
+      "translateDesc": "Hjälp till att översätta appen till ditt språk – inga programmeringskunskaper krävs."
+    }
   },
   "privacyPage": {
     "title": "Integritetspolicy",

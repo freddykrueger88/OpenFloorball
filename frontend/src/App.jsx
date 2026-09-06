@@ -53,6 +53,7 @@ const InvitePage      = lazy(() => import('./pages/InvitePage.jsx'));
 const SettingsPage    = lazy(() => import('./pages/SettingsPage.jsx'));
 const PrivacyPage     = lazy(() => import('./pages/PrivacyPage.jsx'));
 const RulesPage       = lazy(() => import('./pages/RulesPage.jsx'));
+const SupportPage     = lazy(() => import('./pages/SupportPage.jsx'));
 const GlossaryPage    = lazy(() => import('./pages/GlossaryPage.jsx'));
 const NotFound       = lazy(() => import('./pages/NotFound.jsx'));
 
@@ -165,6 +166,7 @@ export default function App() {
             <Route path="/invite/:token" element={<InvitePage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/rules" element={<RulesPage />} />
+            <Route path="/support" element={<SupportPage />} />
             <Route path="/glossary" element={<GlossaryPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

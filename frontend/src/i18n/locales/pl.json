@@ -742,7 +742,29 @@
   "footer": {
     "privacyLink": "Prywatność",
     "rulesLink": "Zasady",
+    "supportLink": "Wspieraj",
     "credit": "Stworzone z ❤️ dla społeczności unihokeja"
+  },
+  "supportPage": {
+    "title": "Wspieraj OpenFloorball",
+    "intro": "OpenFloorball jest darmowy i open source. Jeśli podoba Ci się projekt, możesz go wspierać na kilka sposobów – finansowo lub aktywną pomocą.",
+    "donations": {
+      "title": "Wsparcie finansowe",
+      "githubSponsors": "GitHub Sponsors",
+      "githubSponsorsDesc": "Jednorazowa lub comiesięczna darowizna bezpośrednio na GitHubie.",
+      "openCollective": "Open Collective",
+      "openCollectiveDesc": "Przejrzyste finansowanie infrastruktury i rozwoju."
+    },
+    "help": {
+      "title": "Pomóż przy projekcie",
+      "intro": "Nie chodzi tylko o pieniądze – aktywna pomoc jest równie cenna:",
+      "issues": "Zgłaszaj błędy",
+      "issuesDesc": "Otwórz issue na GitHubie ze szczegółowym opisem problemu.",
+      "code": "Wnieś kod",
+      "codeDesc": "Naprawiaj błędy, twórz funkcje lub recenzuj pull requesty.",
+      "translate": "Tłumacz",
+      "translateDesc": "Pomóż przetłumaczyć aplikację na swój język – bez znajomości programowania."
+    }
   },
   "privacyPage": {
     "title": "Polityka prywatności",

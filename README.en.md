@@ -8,6 +8,9 @@
 [![License](https://img.shields.io/github/license/freddykrueger88/OpenFloorball)](https://github.com/freddykrueger88/OpenFloorball/blob/main/LICENSE)
 [![Docker](https://img.shields.io/badge/docker-ready-blue)](https://hub.docker.com/)
 [![GitHub issues](https://img.shields.io/github/issues/freddykrueger88/OpenFloorball)](https://github.com/freddykrueger88/OpenFloorball/issues)
+[![GitHub stars](https://img.shields.io/github/stars/freddykrueger88/OpenFloorball?style=flat&label=Stars&color=f5a623)](https://github.com/freddykrueger88/OpenFloorball/stargazers)
+[![GitHub Sponsors](https://img.shields.io/badge/sponsor-💝_GitHub-purple?logo=github)](https://github.com/sponsors/freddykrueger88)
+[![Open Collective](https://img.shields.io/badge/sponsor-💜_Open_Collective-blue?logo=opencollective)](https://opencollective.com/freddykrueger)
 
 > **Version:** 0.9.0 · **Status:** Active development, in production
 > use · **Stack:** React/Vite · Node/Express · PostgreSQL · Redis ·
@@ -59,6 +62,16 @@ service – your data stays on your own infrastructure.
 
 More views (training planner, roster, community library, mobile use):
 **[docs/wiki/Screenshots.en.md](docs/wiki/Screenshots.en.md)**
+
+## ⭐ Star history
+
+<a href="https://star-history.com/#freddykrueger88/OpenFloorball&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=freddykrueger88/OpenFloorball&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=freddykrueger88/OpenFloorball&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=freddykrueger88/OpenFloorball&type=Date" />
+  </picture>
+</a>
 
 ## 📊 Current status
 
@@ -231,6 +244,16 @@ not as a public issue.
 Want to help translate the app into your language? Start here:
 **[docs/TRANSLATING.en.md](docs/TRANSLATING.en.md)** – no external
 translation tool needed, just a text editor and one test command.
+
+## 💝 Support the project
+
+OpenFloorball is free and open source – but development and hosting
+take time and money. If you would like to support the project:
+
+- **[GitHub Sponsors](https://github.com/sponsors/freddykrueger88)** –
+  monthly or one-time donation
+- **[Open Collective](https://opencollective.com/freddykrueger)** –
+  transparent funding for infrastructure and development
 
 ## 📄 License
 

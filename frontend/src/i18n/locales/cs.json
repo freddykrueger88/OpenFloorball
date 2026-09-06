@@ -742,7 +742,29 @@
   "footer": {
     "privacyLink": "Ochrana údajů",
     "rulesLink": "Pravidla",
+    "supportLink": "Podpořit",
     "credit": "Vytvořeno s ❤️ pro florbalovou komunitu"
+  },
+  "supportPage": {
+    "title": "Podpořte OpenFloorball",
+    "intro": "OpenFloorball je zdarma a open source. Pokud se vám projekt líbí, můžete ho podpořit hned několika způsoby – finančně nebo aktivní pomocí.",
+    "donations": {
+      "title": "Finanční podpora",
+      "githubSponsors": "GitHub Sponsors",
+      "githubSponsorsDesc": "Jednorázový nebo měsíční příspěvek přímo na GitHubu.",
+      "openCollective": "Open Collective",
+      "openCollectiveDesc": "Transparentní financování infrastruktury a vývoje."
+    },
+    "help": {
+      "title": "Pomozte projektu",
+      "intro": "Nejde jen o peníze – aktivní pomoc je stejně cenná:",
+      "issues": "Hlásit chyby",
+      "issuesDesc": "Založte issue na GitHubu s podrobným popisem problému.",
+      "code": "Přispět kódem",
+      "codeDesc": "Opravujte chyby, vytvářejte funkce nebo recenzujte pull requesty.",
+      "translate": "Překládat",
+      "translateDesc": "Pomozte přeložit aplikaci do svého jazyka – bez znalosti programování."
+    }
   },
   "privacyPage": {
     "title": "Žádost o ochranu údajů",

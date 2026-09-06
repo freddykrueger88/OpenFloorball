@@ -8,6 +8,9 @@
 [![License](https://img.shields.io/github/license/freddykrueger88/OpenFloorball)](https://github.com/freddykrueger88/OpenFloorball/blob/main/LICENSE)
 [![Docker](https://img.shields.io/badge/docker-ready-blue)](https://hub.docker.com/)
 [![GitHub issues](https://img.shields.io/github/issues/freddykrueger88/OpenFloorball)](https://github.com/freddykrueger88/OpenFloorball/issues)
+[![GitHub stars](https://img.shields.io/github/stars/freddykrueger88/OpenFloorball?style=flat&label=Stars&color=f5a623)](https://github.com/freddykrueger88/OpenFloorball/stargazers)
+[![GitHub Sponsors](https://img.shields.io/badge/sponsor-💝_GitHub-purple?logo=github)](https://github.com/sponsors/freddykrueger88)
+[![Open Collective](https://img.shields.io/badge/sponsor-💜_Open_Collective-blue?logo=opencollective)](https://opencollective.com/freddykrueger)
 
 > **Version:** 0.9.0 · **Status:** Aktive Entwicklung, produktiv im
 > Einsatz · **Stack:** React/Vite · Node/Express · PostgreSQL · Redis
@@ -60,6 +63,16 @@ Infrastruktur.
 
 Weitere Ansichten (Trainingsplaner, Kader, Community-Bibliothek,
 mobile Nutzung): **[docs/wiki/Screenshots.md](docs/wiki/Screenshots.md)**
+
+## ⭐ Star-Historie
+
+<a href="https://star-history.com/#freddykrueger88/OpenFloorball&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=freddykrueger88/OpenFloorball&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=freddykrueger88/OpenFloorball&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=freddykrueger88/OpenFloorball&type=Date" />
+  </picture>
+</a>
 
 ## 📊 Aktueller Stand
 
@@ -219,6 +232,17 @@ Beiträge sind willkommen – lies zuerst
 [CONTRIBUTING.md](CONTRIBUTING.md). Verhaltensregeln:
 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md). Sicherheitslücken bitte
 gemäß [SECURITY.md](SECURITY.md) melden, nicht als öffentliches Issue.
+
+## 💝 Projekt unterstützen
+
+OpenFloorball ist kostenlos und quelloffen – Entwicklung und Hosting
+sind aber Arbeit und Kosten. Wer das Projekt unterstützen möchte, kann
+das hier tun:
+
+- **[GitHub Sponsors](https://github.com/sponsors/freddykrueger88)** –
+  monatliche oder einmalige Spende
+- **[Open Collective](https://opencollective.com/freddykrueger)** –
+  transparente Spendensammlung für Infrastruktur und Entwicklung
 
 ## 📄 Lizenz
 

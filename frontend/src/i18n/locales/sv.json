@@ -742,6 +742,8 @@
   "footer": {
     "privacyLink": "Integritet",
     "rulesLink": "Regler",
+    "donateGithub": "Stöd via GitHub Sponsors",
+    "donateOpenCollective": "Stöd via Open Collective",
     "credit": "Gjord med ❤️ för innebandygemenskapen"
   },
   "privacyPage": {

@@ -19,7 +19,8 @@
 .links {
   display: flex;
   justify-content: center;
-  gap: var(--space-6);
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
 }
 
 .footer a {

@@ -742,6 +742,8 @@
   "footer": {
     "privacyLink": "Privātums",
     "rulesLink": "Noteikumi",
+    "donateGithub": "Atbalsts caur GitHub Sponsors",
+    "donateOpenCollective": "Atbalsts caur Open Collective",
     "credit": "Veidots ar ❤️ florbola kopienai"
   },
   "privacyPage": {

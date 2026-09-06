@@ -742,6 +742,8 @@
   "footer": {
     "privacyLink": "Prywatność",
     "rulesLink": "Zasady",
+    "donateGithub": "Wesprzyj przez GitHub Sponsors",
+    "donateOpenCollective": "Wesprzyj przez Open Collective",
     "credit": "Stworzone z ❤️ dla społeczności unihokeja"
   },
   "privacyPage": {

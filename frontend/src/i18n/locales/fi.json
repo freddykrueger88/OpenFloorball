@@ -742,6 +742,8 @@
   "footer": {
     "privacyLink": "Tietosuoja",
     "rulesLink": "Säännöt",
+    "donateGithub": "Tue GitHub Sponsorsin kautta",
+    "donateOpenCollective": "Tue Open Collectiven kautta",
     "credit": "Tehty ❤️:lla salibandy-yhteisölle"
   },
   "privacyPage": {

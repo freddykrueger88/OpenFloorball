@@ -742,6 +742,8 @@
   "footer": {
     "privacyLink": "Confidentialité",
     "rulesLink": "Règles",
+    "donateGithub": "Soutenir via GitHub Sponsors",
+    "donateOpenCollective": "Soutenir via Open Collective",
     "credit": "Fait avec ❤️ pour la communauté du floorball"
   },
   "privacyPage": {

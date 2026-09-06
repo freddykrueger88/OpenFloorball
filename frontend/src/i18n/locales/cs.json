@@ -742,6 +742,8 @@
   "footer": {
     "privacyLink": "Ochrana údajů",
     "rulesLink": "Pravidla",
+    "donateGithub": "Podpořte přes GitHub Sponsors",
+    "donateOpenCollective": "Podpořte přes Open Collective",
     "credit": "Vytvořeno s ❤️ pro florbalovou komunitu"
   },
   "privacyPage": {

@@ -742,9 +742,29 @@
   "footer": {
     "privacyLink": "Privātums",
     "rulesLink": "Noteikumi",
-    "donateGithub": "Atbalsts caur GitHub Sponsors",
-    "donateOpenCollective": "Atbalsts caur Open Collective",
+    "supportLink": "Atbalstīt",
     "credit": "Veidots ar ❤️ florbola kopienai"
+  },
+  "supportPage": {
+    "title": "Atbalsti OpenFloorball",
+    "intro": "OpenFloorball ir bezmaksas un atvērtā pirmkoda projekts. Ja tev projekts patīk, to var atbalstīt vairākos veidos – finansiāli vai ar aktīvu palīdzību.",
+    "donations": {
+      "title": "Finansiāls atbalsts",
+      "githubSponsors": "GitHub Sponsors",
+      "githubSponsorsDesc": "Vienreizējs vai ikmēneša ziedojums tieši GitHub platformā.",
+      "openCollective": "Open Collective",
+      "openCollectiveDesc": "Caurspīdīga finansēšana infrastruktūrai un attīstībai."
+    },
+    "help": {
+      "title": "Palīdzi projektam",
+      "intro": "Nauda nav viss – aktīva palīdzība ir tikpat vērtīga:",
+      "issues": "Ziņot par kļūdām",
+      "issuesDesc": "Atver issue vietnē GitHub ar detalizētu kļūdas aprakstu.",
+      "code": "Piedalīties ar kodu",
+      "codeDesc": "Labo kļūdas, veido funkcijas vai pārskati esošos pull requestus.",
+      "translate": "Tulkot",
+      "translateDesc": "Palīdzi iztulkot lietotni savā valodā – bez programmēšanas zināšanām."
+    }
   },
   "privacyPage": {
     "title": "Privātuma politika",

@@ -742,9 +742,29 @@
   "footer": {
     "privacyLink": "Privacy",
     "rulesLink": "Rules",
-    "donateGithub": "Support via GitHub Sponsors",
-    "donateOpenCollective": "Support via Open Collective",
+    "supportLink": "Support",
     "credit": "Made with ❤️ for the floorball community"
+  },
+  "supportPage": {
+    "title": "Support OpenFloorball",
+    "intro": "OpenFloorball is free and open source. If you like the project, there are several ways to support it – financially or through active help.",
+    "donations": {
+      "title": "Financial support",
+      "githubSponsors": "GitHub Sponsors",
+      "githubSponsorsDesc": "One-time or monthly donation directly on GitHub.",
+      "openCollective": "Open Collective",
+      "openCollectiveDesc": "Transparent funding for infrastructure and development."
+    },
+    "help": {
+      "title": "Help with the project",
+      "intro": "Money isn't everything – active help is just as valuable:",
+      "issues": "Report bugs",
+      "issuesDesc": "Open an issue on GitHub with a detailed description of the bug.",
+      "code": "Contribute code",
+      "codeDesc": "Fix bugs, build features, or review existing pull requests.",
+      "translate": "Translate",
+      "translateDesc": "Help translate the app into your language – no programming skills needed."
+    }
   },
   "privacyPage": {
     "title": "Privacy Policy",

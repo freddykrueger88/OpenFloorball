@@ -742,9 +742,29 @@
   "footer": {
     "privacyLink": "Tietosuoja",
     "rulesLink": "Säännöt",
-    "donateGithub": "Tue GitHub Sponsorsin kautta",
-    "donateOpenCollective": "Tue Open Collectiven kautta",
+    "supportLink": "Tue",
     "credit": "Tehty ❤️:lla salibandy-yhteisölle"
+  },
+  "supportPage": {
+    "title": "Tue OpenFloorballia",
+    "intro": "OpenFloorball on ilmainen ja avoimen lähdekoodin. Jos pidät projektista, voit tukea sitä monella tavalla – rahallisesti tai osallistumalla aktiivisesti.",
+    "donations": {
+      "title": "Taloudellinen tuki",
+      "githubSponsors": "GitHub Sponsors",
+      "githubSponsorsDesc": "Kerta- tai kuukausilahjoitus suoraan GitHubissa.",
+      "openCollective": "Open Collective",
+      "openCollectiveDesc": "Läpinäkyvä rahoitus infrastruktuurille ja kehitykselle."
+    },
+    "help": {
+      "title": "Auta projektia",
+      "intro": "Raha ei ole kaikki – aktiivinen apu on yhtä arvokasta:",
+      "issues": "Ilmoita virheistä",
+      "issuesDesc": "Avaa issue GitHubissa ja kuvaile ongelma yksityiskohtaisesti.",
+      "code": "Osallistu koodilla",
+      "codeDesc": "Korjaa virheitä, rakenna ominaisuuksia tai arvioi avoimia pull requesteja.",
+      "translate": "Käännä",
+      "translateDesc": "Auta kääntämään sovellus omalle kielellesi – ohjelmointitaitoja ei tarvita."
+    }
   },
   "privacyPage": {
     "title": "Tietosuojaseloste",

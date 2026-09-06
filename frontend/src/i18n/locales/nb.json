@@ -742,9 +742,29 @@
   "footer": {
     "privacyLink": "Personvern",
     "rulesLink": "Regler",
-    "donateGithub": "Støtt via GitHub Sponsors",
-    "donateOpenCollective": "Støtt via Open Collective",
+    "supportLink": "Støtt",
     "credit": "Laget med ❤️ for innebandysamfunnet"
+  },
+  "supportPage": {
+    "title": "Støtt OpenFloorball",
+    "intro": "OpenFloorball er gratis og åpen kildekode. Liker du prosjektet, finnes det flere måter å støtte det på – økonomisk eller gjennom aktiv hjelp.",
+    "donations": {
+      "title": "Økonomisk støtte",
+      "githubSponsors": "GitHub Sponsors",
+      "githubSponsorsDesc": "Engangs- eller månedlig gave direkte på GitHub.",
+      "openCollective": "Open Collective",
+      "openCollectiveDesc": "Transparent finansiering av infrastruktur og utvikling."
+    },
+    "help": {
+      "title": "Bidra til prosjektet",
+      "intro": "Penger er ikke alt – aktiv hjelp er like verdifull:",
+      "issues": "Rapporter feil",
+      "issuesDesc": "Opprett en issue på GitHub med en detaljert beskrivelse av feilen.",
+      "code": "Bidra med kode",
+      "codeDesc": "Fiks feil, bygg funksjoner eller vurder eksisterende pull requests.",
+      "translate": "Oversett",
+      "translateDesc": "Hjelp med å oversette appen til ditt språk – ingen programmeringskunnskaper kreves."
+    }
   },
   "privacyPage": {
     "title": "Personvernerklæring",

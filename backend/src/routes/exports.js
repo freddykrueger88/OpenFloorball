@@ -2,6 +2,7 @@
  * Export Routes – Issue #15 (GIF), Issue #23 (MP4), Issue #24 (PDF)
  */
 import { Router } from 'express';
+import express from 'express';
 import { authenticate } from '../middleware/auth.js';
 import { startGifExport, startMp4Export, getExportStatus, downloadExport } from '../controllers/exportController.js';
 import { exportPdf, exportGameReport } from '../controllers/pdfExportController.js';
@@ -12,6 +13,9 @@ const router = Router();
 
 // Alle Export-Routen erfordern Authentifizierung
 router.use(authenticate);
+// Erst NACH authenticate parsen: Ein anonymer 50-MB-Body wird sofort mit 401
+// abgewiesen, statt Speicher/CPU im JSON-Parser zu binden.
+router.use(express.json({ limit: '50mb' }));
 
 router.post('/gif',            startGifExport);
 router.post('/mp4',            startMp4Export);

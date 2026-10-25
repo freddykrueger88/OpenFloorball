@@ -135,6 +135,14 @@ describe('Audit-Log (CLAUDE.md §19.5 Auditierbarkeit)', () => {
     expect(row.actor_id).toBe(admin.id);
     expect(row.resource_id).toBe(victim.id);
     expect(row.after_json.role).toBe('user');
+
+    // Rollenwechsel bumpt token_version (Paket A) – alte Session ist damit
+    // ungültig. Für die folgenden Export-Tests neu einloggen.
+    const relogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: victim.email, password: 'Testpass123' });
+    expect(relogin.status).toBe(200);
+    victim.cookie = relogin.headers['set-cookie'][0];
   });
 
   it('protokolliert einen CSV-Datenexport (Spiele-CSV)', async () => {

@@ -87,6 +87,43 @@ describe('POST /api/boards/:id/publish', () => {
     expect(res.status).toBe(404);
   });
 
+  it('veröffentlicht den Snapshot aus dem angegebenen Frame statt aus dem Board-JSON', async () => {
+    const boardId = await createBoard(owner.cookie, 'Frame-Snapshot');
+    const framesRes = await request(app)
+      .get(`/api/boards/${boardId}/frames`)
+      .set('Cookie', owner.cookie);
+    expect(framesRes.status).toBe(200);
+    const frame = framesRes.body.data[0];
+    expect(frame).toBeTruthy();
+
+    // Frame bewusst verändern (Board-JSON bleibt unverändert), damit der Test
+    // beweist, dass wirklich frames.data_json gelesen wird.
+    const players = [{ id: 'p1', x: 1.25, y: 2.5, team: 'home' }];
+    const elements = [{ id: 'e1', type: 'arrow', x1: 1, y1: 1, x2: 2, y2: 2 }];
+    const saveRes = await request(app)
+      .put(`/api/boards/${boardId}/frames/${frame._id}`)
+      .set('Cookie', owner.cookie)
+      .send({ players, elements });
+    expect(saveRes.status).toBe(200);
+
+    const res = await request(app)
+      .post(`/api/boards/${boardId}/publish`)
+      .set('Cookie', owner.cookie)
+      .send({ frameId: frame._id });
+    expect(res.status).toBe(201);
+    expect(res.body.data.players).toEqual(players);
+    expect(res.body.data.elements).toEqual(elements);
+  });
+
+  it('liefert 404 für eine fremde/nicht existierende Frame-ID', async () => {
+    const boardId = await createBoard(owner.cookie, 'Falscher Frame');
+    const res = await request(app)
+      .post(`/api/boards/${boardId}/publish`)
+      .set('Cookie', owner.cookie)
+      .send({ frameId: '00000000-0000-0000-0000-000000000000' });
+    expect(res.status).toBe(404);
+  });
+
   it('übernimmt einen optionalen abweichenden Namen', async () => {
     const boardId = await createBoard(owner.cookie, 'Originalname');
     const res = await request(app)

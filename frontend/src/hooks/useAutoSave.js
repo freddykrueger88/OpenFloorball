@@ -9,6 +9,7 @@ const INTERVAL_MS  = 30000;  // 30s Intervall
 
 export function useAutoSave(data, saveFn, enabled = true) {
   const [status,   setStatus  ] = useState('idle');  // idle | saving | saved | offline | error
+  const [errorMessage, setErrorMessage] = useState(null);
   const [lastSaved,setLastSaved] = useState(null);
   const debounceRef = useRef(null);
   const intervalRef = useRef(null);
@@ -18,6 +19,7 @@ export function useAutoSave(data, saveFn, enabled = true) {
   const save = useCallback(async () => {
     if (!enabled) return;
     setStatus('saving');
+    setErrorMessage(null);
     try {
       await saveFn(dataRef.current);
       setStatus('saved');
@@ -29,6 +31,9 @@ export function useAutoSave(data, saveFn, enabled = true) {
       // in der offlineQueue gepuffert (siehe apiFetch.js), kein
       // Datenverlust – UI zeigt das getrennt von einem echten Fehler
       setStatus(err?.offlineQueued ? 'offline' : 'error');
+      // Konkrete Servermeldung (z.B. 413 "Anfrage zu groß") anzeigen,
+      // statt nur eines generischen "Fehler beim Speichern".
+      setErrorMessage(err?.offlineQueued ? null : (err?.message ?? null));
     }
   }, [saveFn, enabled]);
 
@@ -48,5 +53,5 @@ export function useAutoSave(data, saveFn, enabled = true) {
     return () => clearInterval(intervalRef.current);
   }, [save, enabled]);
 
-  return { status, lastSaved, saveNow: save };
+  return { status, errorMessage, lastSaved, saveNow: save };
 }

@@ -26,6 +26,12 @@ import useAnnounceStore from '../store/announceStore.js';
 let _id = 0;
 const uid = () => `el_${++_id}_${Date.now()}`;
 
+// Freihand-/Element-Koordinaten auf 1 cm runden. Vorher landeten rohe
+// Float-Werte (viele Nachkommastellen) in jedem Punkt und blähten das
+// Frame-JSON unnötig auf – bei langen Freihand-Strichen ein Vielfaches der
+// tatsächlich benötigten Datenmenge. 0.01 m ist feiner als die Anzeige.
+const roundCoord = (value) => Math.round(value * 100) / 100;
+
 // Standard-Phrase für per Drag gezeichnete Torwart-Kommunikations-Blasen
 // (Formular lässt eine freie Phrase wählen und überschreibt text).
 const defaultKommLabelKey = KOMM_PHRASES.find((p) => p.key === KOMM_DEFAULT_PHRASE_KEY)?.labelKey;
@@ -275,13 +281,16 @@ export function useDrawing(onLocalChange) {
     const tool = TOOLS[activeTool];
     if (!tool) return;
 
+    const x = roundCoord(x_m);
+    const y = roundCoord(y_m);
+
     setIsDrawing(true);
 
     if (activeTool === 'freehand') {
       const el = {
         id: uid(),
         type: 'freehand',
-        points: [x_m, y_m],
+        points: [x, y],
         color: activeColor,
         strokeWidth,
         dash: [],
@@ -296,8 +305,8 @@ export function useDrawing(onLocalChange) {
       const el = {
         id: uid(),
         type: activeTool,
-        x1: x_m, y1: y_m,
-        x2: x_m, y2: y_m,
+        x1: x, y1: y,
+        x2: x, y2: y,
         color: activeColor,
         strokeWidth: tool.strokeWidth ?? strokeWidth,
         dash: tool.dash ?? [],
@@ -321,20 +330,22 @@ export function useDrawing(onLocalChange) {
   const handlePointerMove = useCallback((x_m, y_m) => {
     if (!isDrawing || !currentElRef.current) return;
     const id = currentElRef.current;
+    const x = roundCoord(x_m);
+    const y = roundCoord(y_m);
 
     dispatch({
       type: 'SET_ELEMENTS_RAW',
       updater: (prev) => prev.map((el) => {
         if (el.id !== id) return el;
         if (el.type === 'freehand') {
-          return { ...el, points: [...el.points, x_m, y_m] };
+          return { ...el, points: [...el.points, x, y] };
         }
         // Torwart-Winkel: die Spitze (der Torwart-Standort) ist der Punkt,
         // der den Cursor verfolgt – nicht das (ignorierte) x2/y2-Ende.
         if (el.type === 'winkel') {
-          return { ...el, x1: x_m, y1: y_m };
+          return { ...el, x1: x, y1: y };
         }
-        return { ...el, x2: x_m, y2: y_m };
+        return { ...el, x2: x, y2: y };
       }),
     });
   }, [isDrawing]);

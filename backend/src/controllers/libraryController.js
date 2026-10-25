@@ -54,7 +54,32 @@ export async function publishToLibrary(req, res) {
       return res.status(404).json(error('Spielfeld nicht gefunden'));
     }
 
-    const name = (req.body.name ?? board.name ?? '').trim() || board.name;
+    const body = req.body ?? {};
+    const name = (body.name ?? board.name ?? '').trim() || board.name;
+
+    // Publish ist ein Snapshot des AKTUELLEN Spielzugs, nicht der veralteten
+    // boards.players_json/elements_json (die werden beim Frame-Save nicht mehr
+    // gepflegt). Ohne explizite frameId wird der erste Frame genommen – das
+    // entspricht dem sichtbaren Standardzustand beim Öffnen des Boards.
+    let players = board.players_json;
+    let elements = board.elements_json;
+    const frameResult = body.frameId
+      ? await pool.query(
+        'SELECT data_json FROM frames WHERE id = $1 AND board_id = $2',
+        [body.frameId, board.id]
+      )
+      : await pool.query(
+        'SELECT data_json FROM frames WHERE board_id = $1 ORDER BY order_index ASC LIMIT 1',
+        [board.id]
+      );
+    if (body.frameId && frameResult.rows.length === 0) {
+      return res.status(404).json(error('Frame nicht gefunden'));
+    }
+    if (frameResult.rows.length > 0) {
+      const data = frameResult.rows[0].data_json ?? {};
+      players = Array.isArray(data.players) ? data.players : [];
+      elements = Array.isArray(data.elements) ? data.elements : [];
+    }
 
     const result = await pool.query(
       `INSERT INTO library_entries (
@@ -66,7 +91,7 @@ export async function publishToLibrary(req, res) {
       [
         board.id, req.user.id, name, board.field_type, board.category, board.age_group,
         board.goal, board.material, board.theme, board.home_color, board.away_color,
-        board.ball_color, JSON.stringify(board.players_json), JSON.stringify(board.elements_json),
+        board.ball_color, JSON.stringify(players), JSON.stringify(elements),
       ]
     );
     res.status(201).json(created(toApiLibraryEntry(result.rows[0])));

@@ -1450,6 +1450,29 @@ export async function runMigrations() {
         WHERE external_source IS NOT NULL;
     `);
 
+    // ── Paket A: Session-Revocation + Registrierungsstatus ───────────────
+    // token_version wird in jedes JWT geschrieben (siehe routes/auth.js) und
+    // von der Auth-Middleware live gegen die DB geprüft. Ein Passwortwechsel,
+    // Passwort-Reset oder Rollenwechsel erhöht die Version und macht damit
+    // alle älteren Tokens dieses Nutzers sofort ungültig – unabhängig von
+    // JWT_EXPIRES_IN. Bestehende Tokens ohne `ver` werden als Version 0
+    // behandelt (nahtloses Upgrade, bis sie ablaufen/neu ausgestellt werden).
+    await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER NOT NULL DEFAULT 0;`);
+
+    // Registrierungsmodi: 'open' | 'invite' | 'approval' | 'closed'. Bei
+    // 'approval' wird der Account mit status='pending' angelegt und kann erst
+    // nach Admin-Freigabe einloggen. Bestandsnutzer sind immer 'active'.
+    await client.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active';`);
+    await client.query(`
+      DO $$
+      BEGIN
+        ALTER TABLE users ADD CONSTRAINT users_status_check
+          CHECK (status IN ('active', 'pending'));
+      EXCEPTION
+        WHEN duplicate_object THEN NULL;
+      END $$;
+    `);
+
     await client.query('COMMIT');
     logger.info('Database migrations completed successfully.');
   } catch (err) {

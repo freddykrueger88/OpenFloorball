@@ -119,22 +119,53 @@ export default function AdminSection() {
     }
   };
 
+  // approval-Modus: pending-Accounts freigeben oder endgültig ablehnen.
+  const handleApproveUser = async (id) => {
+    setAdminError(null);
+    try {
+      const updated = await apiFetch(`/api/admin/users/${id}/approve`, { method: 'POST' });
+      setUsers((prev) => prev.map((row) => row.id === id ? updated : row));
+    } catch (err) {
+      setAdminError(err.message);
+    }
+  };
+
+  const handleRejectUser = async (id) => {
+    setAdminError(null);
+    try {
+      await apiFetch(`/api/admin/users/${id}/reject`, { method: 'POST' });
+      setUsers((prev) => prev.filter((row) => row.id !== id));
+    } catch (err) {
+      setAdminError(err.message);
+    }
+  };
+
   return (
     <section className={styles.section}>
       <h2>{t('settings.adminTitle')}</h2>
       {adminError && <p className={styles.msgError}><AlertTriangle size={16} aria-hidden="true" /> {adminError}</p>}
       <table className={styles.userTable}>
         <thead>
-          <tr><th>{t('settings.colEmail')}</th><th>{t('settings.colRole')}</th><th>{t('settings.colRegistered')}</th><th></th></tr>
+          <tr><th>{t('settings.colEmail')}</th><th>{t('settings.colRole')}</th><th>{t('settings.colStatus')}</th><th>{t('settings.colRegistered')}</th><th></th></tr>
         </thead>
         <tbody>
           {users.map((u) => (
             <tr key={u.id}>
               <td>{u.email}</td>
               <td>{u.role}</td>
+              <td>{u.status === 'pending' ? t('settings.statusPending') : t('settings.statusActive')}</td>
               <td>{formatDate(u.created_at)}</td>
               <td className={styles.userActions}>
-                {u.id !== user.id && (
+                {u.status === 'pending' ? (
+                  <>
+                    <Button variant="primary" size="sm" className={styles.smallBtn} onClick={() => handleApproveUser(u.id)}>
+                      {t('settings.approveBtn')}
+                    </Button>
+                    <Button variant="danger" size="sm" className={styles.smallBtnDanger} onClick={() => handleRejectUser(u.id)}>
+                      {t('settings.rejectBtn')}
+                    </Button>
+                  </>
+                ) : u.id !== user.id && (
                   <>
                     <Button variant="secondary" size="sm" className={styles.smallBtn} onClick={() => handleToggleRole(u)}>
                       {u.role === 'admin' ? t('settings.demoteBtn') : t('settings.promoteBtn')}

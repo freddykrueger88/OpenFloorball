@@ -15,7 +15,7 @@ import useAnnounceStore from '../../store/announceStore.js';
 import Button from '../common/Button.jsx';
 import styles from './PublishBoardModal.module.css';
 
-export default function PublishBoardModal({ boardId, onClose, onPublished }) {
+export default function PublishBoardModal({ boardId, frameId, onClose, onPublished }) {
   const { t } = useTranslation();
   const { loading, error, publishBoard } = useBoardsApi();
   const [done, setDone] = useState(false);
@@ -24,7 +24,9 @@ export default function PublishBoardModal({ boardId, onClose, onPublished }) {
 
   const handleConfirm = async () => {
     try {
-      const entry = await publishBoard(boardId);
+      // Backend nimmt den Snapshot aus genau diesem Frame; ohne frameId
+      // (z.B. Aufruf von außerhalb des Editors) fällt es auf Frame 1 zurück.
+      const entry = await publishBoard(boardId, frameId ? { frameId } : {});
       setDone(true);
       useAnnounceStore.getState().announce(t('library.publishSuccess'));
       onPublished?.(entry);

@@ -31,6 +31,11 @@ beforeAll(async () => {
   await forceRole(admin.id, 'admin');
   await forceRole(regular.id, 'user');
   await forceRole(victim.id, 'user');
+  // Testisolation: In der gemeinsam genutzten Test-DB können aus früheren
+  // Läufen/anderen Dateien weitere Admins liegen. Der Last-Admin-Schutz
+  // unten würde dann nicht greifen und der Selbst-Demotion-Test würde den
+  // eigenen Admin degradieren. Für diesen Test gibt es genau einen Admin.
+  await pool.query("UPDATE users SET role = 'user' WHERE role = 'admin' AND id <> $1", [admin.id]);
   // Die Rolle steckt im JWT-Payload (Stand beim Ausstellen, siehe
   // middleware/auth.js) – forceRole() ändert nur die DB, das beim
   // register() bereits ausgestellte Cookie trägt noch die alte Rolle.
@@ -98,6 +103,10 @@ describe('DELETE /api/admin/users/:id', () => {
     const check = await pool.query('SELECT id FROM users WHERE id = $1', [victim.id]);
     expect(check.rows).toHaveLength(0);
 
+    // Gelöschtes Konto: altes Cookie darf nicht weiter funktionieren.
+    const meAfterDelete = await request(app).get('/api/auth/me').set('Cookie', victim.cookie);
+    expect(meAfterDelete.status).toBe(401);
+
     const orphaned = await pool.query(
       "SELECT id FROM comments WHERE resource_type = 'board' AND resource_id = $1",
       [boardId]
@@ -115,12 +124,26 @@ describe('PUT /api/admin/users/:id/role', () => {
     expect(res.status).toBe(400);
   });
 
-  it('befördert einen normalen User zu Admin', async () => {
+  it('befördert einen normalen User zu Admin und invalidiert dessen alte Session', async () => {
+    const oldCookie = regular.cookie;
     const res = await request(app)
       .put(`/api/admin/users/${regular.id}/role`)
       .set('Cookie', admin.cookie)
       .send({ role: 'admin' });
     expect(res.status).toBe(200);
     expect(res.body.data.role).toBe('admin');
+
+    // Rollenwechsel bumpt token_version → alte Session sofort ungültig.
+    const oldMe = await request(app).get('/api/auth/me').set('Cookie', oldCookie);
+    expect(oldMe.status).toBe(401);
+
+    const relogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: regular.email, password: 'Testpass123' });
+    expect(relogin.status).toBe(200);
+    const newCookie = relogin.headers['set-cookie'][0];
+    const newMe = await request(app).get('/api/auth/me').set('Cookie', newCookie);
+    expect(newMe.status).toBe(200);
+    expect(newMe.body.data.user.role).toBe('admin');
   });
 });

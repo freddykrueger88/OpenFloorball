@@ -57,6 +57,33 @@ nano .env
 |---|---|---|
 | `COOKIE_SECURE` | Session cookie over HTTPS only. Set to `false` if there's **no** TLS reverse proxy in front (otherwise the browser rejects the login cookie) | `true` |
 
+## Reverse proxy
+
+| Variable | Description | Default |
+|---|---|---|
+| `TRUST_PROXY` | Number of trusted proxy hops for Express `trust proxy`: `1` = bundled Nginx, `2` = additional host Nginx/Traefik, `false`/`0` = no proxy, or CIDR/IP (e.g. `loopback`, `10.0.0.0/8`) | `1` |
+
+## Registration & first admin
+
+| Variable | Description | Default |
+|---|---|---|
+| `REGISTRATION_MODE` | `open` \| `invite` (code required) \| `approval` (admin must approve) \| `closed` (no registration) | `open` |
+| `REGISTRATION_INVITE_CODE` | Shared invite code for `invite`. Long random value, e.g. `openssl rand -hex 24`. Invite link: `https://domain/register?invite=<CODE>` | – |
+| `BOOTSTRAP_ADMIN_EMAIL` | First admin in production. Only created while no user exists | – |
+| `BOOTSTRAP_ADMIN_PASSWORD` | Password for the bootstrap admin (min. 8 chars, upper/lowercase + digit). Never overwritten later | – |
+
+> **Important:** In production, a random first registrant no longer becomes
+> admin. Without an active admin, registration stays locked (HTTP 503) until
+> `BOOTSTRAP_ADMIN_EMAIL`/`BOOTSTRAP_ADMIN_PASSWORD` are set and the server
+> is restarted.
+
+## JSON & import limits
+
+| Variable | Description | Default |
+|---|---|---|
+| `BOARD_JSON_LIMIT` | Max. size of a board/frame save. Parsing happens only after login; all other JSON endpoints stay at 10 KB | `4mb` |
+| `MAX_IMPORT_UNCOMPRESSED_MB` | Max. uncompressed size of `backup.json` during ZIP import (zip-bomb protection) | `25` |
+
 ## Share links
 
 | Variable | Description | Default |

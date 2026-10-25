@@ -6,7 +6,8 @@ import { body, param } from 'express-validator';
 import { authenticate, requireAdmin } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
-  listUsers, deleteUser, updateUserRole, getBackupConfig, updateBackupConfig,
+  listUsers, deleteUser, updateUserRole, approveUser, rejectUser,
+  getBackupConfig, updateBackupConfig,
   triggerBackupNow, getAiConfig, updateAiConfig,
 } from '../controllers/adminController.js';
 import { listReportedLibraryEntries } from '../controllers/libraryController.js';
@@ -17,6 +18,8 @@ router.use(authenticate, requireAdmin);
 
 router.get('/users', listUsers);
 router.delete('/users/:id', [param('id').isUUID(), validate], deleteUser);
+router.post('/users/:id/approve', [param('id').isUUID(), validate], approveUser);
+router.post('/users/:id/reject', [param('id').isUUID(), validate], rejectUser);
 router.put('/users/:id/role', [
   param('id').isUUID(),
   body('role').isIn(['admin', 'user']).withMessage('Ungültige Rolle'),

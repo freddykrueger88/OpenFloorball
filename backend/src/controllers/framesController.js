@@ -65,16 +65,16 @@ export async function addFrame(req, res) {
     }
 
     const dataJson = {
-      label:    req.body.label ?? '',
-      players:  req.body.players ?? [],
-      elements: req.body.elements ?? [],
+      label:    req.body?.label ?? '',
+      players:  req.body?.players ?? [],
+      elements: req.body?.elements ?? [],
     };
 
     const insertResult = await client.query(
       `INSERT INTO frames (board_id, order_index, data_json, duration_ms)
        VALUES ($1, $2, $3::jsonb, $4)
        RETURNING *`,
-      [req.params.id, order, JSON.stringify(dataJson), req.body.duration ?? 1000]
+      [req.params.id, order, JSON.stringify(dataJson), req.body?.duration ?? 1000]
     );
 
     await client.query('COMMIT');
@@ -104,12 +104,13 @@ export async function updateFrame(req, res) {
     }
 
     const currentData = existing.rows[0].data_json || {};
+    const body = req.body ?? {};
     const nextData = {
-      label:    req.body.label    !== undefined ? req.body.label    : currentData.label,
-      players:  req.body.players  !== undefined ? req.body.players  : currentData.players,
-      elements: req.body.elements !== undefined ? req.body.elements : currentData.elements,
+      label:    body.label    !== undefined ? body.label    : currentData.label,
+      players:  body.players  !== undefined ? body.players  : currentData.players,
+      elements: body.elements !== undefined ? body.elements : currentData.elements,
     };
-    const duration = req.body.duration !== undefined ? req.body.duration : existing.rows[0].duration_ms;
+    const duration = body.duration !== undefined ? body.duration : existing.rows[0].duration_ms;
 
     const result = await pool.query(
       `UPDATE frames SET data_json = $1::jsonb, duration_ms = $2
@@ -185,7 +186,7 @@ export async function reorderFrames(req, res) {
       return res.status(404).json(error('Board nicht gefunden'));
     }
 
-    const { order } = req.body;
+    const { order } = req.body ?? {};
     if (!Array.isArray(order)) {
       return res.status(400).json(error('"order" muss ein Array von Frame-IDs sein'));
     }

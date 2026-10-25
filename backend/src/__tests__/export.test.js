@@ -94,7 +94,18 @@ describe('POST /api/export/mp4', () => {
 });
 
 describe('POST /api/export/gif – Body-Größen-Limit (Regression)', () => {
-  it('lehnt einen Body über 10kb nicht mit 413 ab (globaler JSON-Parser darf /api/export nicht mehr treffen)', async () => {
+  it('weist einen großen, ungültigen Body ohne Login mit 401 ab (kein Pre-Auth-Parsing)', async () => {
+    // Wenn der 50-MB-Parser noch VOR authenticate liefe, käme hier 400
+    // (JSON-Syntaxfehler) statt 401 – und der Body würde unnötig geparst.
+    const raw = `{${'x'.repeat(60_000)}`;
+    const res = await request(app)
+      .post('/api/export/gif')
+      .set('Content-Type', 'application/json')
+      .send(raw);
+    expect(res.status).toBe(401);
+  });
+
+  it('lehnt einen authentifizierten Body über 10kb nicht mit 413 ab (export-eigener 50-MB-Parser)', async () => {
     // Realistische Frame-PNGs liegen deutlich über dem allgemeinen 10kb-
     // Limit (server.js, express.json) – nur der /export-Sub-Router erlaubt
     // bis zu 50mb. Muss NICHT gültiges PNG sein, hier geht es rein um den

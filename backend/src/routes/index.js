@@ -2,7 +2,6 @@
  * OpenFloorball – Route Index
  */
 import { Router } from 'express';
-import express from 'express';
 import authRoutes from './auth.js';
 import boardRoutes from './boards.js';
 import frameRoutes from './frames.js';
@@ -88,8 +87,9 @@ router.use('/games/:id/clock', gameClockRoutes);
 router.use('/games/:id/match-lines', matchLinesRoutes);
 router.use('/games/:id/videos', gameVideosRoutes);
 router.use('/event-types', eventTypeDefinitionsRoutes);
-// GIF-Export braucht großes JSON-Limit (Base64-PNGs) – nur auf diesem Sub-Router
-router.use('/export', express.json({ limit: '50mb' }), exportRoutes);
+// GIF-Export braucht großes JSON-Limit (Base64-PNGs) – der Parser sitzt in
+// routes/exports.js NACH authenticate, nicht mehr hier davor.
+router.use('/export', exportRoutes);
 // Öffentliche Share-Link-Ansicht – bewusst NICHT hinter authenticate (Issue #16)
 router.use('/share', shareViewRoutes);
 // Öffentliche Einladungs-Vorschau – bewusst NICHT hinter authenticate

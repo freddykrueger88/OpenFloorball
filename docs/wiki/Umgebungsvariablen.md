@@ -57,6 +57,33 @@ nano .env
 |---|---|---|
 | `COOKIE_SECURE` | Session-Cookie nur über HTTPS. `false` setzen, wenn **kein** TLS-Reverse-Proxy davorsteht (sonst verwirft der Browser das Login-Cookie) | `true` |
 
+## Reverse Proxy
+
+| Variable | Beschreibung | Standard |
+|---|---|---|
+| `TRUST_PROXY` | Anzahl vertrauenswürdiger Proxy-Hops für Express `trust proxy`: `1` = gebündelter Nginx, `2` = zusätzlich Host-Nginx/Traefik, `false`/`0` = kein Proxy, oder CIDR/IP (z. B. `loopback`, `10.0.0.0/8`) | `1` |
+
+## Registrierung & erster Admin
+
+| Variable | Beschreibung | Standard |
+|---|---|---|
+| `REGISTRATION_MODE` | `open` (offen) \| `invite` (nur mit Code) \| `approval` (Admin muss freigeben) \| `closed` (keine Registrierung) | `open` |
+| `REGISTRATION_INVITE_CODE` | Gemeinsamer Einladungscode für `invite`. Langer Zufallswert, z. B. `openssl rand -hex 24`. Einladungslink: `https://domain/register?invite=<CODE>` | – |
+| `BOOTSTRAP_ADMIN_EMAIL` | Erster Admin in Produktion. Wird nur angelegt, solange noch kein User existiert | – |
+| `BOOTSTRAP_ADMIN_PASSWORD` | Passwort zum Bootstrap-Admin (min. 8 Zeichen, Groß-/Kleinbuchstaben + Zahl). Wird nie nachträglich überschrieben | – |
+
+> **Wichtig:** In Produktion wird kein zufälliger Erst-Registrant mehr Admin.
+> Ohne aktiven Admin bleibt die Registrierung gesperrt (HTTP 503), bis
+> `BOOTSTRAP_ADMIN_EMAIL`/`BOOTSTRAP_ADMIN_PASSWORD` gesetzt und der Server
+> neu gestartet wurde.
+
+## JSON- & Import-Limits
+
+| Variable | Beschreibung | Standard |
+|---|---|---|
+| `BOARD_JSON_LIMIT` | Max. Größe eines Board-/Frame-Saves. Der Parser läuft erst nach dem Login; alle anderen JSON-Endpunkte bleiben bei 10 KB | `4mb` |
+| `MAX_IMPORT_UNCOMPRESSED_MB` | Max. entpackte Größe von `backup.json` beim ZIP-Import (Schutz vor ZIP-Bomben) | `25` |
+
 ## Share-Links
 
 | Variable | Beschreibung | Standard |

@@ -21,6 +21,151 @@ afterAll(async () => {
 });
 
 describe('POST /api/auth/register', () => {
+  it('liefert die öffentliche Registrierungs-Konfiguration', async () => {
+    const res = await request(app).get('/api/auth/registration');
+    expect(res.status).toBe(200);
+    expect(res.body.data.mode).toBe('open');
+    expect(res.body.data.allowRegistration).toBe(true);
+    expect(res.body.data.requiresInvite).toBe(false);
+  });
+
+  it('vergibt in Produktion keinen Admin mehr an den ersten Registranten', async () => {
+    // Sicherstellen, dass ein aktiver Admin existiert (sonst greift der
+    // Setup-Schutz und die Registrierung wird mit 503 abgelehnt).
+    const adminRes = await request(app)
+      .post('/api/auth/register')
+      .send({ email: uniqueEmail('prod-admin'), password: 'Testpass123', birthday: '1990-01-01' });
+    await pool.query("UPDATE users SET role = 'admin', status = 'active' WHERE id = $1", [adminRes.body.data.user.id]);
+
+    const prevNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({ email: uniqueEmail('prod-user'), password: 'Testpass123', birthday: '1990-01-01' });
+      expect(res.status).toBe(201);
+      expect(res.body.data.user.role).toBe('user');
+    } finally {
+      process.env.NODE_ENV = prevNodeEnv;
+    }
+  });
+
+  it('blockiert invite ohne bzw. mit falschem Code und akzeptiert den richtigen', async () => {
+    const prevMode = process.env.REGISTRATION_MODE;
+    const prevCode = process.env.REGISTRATION_INVITE_CODE;
+    process.env.REGISTRATION_MODE = 'invite';
+    process.env.REGISTRATION_INVITE_CODE = 'invite-secret-123';
+    try {
+      const email = uniqueEmail('invite');
+      const missing = await request(app)
+        .post('/api/auth/register')
+        .send({ email, password: 'Testpass123', birthday: '1990-01-01' });
+      expect(missing.status).toBe(403);
+
+      const wrong = await request(app)
+        .post('/api/auth/register')
+        .send({ email, password: 'Testpass123', birthday: '1990-01-01', inviteCode: 'falsch' });
+      expect(wrong.status).toBe(403);
+
+      const ok = await request(app)
+        .post('/api/auth/register')
+        .send({ email, password: 'Testpass123', birthday: '1990-01-01', inviteCode: 'invite-secret-123' });
+      expect(ok.status).toBe(201);
+      expect(ok.body.data.user.email).toBe(email);
+    } finally {
+      if (prevMode === undefined) delete process.env.REGISTRATION_MODE;
+      else process.env.REGISTRATION_MODE = prevMode;
+      if (prevCode === undefined) delete process.env.REGISTRATION_INVITE_CODE;
+      else process.env.REGISTRATION_INVITE_CODE = prevCode;
+    }
+  });
+
+  it('approval: pending-Account kann nicht einloggen, bis ein Admin freigibt', async () => {
+    // Admin zuerst im offenen Modus anlegen (im approval-Modus würde auch
+    // dieser Account pending).
+    const adminEmail = uniqueEmail('approval-admin');
+    const adminReg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: adminEmail, password: 'Testpass123', birthday: '1990-01-01' });
+    await pool.query("UPDATE users SET role = 'admin' WHERE id = $1", [adminReg.body.data.user.id]);
+    const adminLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: adminEmail, password: 'Testpass123' });
+    const adminCookie = adminLogin.headers['set-cookie'][0];
+
+    const prevMode = process.env.REGISTRATION_MODE;
+    process.env.REGISTRATION_MODE = 'approval';
+    try {
+      const email = uniqueEmail('pending');
+      const reg = await request(app)
+        .post('/api/auth/register')
+        .send({ email, password: 'Testpass123', birthday: '1990-01-01' });
+      expect(reg.status).toBe(202);
+      expect(reg.body.data.pending).toBe(true);
+      expect(reg.headers['set-cookie']).toBeUndefined();
+
+      const pendingLogin = await request(app)
+        .post('/api/auth/login')
+        .send({ email, password: 'Testpass123' });
+      expect(pendingLogin.status).toBe(403);
+
+      const list = await request(app).get('/api/admin/users').set('Cookie', adminCookie);
+      const pendingUser = list.body.data.find((u) => u.email === email);
+      expect(pendingUser.status).toBe('pending');
+
+      const approve = await request(app)
+        .post(`/api/admin/users/${pendingUser.id}/approve`)
+        .set('Cookie', adminCookie);
+      expect(approve.status).toBe(200);
+      expect(approve.body.data.status).toBe('active');
+
+      const approvedLogin = await request(app)
+        .post('/api/auth/login')
+        .send({ email, password: 'Testpass123' });
+      expect(approvedLogin.status).toBe(200);
+    } finally {
+      if (prevMode === undefined) delete process.env.REGISTRATION_MODE;
+      else process.env.REGISTRATION_MODE = prevMode;
+    }
+  });
+
+  it('approval: Admin kann eine ausstehende Registrierung ablehnen', async () => {
+    const adminEmail = uniqueEmail('reject-admin');
+    const adminReg = await request(app)
+      .post('/api/auth/register')
+      .send({ email: adminEmail, password: 'Testpass123', birthday: '1990-01-01' });
+    await pool.query("UPDATE users SET role = 'admin' WHERE id = $1", [adminReg.body.data.user.id]);
+    const adminLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: adminEmail, password: 'Testpass123' });
+    const adminCookie = adminLogin.headers['set-cookie'][0];
+
+    const prevMode = process.env.REGISTRATION_MODE;
+    process.env.REGISTRATION_MODE = 'approval';
+    try {
+      const email = uniqueEmail('rejected');
+      const reg = await request(app)
+        .post('/api/auth/register')
+        .send({ email, password: 'Testpass123', birthday: '1990-01-01' });
+      expect(reg.status).toBe(202);
+
+      const list = await request(app).get('/api/admin/users').set('Cookie', adminCookie);
+      const pendingUser = list.body.data.find((u) => u.email === email);
+      const reject = await request(app)
+        .post(`/api/admin/users/${pendingUser.id}/reject`)
+        .set('Cookie', adminCookie);
+      expect(reject.status).toBe(200);
+
+      const login = await request(app)
+        .post('/api/auth/login')
+        .send({ email, password: 'Testpass123' });
+      expect(login.status).toBe(401);
+    } finally {
+      if (prevMode === undefined) delete process.env.REGISTRATION_MODE;
+      else process.env.REGISTRATION_MODE = prevMode;
+    }
+  });
+
   it('legt einen neuen User an und setzt ein Cookie', async () => {
     const email = uniqueEmail('register');
     const res = await request(app)

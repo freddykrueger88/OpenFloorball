@@ -51,6 +51,14 @@
   color: var(--color-text-muted);
   white-space: nowrap;
 }
+
+/* Konkrete Fehlermeldung (z.B. 413) im Header nicht über die ganze Breite
+   laufen lassen – vollständiger Text bleibt per title/aria-live erreichbar. */
+.saveErrorText {
+  max-width: min(320px, 38vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 /* UI/UX-Audit: kleines Status-Icon statt reinem Textwechsel – "gespeichert"
    bekommt einen kurzen grünen Check statt nur denselben grauen Text wie
    "speichert…" zu ersetzen. */

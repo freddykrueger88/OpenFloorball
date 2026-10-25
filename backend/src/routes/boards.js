@@ -2,6 +2,7 @@
  * /api/boards – Spielfeld-Routen (authentifiziert, user-scoped)
  */
 import { Router } from 'express';
+import express from 'express';
 import { body, param } from 'express-validator';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
@@ -14,6 +15,12 @@ import { publishToLibrary } from '../controllers/libraryController.js';
 const router = Router();
 
 router.use(authenticate);
+
+// Board-/Frame-Saves dürfen deutlich größer als 10 KB sein (viele Freihand-
+// Punkte). Der Parser läuft bewusst erst nach authenticate; der globale
+// 10-KB-Parser in server.js überspringt genau diese Pfade.
+const BOARD_JSON_LIMIT = process.env.BOARD_JSON_LIMIT || '4mb';
+router.use(express.json({ limit: BOARD_JSON_LIMIT }));
 
 const validateBoard = [
   body('name')
@@ -63,6 +70,7 @@ router.delete('/:id',  [param('id').isUUID().withMessage('Ungültige Board-ID'),
 router.post  ('/:id/share', [param('id').isUUID().withMessage('Ungültige Board-ID'), validate], createShareLink);
 router.post  ('/:id/publish', [
   param('id').isUUID().withMessage('Ungültige Board-ID'),
+  body('frameId').optional().isUUID().withMessage('Ungültige Frame-ID'),
   body('name').optional().trim().isLength({ max: 80 }).withMessage('Name max. 80 Zeichen'),
   validate,
 ], publishToLibrary);

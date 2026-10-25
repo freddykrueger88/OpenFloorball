@@ -210,6 +210,44 @@ describe('POST /api/user/import', () => {
     expect(res.status).toBe(400);
   });
 
+  it('lehnt eine ZIP-Bombe (entpackt > 25 MB) mit 413 ab', async () => {
+    // 30 MB 'x' komprimieren auf wenige KB – die komprimierte Upload-Grenze
+    // (10 MB) greift hier nicht. Der Import muss die deklarierte entpackte
+    // Größe prüfen, bevor getData() den Speicher flutet.
+    const zipBuffer = buildBackupZip({ boards: [], padding: 'x'.repeat(30 * 1024 * 1024) });
+
+    const res = await request(app)
+      .post('/api/user/import')
+      .set('Cookie', regular.cookie)
+      .attach('file', zipBuffer, 'backup.zip');
+    expect(res.status).toBe(413);
+    expect(res.body.message).toMatch(/zu groß/i);
+  }, 30000);
+
+  it('lehnt eine ZIP mit zu vielen Einträgen mit 413 ab', async () => {
+    const zip = new AdmZip();
+    zip.addFile('backup.json', Buffer.from(JSON.stringify({ format: BACKUP_FORMAT, boards: [] })));
+    for (let i = 0; i < 101; i += 1) {
+      zip.addFile(`extra-${i}.txt`, Buffer.from('x'));
+    }
+
+    const res = await request(app)
+      .post('/api/user/import')
+      .set('Cookie', regular.cookie)
+      .attach('file', zip.toBuffer(), 'backup.zip');
+    expect(res.status).toBe(413);
+  });
+
+  it('lehnt ein Backup mit ungültigem frames-Feld mit 400 ab', async () => {
+    const zipBuffer = buildBackupZip({ boards: [{ name: 'Kaputt', frames: 'keine-liste' }] });
+
+    const res = await request(app)
+      .post('/api/user/import')
+      .set('Cookie', regular.cookie)
+      .attach('file', zipBuffer, 'backup.zip');
+    expect(res.status).toBe(400);
+  });
+
   it('lehnt eine Nicht-ZIP-Datei mit 400 ab', async () => {
     const res = await request(app)
       .post('/api/user/import')

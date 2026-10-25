@@ -11,6 +11,7 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { runMigrations } from './db/migrate.js';
 import { connectRedis } from './db/redis.js';
+import { ensureBootstrapAdmin } from './services/bootstrapAdmin.js';
 import { rescheduleBackupCron } from './services/backupCron.js';
 import { attachPresenceServer } from './services/presenceServer.js';
 import apiRoutes from './routes/index.js';
@@ -34,8 +35,21 @@ const PORT = process.env.PORT || 3001;
 const httpServer = http.createServer(app);
 attachPresenceServer(httpServer);
 
-// Backend läuft hinter dem Nginx-Reverse-Proxy (docker-compose) – erster Hop vertrauenswürdig
-app.set('trust proxy', 1);
+// Reverse-Proxy-Vertrauen ist deploymentspezifisch (siehe .env.example):
+//   1        – Standard: genau ein Proxy davor (gebündelter Nginx-Container)
+//   2        – Host-Nginx/Traefik + gebündelter Nginx-Container
+//   false/0  – Backend direkt erreichbar, kein Proxy
+//   <CIDR/IP> – z.B. "loopback" oder "10.0.0.0/8"
+const TRUST_PROXY_RAW = process.env.TRUST_PROXY;
+if (TRUST_PROXY_RAW === undefined || TRUST_PROXY_RAW.trim() === '') {
+  app.set('trust proxy', 1);
+} else if (TRUST_PROXY_RAW === 'false' || TRUST_PROXY_RAW === '0') {
+  app.set('trust proxy', false);
+} else if (/^\d+$/.test(TRUST_PROXY_RAW)) {
+  app.set('trust proxy', parseInt(TRUST_PROXY_RAW, 10));
+} else {
+  app.set('trust proxy', TRUST_PROXY_RAW);
+}
 
 // ── Security ──────────────────────────────────
 // HSTS an dieselbe COOKIE_SECURE-Weiche gekoppelt wie utils/cookies.js:
@@ -219,14 +233,19 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // ── Parser ────────────────────────────────────
-// /api/export/* (GIF-/MP4-/PDF-Export, Frame-Share) braucht ein deutlich
-// größeres JSON-Limit für Base64-PNG-Frames – routes/index.js setzt dafür
-// bereits einen eigenen express.json({ limit: '50mb' }) auf diesem
-// Sub-Router. Ohne diese Ausnahme hier wäre das wirkungslos: der Body wird
-// nur einmal geparst, und dieser globale 10kb-Parser läuft zuerst (413,
-// bevor der Sub-Router überhaupt zum Zug kommt).
+// Kleines Standardlimit (10 KB) schützt alle pre-auth erreichbaren JSON-
+// Endpunkte vor übergroßen Bodies. Zwei Ausnahmen:
+//   - /api/boards/:id und /api/boards/:id/frames(/…): Board-/Frame-Saves
+//     brauchen mehr Platz, werden aber erst NACH authenticate im jeweiligen
+//     Router geparst (routes/boards.js, routes/frames.js) – nicht pre-auth.
+//   - /api/export/*: 50-MB-Parser sitzt ebenfalls erst NACH authenticate
+//     (routes/exports.js), damit ein anonymer 50-MB-Body nicht mehr geparst
+//     wird (P1: Pre-Auth-Parsing).
+const LARGE_BOARD_JSON_PATH = /^\/api\/boards\/[0-9a-f-]{36}(?:\/frames(?:\/[0-9a-f-]{36})?)?\/?$/i;
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api/export')) return next();
+  // Export-Routen werden ebenfalls übersprungen, aber ihr 50-MB-Parser sitzt
+  // in routes/exports.js NACH authenticate – nicht hier davor.
+  if (LARGE_BOARD_JSON_PATH.test(req.path) || req.path.startsWith('/api/export')) return next();
   express.json({ limit: '10kb' })(req, res, next);
 });
 app.use(express.urlencoded({ extended: false }));
@@ -270,6 +289,7 @@ async function bootstrap() {
     validateEnv();
     await connectRedis();
     await runMigrations();
+    await ensureBootstrapAdmin();
     await rescheduleBackupCron();
     httpServer.listen(PORT, '0.0.0.0', () => {
       logger.info(`OpenFloorball Backend läuft auf Port ${PORT} (${process.env.NODE_ENV || 'development'})`);

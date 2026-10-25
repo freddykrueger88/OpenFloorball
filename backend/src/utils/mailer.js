@@ -93,26 +93,34 @@ const NEW_USER_TEMPLATES = {
   ],
 };
 
-// Benachrichtigt alle Admins per Mail über eine Neuregistrierung – außer
-// beim allerersten Nutzer (der wird selbst automatisch Admin, sich
+// Benachrichtigt alle aktiven Admins per Mail über eine Neuregistrierung –
+// außer beim allerersten Nutzer in Dev/Test (der wird dort selbst Admin, sich
 // selbst über die eigene Registrierung zu benachrichtigen wäre unnötig).
-export async function notifyAdminsOfNewUser({ email, name }, { isFirstUser }) {
+export async function notifyAdminsOfNewUser({ email, name }, { isFirstUser, pending = false }) {
   if (isFirstUser) return;
   try {
     const admins = await pool.query(
       `SELECT u.email, s.preferences_json->>'language' AS language
        FROM users u
        LEFT JOIN settings s ON s.user_id = u.id
-       WHERE u.role = 'admin'`
+       WHERE u.role = 'admin' AND u.status = 'active'`
     );
     if (admins.rows.length === 0) return;
 
     const who = name ? `${name} (${email})` : email;
 
     await Promise.all(admins.rows.map((admin) => {
-      const templates = NEW_USER_TEMPLATES[resolveEmailLanguage(admin.language)];
+      const language = resolveEmailLanguage(admin.language);
+      const templates = NEW_USER_TEMPLATES[language];
       const template = templates[Math.floor(Math.random() * templates.length)](who);
-      return sendMail({ to: admin.email, ...template });
+      // approval-Modus: Der Account ist noch nicht nutzbar, der Admin muss
+      // ihn im Admin-Bereich freigeben – das gehört in die Benachrichtigung.
+      const suffix = pending
+        ? (language === 'en'
+          ? '\n\nNote: this account is waiting for approval in the admin settings.'
+          : '\n\nHinweis: Der Account wartet im Admin-Bereich auf Freigabe.')
+        : '';
+      return sendMail({ to: admin.email, ...template, text: `${template.text}${suffix}` });
     }));
   } catch (err) {
     // Darf eine Registrierung nie zum Scheitern bringen (analog sendMail selbst).

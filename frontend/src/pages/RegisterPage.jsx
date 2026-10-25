@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import api from '../utils/api.js';
@@ -13,18 +13,64 @@ export default function RegisterPage() {
 
   // Vorbefüllung, wenn über einen Einladungs-Link gekommen (siehe
   // InvitePage.jsx) – die eigentliche Zuordnung passiert serverseitig
-  // rein über den E-Mail-Abgleich bei der Registrierung.
-  const [form, setForm] = useState({ email: searchParams.get('email') ?? '', password: '', name: '', birthday: '' });
+  // rein über den E-Mail-Abgleich bei der Registrierung. `invite` ist der
+  // gemeinsame Registrierungscode (REGISTRATION_INVITE_CODE), kein
+  // Board-Einladungstoken.
+  const [form, setForm] = useState({
+    email: searchParams.get('email') ?? '',
+    password: '',
+    name: '',
+    birthday: '',
+    inviteCode: searchParams.get('invite') ?? '',
+  });
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
+  const [pending, setPending] = useState(false);
+  const [registration, setRegistration] = useState(null);
+
+  // Öffentliche Registrierungs-Konfiguration: Modus (offen/Einladung/
+  // Freigabe/geschlossen), ob die Instanz eingerichtet ist und ob ein Code
+  // nötig ist. Fehler hier dürfen das Formular nicht blockieren – das Backend
+  // prüft ohnehin nochmal.
+  useEffect(() => {
+    let active = true;
+    api.get('/auth/registration')
+      .then((res) => { if (active) setRegistration(res.data.data); })
+      .catch(() => { /* Formular bleibt nutzbar, Backend entscheidet */ });
+    return () => { active = false; };
+  }, []);
+
+  const blockedReason = !registration
+    ? null
+    : registration.mode === 'closed'
+      ? t('auth.registrationClosed')
+      : !registration.initialized
+        ? t('auth.registrationNotInitialized')
+        : registration.requiresInvite && !registration.inviteConfigured
+          ? t('auth.registrationInviteNotConfigured')
+          : null;
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     setErr(null);
     try {
-      const res = await api.post('/auth/register', form);
-      setUser(res.data.data.user);
+      const payload = { ...form };
+      if (!registration?.requiresInvite) delete payload.inviteCode;
+      const res = await api.post('/auth/register', payload);
+
+      // approval-Modus: 202 ohne User/Cookie – Konto wartet auf Freigabe.
+      if (res.data.data?.pending) {
+        setPending(true);
+        return;
+      }
+
+      const user = res.data.data?.user;
+      if (!user) {
+        setErr(t('auth.registerError'));
+        return;
+      }
+      setUser(user);
       // Onboarding-Ausbau: Demo-Testumgebung direkt nach der Registrierung
       // anlegen (idempotent, siehe useDemoData.js/backend demoData-Service).
       // Bewusst frontend-seitig statt im Register-Endpunkt selbst, damit ein
@@ -51,72 +97,110 @@ export default function RegisterPage() {
         <p className="auth-slogan">{t('auth.slogan')}</p>
 
         <h1 className="auth-title">{t('auth.registerTitle')}</h1>
-        <p className="auth-hint">{t('auth.firstUserAdmin')}</p>
 
-        {err && (
-          <div role="alert" className="auth-error">
-            <span>{err}</span>
-          </div>
+        {pending ? (
+          <p className="auth-success" role="status">{t('auth.pendingApproval')}</p>
+        ) : (
+          <>
+            {!blockedReason && (
+              <p className="auth-hint">
+                {registration?.requiresApproval
+                  ? t('auth.approvalHint')
+                  : registration?.requiresInvite
+                    ? t('auth.inviteHint')
+                    : t('auth.openRegistrationHint')}
+              </p>
+            )}
+
+            {blockedReason && (
+              <div role="alert" className="auth-error">
+                <span>{blockedReason}</span>
+              </div>
+            )}
+
+            {err && (
+              <div role="alert" className="auth-error">
+                <span>{err}</span>
+              </div>
+            )}
+
+            {!blockedReason && (
+              <form onSubmit={handleSubmit} noValidate>
+                <div className="form-group">
+                  <label htmlFor="name">{t('auth.name')}</label>
+                  <input
+                    id="name"
+                    type="text"
+                    autoComplete="name"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder={t('auth.namePlaceholder')}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="email">{t('auth.email')}</label>
+                  <input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    placeholder="coach@example.com"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="password">{t('auth.password')}</label>
+                  <input
+                    id="password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    placeholder="••••••••"
+                  />
+                  <span className="form-hint">{t('auth.passwordHint')}</span>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="birthday">{t('auth.birthday')}</label>
+                  <input
+                    id="birthday"
+                    type="date"
+                    autoComplete="bday"
+                    required
+                    max={new Date().toISOString().slice(0, 10)}
+                    value={form.birthday}
+                    onChange={(e) => setForm({ ...form, birthday: e.target.value })}
+                  />
+                  <span className="form-hint">{t('auth.birthdayHint')}</span>
+                </div>
+
+                {registration?.requiresInvite && (
+                  <div className="form-group">
+                    <label htmlFor="inviteCode">{t('auth.inviteCode')}</label>
+                    <input
+                      id="inviteCode"
+                      type="text"
+                      autoComplete="off"
+                      required
+                      value={form.inviteCode}
+                      onChange={(e) => setForm({ ...form, inviteCode: e.target.value })}
+                    />
+                    <span className="form-hint">{t('auth.inviteCodeHint')}</span>
+                  </div>
+                )}
+
+                <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
+                  {loading ? t('auth.registering') : t('auth.registerBtn')}
+                </button>
+              </form>
+            )}
+          </>
         )}
-
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="form-group">
-            <label htmlFor="name">{t('auth.name')}</label>
-            <input
-              id="name"
-              type="text"
-              autoComplete="name"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder={t('auth.namePlaceholder')}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="email">{t('auth.email')}</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="coach@example.com"
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">{t('auth.password')}</label>
-            <input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              placeholder="••••••••"
-            />
-            <span className="form-hint">{t('auth.passwordHint')}</span>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="birthday">{t('auth.birthday')}</label>
-            <input
-              id="birthday"
-              type="date"
-              autoComplete="bday"
-              required
-              max={new Date().toISOString().slice(0, 10)}
-              value={form.birthday}
-              onChange={(e) => setForm({ ...form, birthday: e.target.value })}
-            />
-            <span className="form-hint">{t('auth.birthdayHint')}</span>
-          </div>
-
-          <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
-            {loading ? t('auth.registering') : t('auth.registerBtn')}
-          </button>
-        </form>
 
         <p className="auth-switch">
           {t('auth.hasAccount')}{' '}

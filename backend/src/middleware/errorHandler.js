@@ -18,6 +18,21 @@ export const notFoundHandler = (req, res) => {
  * 500 Handler – Interne Serverfehler
  */
 export const errorHandler = (err, req, res, _next) => {
+  // Body-Parser-Limit (express.json): klare Meldung statt generischem 500.
+  // Betrifft insbesondere große Board-/Frame-Saves (BOARD_JSON_LIMIT) und
+  // andere JSON-Endpunkte.
+  if (err.type === 'entity.too.large') {
+    if (process.env.NODE_ENV !== 'test') {
+      logger.warn(`[413] ${req.method} ${req.originalUrl}: Request-Body zu groß`);
+    }
+    return res.status(413).json({
+      success: false,
+      error: 'Anfrage zu groß',
+      message: 'Die Anfrage ist zu groß. Bitte die Zeichnung verkleinern oder in mehrere Frames aufteilen.',
+      status: 413,
+    });
+  }
+
   const status = err.status || err.statusCode || 500;
   const message = process.env.NODE_ENV === 'production'
     ? 'Internal Server Error'

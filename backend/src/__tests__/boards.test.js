@@ -134,6 +134,48 @@ describe('Board CRUD', () => {
   });
 });
 
+describe('Board-/Frame-JSON-Limits (Paket A)', () => {
+  let boardId;
+  let frameId;
+
+  beforeAll(async () => {
+    const createRes = await request(app)
+      .post('/api/boards')
+      .set('Cookie', userA.cookie)
+      .send({ name: 'Große Zeichnung', fieldType: 'large' });
+    boardId = createRes.body.data._id;
+    const framesRes = await request(app)
+      .get(`/api/boards/${boardId}/frames`)
+      .set('Cookie', userA.cookie);
+    frameId = framesRes.body.data[0]._id;
+  });
+
+  afterAll(async () => {
+    await request(app).delete(`/api/boards/${boardId}`).set('Cookie', userA.cookie);
+  });
+
+  it('akzeptiert einen Frame-Save deutlich über dem globalen 10-KB-Limit', async () => {
+    // ~40 KB Freihand-Punkte – vor dem Fix scheiterte das am globalen
+    // express.json({ limit: '10kb' }) mit 413, obwohl der Request eingeloggt war.
+    const points = Array.from({ length: 4000 }, (_, i) => Number((i / 100).toFixed(2)));
+    const res = await request(app)
+      .put(`/api/boards/${boardId}/frames/${frameId}`)
+      .set('Cookie', userA.cookie)
+      .send({ players: [], elements: [{ id: 'e1', type: 'freehand', points }] });
+    expect(res.status).toBe(200);
+    expect(res.body.data.elements[0].points).toHaveLength(points.length);
+  });
+
+  it('lehnt einen Frame-Save über dem konfigurierten Board-Limit mit klarer 413-Meldung ab', async () => {
+    const res = await request(app)
+      .put(`/api/boards/${boardId}/frames/${frameId}`)
+      .set('Cookie', userA.cookie)
+      .send({ blob: 'x'.repeat(5 * 1024 * 1024) });
+    expect(res.status).toBe(413);
+    expect(res.body.message).toMatch(/zu groß/i);
+  });
+});
+
 describe('Board opponent (ROADMAP-Backlog: Gegner-Tagging)', () => {
   it('legt ein Board mit Gegner an und gibt ihn zurück', async () => {
     const res = await request(app)

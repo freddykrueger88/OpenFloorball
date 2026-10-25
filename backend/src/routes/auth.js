@@ -19,6 +19,9 @@ import { success, created, error } from '../utils/apiResponse.js';
 import { COOKIE_OPTS } from '../utils/cookies.js';
 import { notifyAdminsOfNewUser, sendMail } from '../utils/mailer.js';
 import { resolveEmailLanguage } from '../utils/emailLanguage.js';
+import {
+  getRegistrationMode, getInviteCode, inviteCodeMatches, isBootstrapConfigured, allowsFirstUserAdmin,
+} from '../utils/registration.js';
 import logger from '../utils/logger.js';
 
 const router = Router();
@@ -58,6 +61,7 @@ const registerValidation = [
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
     .withMessage('Passwort muss Groß-, Kleinbuchstaben und eine Zahl enthalten'),
   body('name').optional().trim().isLength({ max: 100 }).withMessage('Name zu lang'),
+  body('inviteCode').optional().isString().isLength({ max: 200 }).withMessage('Ungültiger Einladungscode'),
   birthdayValidation,
 ];
 
@@ -73,13 +77,50 @@ const newPasswordValidation = body('newPassword')
   .withMessage('Passwort muss Groß-, Kleinbuchstaben und eine Zahl enthalten');
 
 // ── Helper: JWT erstellen ──────────────────────
-function signToken(userId, role) {
+// token_version wird mit signiert und in middleware/auth.js live gegen die DB
+// geprüft – Passwortwechsel/-Reset oder Rollenwechsel machen ältere Tokens
+// sofort ungültig (siehe Migration).
+function signToken(userId, role, tokenVersion = 0) {
   return jwt.sign(
-    { sub: userId, role },
+    { sub: userId, role, ver: tokenVersion },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN, algorithm: 'HS256' }
   );
 }
+
+// ── GET /api/auth/registration ─────────────────
+// Öffentliche, nicht sensible Auskunft für die Registrierungsseite: welcher
+// Modus ist aktiv, ist die Instanz eingerichtet, braucht es einen Code?
+router.get('/registration', async (_req, res) => {
+  try {
+    const mode = getRegistrationMode();
+    const countResult = await pool.query(
+      `SELECT COUNT(*)::int AS users,
+              COUNT(*) FILTER (WHERE role = 'admin' AND status = 'active')::int AS admins
+       FROM users`
+    );
+    const { admins } = countResult.rows[0];
+    // In Produktion gilt die Instanz erst als eingerichtet, wenn ein Admin
+    // existiert (Bootstrap) – sonst könnte sich niemand freischalten.
+    const initialized = process.env.NODE_ENV !== 'production' || admins > 0;
+    const inviteConfigured = getInviteCode().length > 0;
+    const allowRegistration = mode !== 'closed'
+      && initialized
+      && (mode !== 'invite' || inviteConfigured);
+
+    return res.json(success({
+      mode,
+      initialized,
+      requiresInvite: mode === 'invite',
+      inviteConfigured,
+      requiresApproval: mode === 'approval',
+      allowRegistration,
+    }));
+  } catch (err) {
+    logger.error('Registration config error:', err);
+    return res.status(500).json(error('Interner Serverfehler'));
+  }
+});
 
 // ── POST /api/auth/register ────────────────────
 router.post('/register', registerValidation, async (req, res) => {
@@ -89,12 +130,46 @@ router.post('/register', registerValidation, async (req, res) => {
   }
 
   const { email, password, name, birthday } = req.body;
+  const mode = getRegistrationMode();
+
+  if (mode === 'closed') {
+    return res.status(403).json(error('Die Registrierung ist derzeit geschlossen.'));
+  }
+
+  if (mode === 'invite') {
+    const expected = getInviteCode();
+    if (!expected) {
+      logger.error('REGISTRATION_MODE=invite, aber REGISTRATION_INVITE_CODE ist nicht gesetzt.');
+      return res.status(503).json(error('Registrierung ist noch nicht eingerichtet. Bitte den Betreiber kontaktieren.'));
+    }
+    if (!inviteCodeMatches(req.body.inviteCode, expected)) {
+      return res.status(403).json(error('Ungültiger Einladungscode.'));
+    }
+  }
 
   try {
-    // Prüfen ob bereits ein User existiert → erster User = Admin
-    const countResult = await pool.query('SELECT COUNT(*) FROM users');
-    const isFirstUser = parseInt(countResult.rows[0].count, 10) === 0;
-    const role = isFirstUser ? 'admin' : 'user';
+    const countResult = await pool.query(
+      `SELECT COUNT(*)::int AS users,
+              COUNT(*) FILTER (WHERE role = 'admin' AND status = 'active')::int AS admins
+       FROM users`
+    );
+    const { users: userCount, admins: adminCount } = countResult.rows[0];
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // P0-Fix: In Produktion niemals den ersten zufälligen Registranten zum
+    // Admin machen. Ohne aktiven Admin (Bootstrap) bleibt die Registrierung
+    // gesperrt, bis der Betreiber die Instanz eingerichtet hat.
+    if (isProduction && adminCount === 0 && !isBootstrapConfigured()) {
+      return res.status(503).json(error(
+        'Die Instanz ist noch nicht eingerichtet. Bitte BOOTSTRAP_ADMIN_EMAIL und '
+        + 'BOOTSTRAP_ADMIN_PASSWORD setzen und den Server neu starten.'
+      ));
+    }
+    if (isProduction && adminCount === 0) {
+      return res.status(503).json(error(
+        'Kein aktiver Admin vorhanden – bitte zuerst den Bootstrap-Admin anlegen/prüfen.'
+      ));
+    }
 
     // E-Mail Duplikat prüfen
     const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
@@ -102,15 +177,22 @@ router.post('/register', registerValidation, async (req, res) => {
       return res.status(409).json(error('E-Mail bereits registriert'));
     }
 
+    // In Test/Dev bleibt der Komfortpfad "erster User = Admin" erhalten,
+    // damit lokale Setups und die bestehende Testsuite unverändert laufen.
+    // In Produktion ist allowsFirstUserAdmin() immer false.
+    const isFirstUser = userCount === 0;
+    const status = mode === 'approval' ? 'pending' : 'active';
+    const role = isFirstUser && allowsFirstUserAdmin(mode) ? 'admin' : 'user';
+
     // Passwort hashen
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
     // User anlegen
     const result = await pool.query(
-      `INSERT INTO users (email, password_hash, role, display_name, birthday)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, email, role, display_name, birthday, created_at`,
-      [email, passwordHash, role, name || null, birthday]
+      `INSERT INTO users (email, password_hash, role, display_name, birthday, status)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, email, role, display_name, birthday, status, token_version, created_at`,
+      [email, passwordHash, role, name || null, birthday, status]
     );
     const user = result.rows[0];
 
@@ -137,13 +219,30 @@ router.post('/register', registerValidation, async (req, res) => {
       logger.error('[register] Einladungen konnten nicht übernommen werden:', inviteErr);
     }
 
+    if (status === 'pending') {
+      logger.info(`User registered (pending approval): ${user.id}`);
+      notifyAdminsOfNewUser(
+        { email: user.email, name: user.display_name },
+        { isFirstUser, pending: true }
+      );
+      return res.status(202).json(success({
+        pending: true,
+        message: 'Registrierung eingegangen. Ein Admin muss dein Konto noch freigeben.',
+      }));
+    }
+
     // JWT
-    const token = signToken(user.id, user.role);
+    const token = signToken(user.id, user.role, user.token_version);
     res.cookie('token', token, COOKIE_OPTS);
 
-    logger.info(`User registered: ${user.id} (role: ${role})`);
+    logger.info(`User registered: ${user.id} (role: ${role}, status: ${status})`);
     notifyAdminsOfNewUser({ email: user.email, name: user.display_name }, { isFirstUser });
-    return res.status(201).json(created({ user: { id: user.id, email: user.email, role: user.role, name: user.display_name, birthday: user.birthday } }));
+    return res.status(201).json(created({
+      user: {
+        id: user.id, email: user.email, role: user.role, name: user.display_name,
+        birthday: user.birthday, status: user.status,
+      },
+    }));
   } catch (err) {
     logger.error('Register error:', err);
     return res.status(500).json(error('Interner Serverfehler'));
@@ -161,7 +260,8 @@ router.post('/login', loginValidation, async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT id, email, password_hash, role, display_name, birthday FROM users WHERE email = $1',
+      `SELECT id, email, password_hash, role, display_name, birthday, status, token_version
+       FROM users WHERE email = $1`,
       [email]
     );
 
@@ -177,11 +277,21 @@ router.post('/login', loginValidation, async (req, res) => {
       return res.status(401).json(error('Ungültige Anmeldedaten'));
     }
 
-    const token = signToken(user.id, user.role);
+    // approval-Modus: Konto existiert, darf aber noch nicht rein.
+    if (user.status !== 'active') {
+      return res.status(403).json(error('Dein Konto wartet noch auf die Freigabe durch einen Admin.'));
+    }
+
+    const token = signToken(user.id, user.role, user.token_version);
     res.cookie('token', token, COOKIE_OPTS);
 
     logger.info(`User logged in: ${user.id}`);
-    return res.json(success({ user: { id: user.id, email: user.email, role: user.role, name: user.display_name, birthday: user.birthday } }));
+    return res.json(success({
+      user: {
+        id: user.id, email: user.email, role: user.role, name: user.display_name,
+        birthday: user.birthday, status: user.status,
+      },
+    }));
   } catch (err) {
     logger.error('Login error:', err);
     return res.status(500).json(error('Interner Serverfehler'));
@@ -322,7 +432,16 @@ router.put('/password', authenticate, [
     }
 
     const newHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
-    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [newHash, req.user.id]);
+    // token_version hochzählen: alle anderen Sessions dieses Nutzers werden
+    // sofort ungültig. Für die aktuelle Session wird gleich ein neues Cookie
+    // ausgestellt, damit der Nutzer nach der Änderung nicht rausfliegt.
+    const updated = await pool.query(
+      `UPDATE users SET password_hash = $1, token_version = token_version + 1
+       WHERE id = $2 RETURNING role, token_version`,
+      [newHash, req.user.id]
+    );
+    const token = signToken(req.user.id, updated.rows[0].role, updated.rows[0].token_version);
+    res.cookie('token', token, COOKIE_OPTS);
     logger.info(`User changed password: ${req.user.id}`);
     return res.json(success({ message: 'Passwort geändert' }));
   } catch (err) {
@@ -421,7 +540,10 @@ router.post('/reset-password', [
     }
 
     const newHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
-    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [newHash, resetToken.user_id]);
+    await pool.query(
+      `UPDATE users SET password_hash = $1, token_version = token_version + 1 WHERE id = $2`,
+      [newHash, resetToken.user_id]
+    );
     // Einmal verwendbar: Token sofort löschen, damit ein zweiter Versuch
     // mit demselben Link (auch bei Erfolg) nicht mehr funktioniert.
     await pool.query('DELETE FROM password_reset_tokens WHERE id = $1', [resetToken.id]);

@@ -17,7 +17,7 @@ cd OpenFloorball
 
 # 2. Configure environment variables
 cp .env.example .env
-nano .env   # Set JWT_SECRET and the DB password!
+nano .env   # Set JWT_SECRET, DB password AND the bootstrap admin!
 
 # 3. Start containers
 docker compose up -d
@@ -38,11 +38,23 @@ docker compose logs -f
 
 ## First launch
 
-1. Open `http://localhost` (or `http://localhost:${APP_PORT}` if you
-   changed it)
-2. Click **"Register"**
-3. The first registered user automatically becomes **admin**
-4. Create your first field and start coaching!
+1. Before the first start, set in `.env`:
+   ```bash
+   BOOTSTRAP_ADMIN_EMAIL=admin@example.com
+   BOOTSTRAP_ADMIN_PASSWORD=<strong password>
+   ```
+   The admin is only created while no user exists. In production, a random
+   first registrant no longer becomes admin.
+2. Open `http://localhost` (or `http://localhost:${APP_PORT}` if you
+   changed it) and log in with the bootstrap admin.
+3. Create your first field and start coaching!
+4. Optional: use `REGISTRATION_MODE` to decide whether others may register
+   openly (`open`), only with an invite code (`invite`), only after approval
+   (`approval`), or not at all (`closed`).
+
+> Without an active admin, registration stays locked (HTTP 503) until
+> `BOOTSTRAP_ADMIN_EMAIL`/`BOOTSTRAP_ADMIN_PASSWORD` are set and the server
+> is restarted.
 
 ## Updates
 
@@ -59,6 +71,10 @@ docker compose up -d --build
 | `JWT_SECRET` | **Change this!** At least 64 characters | - |
 | `DB_PASSWORD` | **Change this!** Strong password | - |
 | `REDIS_PASSWORD` | **Change this!** Strong password | - |
+| `TRUST_PROXY` | Number of trusted proxy hops (`1` = bundled Nginx, `2` = additional host proxy, `false` = none) | `1` |
+| `REGISTRATION_MODE` | `open`, `invite`, `approval` or `closed` | `open` |
+| `BOOTSTRAP_ADMIN_EMAIL` | First admin, created only while no user exists | - |
+| `BOOTSTRAP_ADMIN_PASSWORD` | Password for the bootstrap admin | - |
 | `COOKIE_SECURE` | Only send the session cookie over HTTPS. Set to `false` if there's no TLS reverse proxy in front (otherwise the login cookie gets rejected) | `true` |
 
 > ⚠️ **Security:** Make sure to change `JWT_SECRET` and `DB_PASSWORD` before the first start!

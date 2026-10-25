@@ -92,11 +92,22 @@ describe('PUT /api/auth/password', () => {
   });
 
   it('ändert das Passwort und erlaubt Login mit dem neuen', async () => {
+    const oldCookie = cookie;
     const res = await request(app)
       .put('/api/auth/password')
       .set('Cookie', cookie)
       .send({ currentPassword: 'Testpass123', newPassword: 'NeuesPass456' });
     expect(res.status).toBe(200);
+
+    // token_version-Bump: alte Session sofort ungültig, aktuelle Session
+    // bekommt ein neues Cookie, damit sie nicht rausfliegt.
+    const newCookie = res.headers['set-cookie']?.[0];
+    expect(newCookie).toMatch(/^token=/);
+    const oldMe = await request(app).get('/api/auth/me').set('Cookie', oldCookie);
+    expect(oldMe.status).toBe(401);
+    const newMe = await request(app).get('/api/auth/me').set('Cookie', newCookie);
+    expect(newMe.status).toBe(200);
+    cookie = newCookie;
 
     const loginRes = await request(app)
       .post('/api/auth/login')

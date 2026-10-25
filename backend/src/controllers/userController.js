@@ -33,6 +33,18 @@ const MAX_GAME_EVENTS_PER_GAME = 500;
 const MAX_GAME_SQUAD_PER_GAME = 40;
 const MAX_MATCH_LINES_PER_GAME = 200;
 
+// Import-Schutz (Paket A): Die 10-MB-Grenze in routes/user.js gilt nur für
+// die komprimierte ZIP-Datei. Eine kleine ZIP-Bombe kann daraus hunderte MB
+// im Speicher machen. Deshalb zusätzlich die deklarierte/echte Größe von
+// backup.json und die Anzahl der ZIP-Einträge/Boards begrenzen.
+const MAX_IMPORT_UNCOMPRESSED_MB = (() => {
+  const parsed = parseInt(process.env.MAX_IMPORT_UNCOMPRESSED_MB || '25', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 25;
+})();
+const MAX_IMPORT_UNCOMPRESSED_BYTES = MAX_IMPORT_UNCOMPRESSED_MB * 1024 * 1024;
+const MAX_IMPORT_ENTRIES = 100;
+const MAX_IMPORT_BOARDS = 1000;
+
 export async function deleteAccount(req, res) {
   try {
     const userResult = await pool.query('SELECT email, role FROM users WHERE id = $1', [req.user.id]);
@@ -127,11 +139,28 @@ export async function importAccount(req, res) {
   let data;
   try {
     const zip = new AdmZip(req.file.buffer);
+    const entries = zip.getEntries();
+    if (entries.length > MAX_IMPORT_ENTRIES) {
+      return res.status(413).json(error(`ZIP enthält zu viele Einträge (max. ${MAX_IMPORT_ENTRIES})`));
+    }
     const entry = zip.getEntry('backup.json');
     if (!entry) {
       return res.status(400).json(error('ZIP enthält keine backup.json'));
     }
-    data = JSON.parse(entry.getData().toString('utf8'));
+    // header.size ist die deklarierte UNkomprimierte Größe – vor getData()
+    // prüfen, damit eine kleine ZIP-Bombe nicht erst im Speicher explodiert.
+    if (entry.header.size > MAX_IMPORT_UNCOMPRESSED_BYTES) {
+      return res.status(413).json(error(
+        `Backup ist entpackt zu groß (max. ${MAX_IMPORT_UNCOMPRESSED_MB} MB)`
+      ));
+    }
+    const raw = entry.getData();
+    if (raw.length > MAX_IMPORT_UNCOMPRESSED_BYTES) {
+      return res.status(413).json(error(
+        `Backup ist entpackt zu groß (max. ${MAX_IMPORT_UNCOMPRESSED_MB} MB)`
+      ));
+    }
+    data = JSON.parse(raw.toString('utf8'));
   } catch {
     return res.status(400).json(error('Ungültige oder beschädigte ZIP-Datei'));
   }
@@ -142,6 +171,29 @@ export async function importAccount(req, res) {
   if (!Array.isArray(data.boards)) {
     return res.status(400).json(error('Backup enthält keine Boards'));
   }
+  if (data.boards.length > MAX_IMPORT_BOARDS) {
+    return res.status(400).json(error(`Backup enthält zu viele Boards (max. ${MAX_IMPORT_BOARDS})`));
+  }
+  const optionalArrays = ['playbooks', 'rosterPlayers', 'lines', 'games', 'formations', 'trainingSessions'];
+  for (const key of optionalArrays) {
+    if (data[key] !== undefined && !Array.isArray(data[key])) {
+      return res.status(400).json(error(`Backup-Feld "${key}" ist kein Array`));
+    }
+  }
+  for (const board of data.boards) {
+    if (!board || typeof board !== 'object' || Array.isArray(board)) {
+      return res.status(400).json(error('Backup enthält ein ungültiges Board'));
+    }
+    if (board.frames !== undefined && !Array.isArray(board.frames)) {
+      return res.status(400).json(error('Backup enthält ungültige Frames'));
+    }
+  }
+  // Fehlende optionale Listen als leer behandeln, frames normalisieren.
+  data = {
+    ...data,
+    ...Object.fromEntries(optionalArrays.map((key) => [key, data[key] ?? []])),
+    boards: data.boards.map((board) => ({ ...board, frames: board.frames ?? [] })),
+  };
 
   const client = await pool.connect();
   let imported = 0;

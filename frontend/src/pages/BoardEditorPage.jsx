@@ -342,7 +342,7 @@ export default function BoardEditorPage() {
   // Issue #54: vorher wurden nur die Spieler-Positionen beobachtet –
   // gezeichnete Pfeile/Linien lösten dadurch kein Autosave aus und gingen
   // beim Frame-Wechsel verloren, da drawing.elements noch nicht gespeichert war.
-  const { status: saveStatus, saveNow: saveFrameNow } = useAutoSave(
+  const { status: saveStatus, errorMessage: saveErrorMessage, saveNow: saveFrameNow } = useAutoSave(
     { players: drawing.players, elements: drawing.elements },
     saveActiveFrame,
     !!activeFrame && !anim.playing && canEdit,
@@ -630,7 +630,17 @@ export default function BoardEditorPage() {
           {saveStatus === 'saving'  && <><Loader2 size={14} className={styles.spin} aria-hidden="true" /> {t('boardEditor.saving')}</>}
           {saveStatus === 'saved'   && <><Check size={14} aria-hidden="true" /> {t('boardEditor.saved')}</>}
           {saveStatus === 'offline' && <><WifiOff size={14} aria-hidden="true" /> {t('boardEditor.saveOffline')}</>}
-          {saveStatus === 'error'   && <><AlertTriangle size={14} aria-hidden="true" /> {t('boardEditor.saveError')}</>}
+          {saveStatus === 'error'   && (
+            <>
+              <AlertTriangle size={14} aria-hidden="true" />
+              <span
+                className={styles.saveErrorText}
+                title={saveErrorMessage || t('boardEditor.saveError')}
+              >
+                {saveErrorMessage || t('boardEditor.saveError')}
+              </span>
+            </>
+          )}
         </span>
         <div className={styles.headerControls}>
           {canEdit && (
@@ -697,7 +707,11 @@ export default function BoardEditorPage() {
       {showShortcuts && <ShortcutsOverlay onClose={() => setShowShortcuts(false)} />}
       {showShareModal && <ShareBoardModal boardId={boardId} onClose={() => setShowShareModal(false)} />}
       {showPublishModal && (
-        <PublishBoardModal boardId={boardId} onClose={() => setShowPublishModal(false)} />
+        <PublishBoardModal
+          boardId={boardId}
+          frameId={activeFrame?._id}
+          onClose={() => setShowPublishModal(false)}
+        />
       )}
 
       {pendingFieldType && (

@@ -20,11 +20,77 @@ async function adminCount() {
 export async function listUsers(req, res) {
   try {
     const result = await pool.query(
-      'SELECT id, email, role, display_name AS name, created_at FROM users ORDER BY created_at ASC'
+      `SELECT id, email, role, display_name AS name, status, created_at
+       FROM users
+       ORDER BY (status = 'pending') DESC, created_at ASC`
     );
     res.json(success(result.rows));
   } catch (err) {
     logger.error('[listUsers]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// POST /api/admin/users/:id/approve – approval-Modus: pending → active.
+export async function approveUser(req, res) {
+  try {
+    const result = await pool.query(
+      `UPDATE users SET status = 'active', token_version = token_version + 1
+       WHERE id = $1 AND status = 'pending'
+       RETURNING id, email, role, display_name AS name, status, created_at`,
+      [req.params.id]
+    );
+    if (result.rows.length === 0) {
+      const exists = await pool.query('SELECT status FROM users WHERE id = $1', [req.params.id]);
+      if (exists.rows.length === 0) {
+        return res.status(404).json(error('Benutzer nicht gefunden'));
+      }
+      return res.status(400).json(error('Nur ausstehende Registrierungen können freigegeben werden'));
+    }
+
+    logger.info(`Admin ${req.user.id} approved user ${req.params.id}`);
+    await logAudit({
+      actorId: req.user.id,
+      action: 'user.registration.approve',
+      resourceType: 'user',
+      resourceId: req.params.id,
+      before: { status: 'pending' },
+      after: { status: 'active' },
+    });
+    res.json(success(result.rows[0]));
+  } catch (err) {
+    logger.error('[approveUser]', err);
+    res.status(500).json(error('Interner Serverfehler'));
+  }
+}
+
+// POST /api/admin/users/:id/reject – pending-Account endgültig löschen.
+export async function rejectUser(req, res) {
+  try {
+    const result = await pool.query(
+      `DELETE FROM users WHERE id = $1 AND status = 'pending'
+       RETURNING id, email`,
+      [req.params.id]
+    );
+    if (result.rows.length === 0) {
+      const exists = await pool.query('SELECT status FROM users WHERE id = $1', [req.params.id]);
+      if (exists.rows.length === 0) {
+        return res.status(404).json(error('Benutzer nicht gefunden'));
+      }
+      return res.status(400).json(error('Nur ausstehende Registrierungen können abgelehnt werden'));
+    }
+
+    logger.info(`Admin ${req.user.id} rejected user ${req.params.id}`);
+    await logAudit({
+      actorId: req.user.id,
+      action: 'user.registration.reject',
+      resourceType: 'user',
+      resourceId: req.params.id,
+      before: { status: 'pending', email: result.rows[0].email },
+    });
+    res.json(success({ message: 'Registrierung abgelehnt' }));
+  } catch (err) {
+    logger.error('[rejectUser]', err);
     res.status(500).json(error('Interner Serverfehler'));
   }
 }
@@ -78,7 +144,9 @@ export async function updateUserRole(req, res) {
     }
 
     const result = await pool.query(
-      'UPDATE users SET role = $1 WHERE id = $2 RETURNING id, email, role, display_name AS name, created_at',
+      `UPDATE users SET role = $1, token_version = token_version + 1
+       WHERE id = $2
+       RETURNING id, email, role, display_name AS name, status, created_at`,
       [role, req.params.id]
     );
     logger.info(`Admin ${req.user.id} set role of ${req.params.id} to ${role}`);
